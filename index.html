@@ -126,8 +126,9 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .hero-bar{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ss-blue) 0%,var(--ss-green) 50%,var(--ss-red) 100%)}
 
 .hero .container{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+.hero .container>div:first-child{min-height:400px}
 
-.hero-logo{margin-bottom:.75rem}
+.hero-logo{margin-bottom:.75rem;min-height:40px}
 .hero-logo img{height:80px;width:auto}
 .hero-esop-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:linear-gradient(90deg,rgba(46,127,212,.15),rgba(58,181,74,.12),rgba(224,48,48,.12));border:1px solid rgba(255,255,255,.15);border-radius:100px;font-size:12px;font-weight:600;color:var(--white);letter-spacing:.05em;margin-bottom:1.25rem}
 .hero-esop-badge svg{flex-shrink:0}
@@ -561,7 +562,16 @@ body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;bo
   <div class="container">
     <div>
       <div class="hero-logo fu">
-        <img src="logo-full-trans.png" alt="Southern Software, Inc. — an employee-owned company" width="280" height="auto">
+        <img src="logo-full-trans.png" alt="Southern Software, Inc. — an employee-owned company" width="280" height="auto"
+             onerror="this.style.display='none';document.getElementById('hero-logo-fallback').style.display='flex'">
+        <div id="hero-logo-fallback" style="display:none;align-items:center;gap:12px;margin-bottom:.5rem">
+          <img src="logo-mark-trans.png" alt="" width="52" height="52"
+               onerror="this.style.display='none'">
+          <div>
+            <div style="font-family:var(--fhead);font-weight:900;font-size:2rem;color:var(--white);text-transform:uppercase;letter-spacing:.02em;line-height:1">Southern Software, Inc.</div>
+            <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:3px">An Employee-Owned Company</div>
+          </div>
+        </div>
       </div>
 
       <!-- ESOP badge under logo -->
@@ -933,22 +943,24 @@ body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;bo
 const nav=document.getElementById('nav');
 window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>40),{passive:true});
 
-// Mobile nav toggle with aria-expanded
+// Mobile nav toggle
 const tog=document.getElementById('nav-tog');
 tog.addEventListener('click',()=>{
   const open=document.body.classList.toggle('mob-open');
-  tog.setAttribute('aria-expanded', open ? 'true' : 'false');
+  tog.setAttribute('aria-expanded',open?'true':'false');
 });
-document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>{
+document.querySelectorAll('#main-nav a').forEach(a=>a.addEventListener('click',()=>{
   document.body.classList.remove('mob-open');
   tog.setAttribute('aria-expanded','false');
 }));
 
-// Fade-up on scroll
-const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('vis');io.unobserve(x.target)}}),{threshold:.08,rootMargin:'0px 0px -40px 0px'});
+// Fade-up on scroll — fires immediately for items already in viewport
+const io=new IntersectionObserver(e=>e.forEach(x=>{
+  if(x.isIntersecting){x.target.classList.add('vis');io.unobserve(x.target);}
+}),{threshold:0.05,rootMargin:'0px 0px -20px 0px'});
 document.querySelectorAll('.fu').forEach(el=>io.observe(el));
 
-// Smooth scroll offset for sticky nav
+// Smooth scroll with nav offset
 document.querySelectorAll('a[href^="#"]').forEach(a=>{
   a.addEventListener('click',e=>{
     const t=document.querySelector(a.getAttribute('href'));
@@ -958,77 +970,22 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
   });
 });
 
-// Contact form — Formspree handles submission
-// Sync email to _replyto so replies go directly to the sender
-const emailField = document.getElementById('cf-email');
-if (emailField) {
-  emailField.addEventListener('input', function() {
-    const rt = document.querySelector('input[name="_replyto"]');
-    if (rt) rt.value = this.value;
+// Formspree form — show sending state
+const cfForm=document.querySelector('form[action*="formspree"]');
+if(cfForm){
+  cfForm.addEventListener('submit',function(){
+    const btn=this.querySelector('button[type="submit"]');
+    if(btn){btn.textContent='Sending…';btn.disabled=true;}
   });
-}
-// Show sending state on submit
-const cfForm = document.querySelector('form[action*="formspree"]');
-if (cfForm) {
-  cfForm.addEventListener('submit', function() {
-    const btn = this.querySelector('button[type="submit"]');
-    if (btn) { btn.textContent = 'Sending…'; btn.disabled = true; }
-  });
-} };
-  document.head.appendChild(s);
-})();
-
-document.getElementById('contact-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  const btn = document.getElementById('form-btn');
-  const form = e.target;
-
-  // Basic validation
-  const name    = document.getElementById('cf-name').value.trim();
-  const email   = document.getElementById('cf-email').value.trim();
-  const subject = document.getElementById('cf-subject').value;
-  const message = document.getElementById('cf-message').value.trim();
-
-  if (!name || !email || !message) {
-    btn.textContent = 'Please fill in required fields';
-    btn.style.background = 'var(--ss-red)';
-    setTimeout(() => { btn.textContent = 'Send Message ↗'; btn.style.background = ''; }, 3000);
-    return;
-  }
-
-  // Send via EmailJS
-  btn.textContent = 'Sending…';
-  btn.disabled = true;
-
-  const templateParams = {
-    from_name:    name,
-    from_email:   email,
-    phone:        document.getElementById('cf-phone').value.trim() || 'Not provided',
-    subject:      subject || 'General Inquiry',
-    message:      message,
-    reply_to:     email,
-  };
-
-  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
-    .then(function() {
-      btn.textContent = 'Message Sent ✓';
-      btn.style.background = 'var(--ss-green)';
-      btn.setAttribute('aria-label', 'Message sent successfully');
-      form.reset();
-      setTimeout(() => {
-        btn.textContent = 'Send Message ↗';
-        btn.style.background = '';
-        btn.disabled = false;
-        btn.removeAttribute('aria-label');
-      }, 5000);
-    }, function(error) {
-      console.error('EmailJS error:', error);
-      btn.textContent = 'Failed — please email us directly';
-      btn.style.background = 'var(--ss-red)';
-      btn.disabled = false;
-      setTimeout(() => { btn.textContent = 'Send Message ↗'; btn.style.background = ''; }, 5000);
+  // Sync email to _replyto
+  const emailFld=document.getElementById('cf-email');
+  if(emailFld){
+    emailFld.addEventListener('input',function(){
+      const rt=cfForm.querySelector('input[name="_replyto"]');
+      if(rt)rt.value=this.value;
     });
-});
+  }
+}
 </script>
 </body>
 </html>
