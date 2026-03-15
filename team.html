@@ -665,7 +665,7 @@ body.light-mode .staff-card{background:#fff;border-color:rgba(0,0,0,.1)}
   margin-bottom:0;
 }
 .team-filter-bar .container{
-  display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;
+  display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;justify-content:center;
 }
 .tf-btn{
   padding:.45rem 1rem;border-radius:100px;border:1px solid var(--border);
@@ -674,8 +674,6 @@ body.light-mode .staff-card{background:#fff;border-color:rgba(0,0,0,.1)}
 }
 .tf-btn:hover{border-color:var(--border2);color:var(--text)}
 .tf-btn.active{background:var(--ss-blue);border-color:var(--ss-blue);color:#fff;font-weight:600}
-.tf-count{margin-left:auto;font-size:12px;color:var(--dim);white-space:nowrap;padding-right:.5rem}
-
 .team-section{margin-bottom:3.5rem}
 .team-section.hidden{display:none}
 
@@ -879,7 +877,7 @@ body.light-mode .team-search{background:#fff;border-color:rgba(0,0,0,.15);color:
     </nav>
     <span class="eyebrow fu">Meet the People Behind the Software</span>
     <h1 class="page-title fu" data-d="1">Our Team</h1>
-    <p class="page-lead fu" data-d="2">59 employee-owners dedicated to building, supporting, and improving the software that serves your community — every one of them in-house, no outsourcing.</p>
+    <p class="page-lead fu" data-d="2">Employee-owners dedicated to building, supporting, and improving the software that serves your community — every one of them in-house, no outsourcing.</p>
   </div>
 </div>
 
@@ -895,7 +893,6 @@ body.light-mode .team-search{background:#fff;border-color:rgba(0,0,0,.15);color:
 <button class="tf-btn" data-filter="ps-training">🚔 PS Implementation</button>
 <button class="tf-btn" data-filter="project-mgmt">📁 Project Management</button>
 <button class="tf-btn" data-filter="pr">📣 Public Relations</button>
-    <span class="tf-count" id="tf-count" aria-live="polite">59 members</span>
   </div>
 </div>
 
@@ -2047,14 +2044,7 @@ if(cfForm){
   const sections = document.querySelectorAll('.team-section');
   const cards   = document.querySelectorAll('.staff-card');
   const search  = document.getElementById('team-search');
-  const counter = document.getElementById('tf-count');
-  const noRes   = document.getElementById('team-no-results');
-  let activeFilter = 'all';
-  let searchTerm   = '';
-
-  function updateCount(){
-    const visible = [...cards].filter(c=>!c.classList.contains('tf-hidden') && !c.closest('.team-section').classList.contains('tf-hidden-section')).length;
-    counter.textContent = visible + ' member' + (visible !== 1 ? 's' : '');
+  // count display removed
     noRes.classList.toggle('show', visible === 0);
   }
 
