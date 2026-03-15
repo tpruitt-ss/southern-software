@@ -127,8 +127,15 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 
 .hero .container{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
 
-.hero-logo{margin-bottom:1.75rem}
+.hero-logo{margin-bottom:.75rem}
 .hero-logo img{height:80px;width:auto}
+.hero-esop-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:linear-gradient(90deg,rgba(46,127,212,.15),rgba(58,181,74,.12),rgba(224,48,48,.12));border:1px solid rgba(255,255,255,.15);border-radius:100px;font-size:12px;font-weight:600;color:var(--white);letter-spacing:.05em;margin-bottom:1.25rem}
+.hero-esop-badge svg{flex-shrink:0}
+.hero-checks{display:flex;flex-direction:column;gap:.6rem;margin-bottom:2rem}
+.hero-check{display:flex;align-items:center;gap:.85rem;font-family:var(--fhead);font-weight:700;font-size:1.7rem;text-transform:uppercase;letter-spacing:.04em;color:var(--white)}
+.hero-check svg{flex-shrink:0}
+.hero-tagline{font-family:var(--fhead);font-weight:900;font-size:clamp(1.1rem,2vw,1.4rem);text-transform:uppercase;letter-spacing:.05em;color:var(--ss-red);margin-bottom:2rem;line-height:1.3}
+.hero-tagline em{font-style:normal;color:var(--white)}
 
 .hero-tag{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(46,127,212,.14);border:1px solid rgba(46,127,212,.32);border-radius:100px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--bluel);margin-bottom:1.5rem}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--ss-green);animation:blink 2.2s ease-in-out infinite;flex-shrink:0}
@@ -337,7 +344,7 @@ body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;bo
       <img src="logo-mark-trans.png" alt="Southern Software logo mark" width="42" height="42">
       <div class="nav-logo-text">
         <div class="nav-logo-name">Southern Software</div>
-        <div class="nav-logo-sub">Est. 1988 &middot; Employee Owned</div>
+        <div class="nav-logo-sub">Est. 1988 &middot; An Employee-Owned Company</div>
         <div class="nav-logo-accent" aria-hidden="true"></div>
       </div>
     </a>
@@ -433,11 +440,50 @@ body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;bo
   <div class="container">
     <div>
       <div class="hero-logo fu">
-        <img src="logo-full-trans.png" alt="Southern Software, Inc. — an employee-owned company" width="260" height="auto">
+        <img src="logo-full-trans.png" alt="Southern Software, Inc. — an employee-owned company" width="280" height="auto">
       </div>
-      <div class="hero-tag fu" data-d="1" role="text"><span class="dot" aria-hidden="true"></span>Employee-Owned &middot; Since 1988</div>
+
+      <!-- ESOP badge under logo -->
+      <div class="hero-esop-badge fu" data-d="1" role="text">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
+          <path d="M8 1l2 4.5H15l-4 3 1.5 4.5L8 11l-4.5 3L5 9.5 1 6.5h5z" fill="#f5a623" stroke="#f5a623" stroke-width=".5"/>
+        </svg>
+        An Employee-Owned Company
+      </div>
+
       <h1 class="hero-h1 fu" data-d="2">Built For<br><em>Public Safety.</em><br>Backed By<br>People.</h1>
-      <p class="hero-lead fu" data-d="3">Southern Software delivers purpose-built solutions and unwavering support for law enforcement, municipalities, and finance departments across the country — always staffed by our own team.</p>
+
+      <!-- Powerful / Professional / Affordable -->
+      <div class="hero-checks fu" data-d="3" role="list" aria-label="Key values">
+        <div class="hero-check" role="listitem">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22" width="26" height="26" aria-hidden="true">
+            <circle cx="11" cy="11" r="10" fill="var(--ss-red)" opacity=".15"/>
+            <path d="M6 11l3.5 3.5L16 8" fill="none" stroke="var(--ss-red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Powerful!
+        </div>
+        <div class="hero-check" role="listitem">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22" width="26" height="26" aria-hidden="true">
+            <circle cx="11" cy="11" r="10" fill="var(--ss-red)" opacity=".15"/>
+            <path d="M6 11l3.5 3.5L16 8" fill="none" stroke="var(--ss-red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Professional!
+        </div>
+        <div class="hero-check" role="listitem">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22" width="26" height="26" aria-hidden="true">
+            <circle cx="11" cy="11" r="10" fill="var(--ss-red)" opacity=".15"/>
+            <path d="M6 11l3.5 3.5L16 8" fill="none" stroke="var(--ss-red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Affordable!
+        </div>
+      </div>
+
+      <!-- Tagline -->
+      <p class="hero-tagline fu" data-d="3">
+        ...Not just another vendor —<br>
+        <em>We're an extension of YOUR team!</em>
+      </p>
+
       <div class="hero-ctas fu" data-d="3">
         <a href="#contact" class="btn btn-p btn-lg">Request a Demo &rarr;</a>
         <a href="#products" class="btn btn-o btn-lg">Explore Products</a>
@@ -468,6 +514,34 @@ body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;bo
     </div>
   </div>
 </section>
+
+
+<!-- ESOP / TAGLINE BANNER -->
+<div style="background:linear-gradient(90deg,rgba(46,127,212,.12) 0%,rgba(58,181,74,.10) 50%,rgba(224,48,48,.10) 100%);border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08);padding:1.5rem 0" role="complementary" aria-label="Company highlights">
+  <div class="container" style="display:flex;align-items:center;justify-content:center;gap:3rem;flex-wrap:wrap;text-align:center">
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22" width="22" height="22" aria-hidden="true"><path d="M8 1l2 4.5H15l-4 3 1.5 4.5L8 11l-4.5 3L5 9.5 1 6.5h5z" fill="#f5a623"/></svg>
+      <span style="font-family:var(--fhead);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--white)">An Employee-Owned Company</span>
+    </div>
+    <div style="width:1px;height:24px;background:var(--border);flex-shrink:0" aria-hidden="true"></div>
+    <div style="font-family:var(--fhead);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--ss-red)">Not Just Another Vendor</div>
+    <div style="width:1px;height:24px;background:var(--border);flex-shrink:0" aria-hidden="true"></div>
+    <div style="display:flex;align-items:center;gap:1.5rem">
+      <span style="display:flex;align-items:center;gap:.5rem;font-size:14px;font-weight:600;color:var(--muted)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="var(--ss-red)" opacity=".2"/><path d="M6 11l3.5 3.5L16 8" fill="none" stroke="var(--ss-red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Powerful
+      </span>
+      <span style="display:flex;align-items:center;gap:.5rem;font-size:14px;font-weight:600;color:var(--muted)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="var(--ss-red)" opacity=".2"/><path d="M6 11l3.5 3.5L16 8" fill="none" stroke="var(--ss-red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Professional
+      </span>
+      <span style="display:flex;align-items:center;gap:.5rem;font-size:14px;font-weight:600;color:var(--muted)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="var(--ss-red)" opacity=".2"/><path d="M6 11l3.5 3.5L16 8" fill="none" stroke="var(--ss-red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Affordable
+      </span>
+    </div>
+  </div>
+</div>
 
 <!-- WHO WE ARE -->
 <section class="section section-alt" id="about" aria-labelledby="about-heading">
