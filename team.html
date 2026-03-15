@@ -1954,28 +1954,9 @@ body.light-mode .team-search{background:#fff;border-color:rgba(0,0,0,.15);color:
 </button>
 
 <script>
-
 // Sticky nav
 const nav=document.getElementById('nav');
 window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>40),{passive:true});
-
-// Sticky nav dropdowns — add close delay so menu doesn't snap shut
-document.querySelectorAll('.nav-dd').forEach(dd=>{
-  let closeTimer;
-  dd.addEventListener('mouseenter',()=>{
-    clearTimeout(closeTimer);
-    dd.classList.add('open');
-  });
-  dd.addEventListener('mouseleave',()=>{
-    closeTimer=setTimeout(()=>dd.classList.remove('open'),180);
-  });
-});
-// Flyout submenus — same delay
-document.querySelectorAll('.dd-sub').forEach(sub=>{
-  let t;
-  sub.addEventListener('mouseenter',()=>{clearTimeout(t);sub.classList.add('open')});
-  sub.addEventListener('mouseleave',()=>{t=setTimeout(()=>sub.classList.remove('open'),180)});
-});
 
 // Mobile nav toggle
 const tog=document.getElementById('nav-tog');
@@ -1988,13 +1969,13 @@ document.querySelectorAll('#main-nav a').forEach(a=>a.addEventListener('click',(
   tog.setAttribute('aria-expanded','false');
 }));
 
-// Fade-up on scroll — fires immediately for items already in viewport
+// Fade-up on scroll
 const io=new IntersectionObserver(e=>e.forEach(x=>{
   if(x.isIntersecting){x.target.classList.add('vis');io.unobserve(x.target);}
 }),{threshold:0.05,rootMargin:'0px 0px -20px 0px'});
 document.querySelectorAll('.fu').forEach(el=>io.observe(el));
 
-// Smooth scroll with nav offset
+// Smooth scroll
 document.querySelectorAll('a[href^="#"]').forEach(a=>{
   a.addEventListener('click',e=>{
     const t=document.querySelector(a.getAttribute('href'));
@@ -2004,24 +1985,19 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
   });
 });
 
-// Formspree form — show sending state
-const cfForm=document.querySelector('form[action*="formspree"]');
-if(cfForm){
-  cfForm.addEventListener('submit',function(){
-    const btn=this.querySelector('button[type="submit"]');
-    if(btn){btn.textContent='Sending…';btn.disabled=true;}
-  });
-  // Sync email to _replyto
-  const emailFld=document.getElementById('cf-email');
-  if(emailFld){
-    emailFld.addEventListener('input',function(){
-      const rt=cfForm.querySelector('input[name="_replyto"]');
-      if(rt)rt.value=this.value;
-    });
-  }
-}
+// Sticky nav dropdowns — close delay
+document.querySelectorAll('.nav-dd').forEach(dd=>{
+  let closeTimer;
+  dd.addEventListener('mouseenter',()=>{clearTimeout(closeTimer);dd.classList.add('open')});
+  dd.addEventListener('mouseleave',()=>{closeTimer=setTimeout(()=>dd.classList.remove('open'),200)});
+});
+document.querySelectorAll('.dd-sub').forEach(sub=>{
+  let t;
+  sub.addEventListener('mouseenter',()=>{clearTimeout(t);sub.classList.add('open')});
+  sub.addEventListener('mouseleave',()=>{t=setTimeout(()=>sub.classList.remove('open'),200)});
+});
 
-// Dark / Light mode toggle
+// Dark/Light mode toggle
 (function(){
   const PREF_KEY = 'ss-theme';
   if(localStorage.getItem(PREF_KEY) === 'light') document.body.classList.add('light-mode');
@@ -2036,37 +2012,38 @@ if(cfForm){
   });
 })();
 
-
-
-// ── Team filter + search ──────────────────────────────────────────────────
+// ── Team filter + search ─────────────────────────────────────────────────
 (function(){
-  const btns    = document.querySelectorAll('.tf-btn');
+  const btns     = document.querySelectorAll('.tf-btn');
   const sections = document.querySelectorAll('.team-section');
-  const cards   = document.querySelectorAll('.staff-card');
-  const search  = document.getElementById('team-search');
-  // count display removed
-    noRes.classList.toggle('show', visible === 0);
-  }
+  const cards    = document.querySelectorAll('.staff-card');
+  const search   = document.getElementById('team-search');
+  const noRes    = document.getElementById('team-no-results');
+  let activeFilter = 'all';
+  let searchTerm   = '';
 
   function applyFilter(){
+    // Show/hide sections by team filter
     sections.forEach(sec=>{
       const match = activeFilter === 'all' || sec.dataset.section === activeFilter;
       sec.classList.toggle('hidden', !match);
     });
-    // Apply search within visible sections
+    // Show/hide cards by search
     cards.forEach(card=>{
       if(searchTerm === ''){ card.classList.remove('tf-hidden'); return; }
       const text = card.textContent.toLowerCase();
       card.classList.toggle('tf-hidden', !text.includes(searchTerm));
     });
-    // Hide section banners if all cards hidden
+    // Hide entire section if all its cards are hidden
     sections.forEach(sec=>{
       if(!sec.classList.contains('hidden')){
         const visible = [...sec.querySelectorAll('.staff-card')].filter(c=>!c.classList.contains('tf-hidden')).length;
         sec.classList.toggle('tf-hidden-section', visible === 0);
       }
     });
-    updateCount();
+    // No results message
+    const totalVisible = [...cards].filter(c=>!c.classList.contains('tf-hidden') && !c.closest('.team-section.hidden') && !c.closest('.team-section.tf-hidden-section')).length;
+    if(noRes) noRes.classList.toggle('show', totalVisible === 0);
   }
 
   btns.forEach(btn=>{
@@ -2075,25 +2052,23 @@ if(cfForm){
       btn.classList.add('active');
       activeFilter = btn.dataset.filter;
       applyFilter();
-      // Scroll to first visible section
       const first = [...sections].find(s=>!s.classList.contains('hidden') && !s.classList.contains('tf-hidden-section'));
       if(first) first.scrollIntoView({behavior:'smooth', block:'start'});
     });
   });
 
-  search.addEventListener('input',()=>{
-    searchTerm = search.value.trim().toLowerCase();
-    // When searching, show all sections
-    if(searchTerm){
-      btns.forEach(b=>b.classList.remove('active'));
-      document.querySelector('[data-filter="all"]').classList.add('active');
-      activeFilter = 'all';
-      sections.forEach(s=>s.classList.remove('hidden'));
-    }
-    applyFilter();
-  });
-
-  updateCount();
+  if(search){
+    search.addEventListener('input',()=>{
+      searchTerm = search.value.trim().toLowerCase();
+      if(searchTerm){
+        btns.forEach(b=>b.classList.remove('active'));
+        document.querySelector('[data-filter="all"]').classList.add('active');
+        activeFilter = 'all';
+        sections.forEach(s=>s.classList.remove('hidden'));
+      }
+      applyFilter();
+    });
+  }
 })();
 </script>
 </body>
