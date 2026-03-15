@@ -459,6 +459,32 @@ body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;bo
 @media(max-width:600px){
   .nucleus-box{padding:2rem 1.25rem}
 }
+
+/* ── Flyout sub-menus ── */
+.dd-sub{position:relative}
+.dd-sub>a{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.dd-sub>a::after{content:"›";font-size:14px;margin-left:auto;opacity:.6}
+.dd-flyout{
+  display:none;position:absolute;
+  top:-6px;left:calc(100% + 6px);
+  min-width:260px;
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:12px;padding:.5rem;
+  box-shadow:0 12px 40px rgba(0,0,0,.55);
+  z-index:400;
+}
+.dd-sub:hover .dd-flyout,
+.dd-sub:focus-within .dd-flyout{display:block}
+.dd-flyout a{display:flex;align-items:center;gap:.65rem;padding:.55rem .9rem;font-size:13px;color:var(--muted);border-radius:6px;transition:color var(--tr),background var(--tr);text-decoration:none;white-space:nowrap}
+.dd-flyout a:hover{color:var(--white);background:rgba(255,255,255,.07)}
+.dd-flyout-date{font-family:var(--fhead);font-weight:700;font-size:12px;color:var(--ss-blue);min-width:56px;flex-shrink:0}
+.dd-flyout-date.g{color:var(--ss-green)}
+.dd-flyout-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:.4rem .9rem .2rem;display:block}
+.dd-flyout hr{border:none;border-top:1px solid var(--border);margin:.35rem .6rem}
+/* Mobile — flatten flyouts */
+body.mob-open .dd-flyout{position:static;box-shadow:none;background:transparent;border:none;padding-left:1.5rem;display:none}
+body.mob-open .dd-sub:hover .dd-flyout,
+body.mob-open .dd-sub:focus-within .dd-flyout{display:block}
 </style>
 </head>
 <body>
@@ -532,9 +558,37 @@ body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;bo
       <div class="nav-dd">
         <a href="#training" aria-haspopup="true">Training</a>
         <div class="dd-menu" role="menu" aria-label="Training submenu">
-          <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=232" target="_blank" rel="noopener" role="menuitem">2026 PS Users' Conference</a>
-          <a href="regionaltrainings.html" role="menuitem">Regional Trainings</a>
-          <a href="https://portal.southernsoftware.com/new/Training_New/Public/SingleClasses/" target="_blank" rel="noopener" role="menuitem">Virtual Classes</a>
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=232" target="_blank" rel="noopener" role="menuitem">⭐ 2026 PS Users' Conference</a>
+          <hr>
+          <div class="dd-sub" role="none">
+            <a href="regionaltrainings.html" role="menuitem">Regional Trainings</a>
+            <div class="dd-flyout" role="menu" aria-label="Regional Trainings">
+              <span class="dd-flyout-label">2026 Schedule</span>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=VA" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">Apr 14–16</span>Virginia Regional</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TN" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">May 5–7</span>Tennessee Regional</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TX-Kaufaman_and_Surrounding_Areas" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">May 19–21</span>Texas Regional</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=NC-Western" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">Jun 9–11</span>NC Regional (West)</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TX-Victoria_and_Surrounding_Areas" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">Jun 23–25</span>Texas Regional (Victoria)</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=AR" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">Jul 28–30</span>Arkansas Regional</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=NC-Eastern" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">Aug 18–20</span>NC Regional (East)</a>
+              <hr>
+              <a href="regionaltrainings.html" role="menuitem" style="color:var(--bluel);font-weight:600">View All Trainings →</a>
+            </div>
+          </div>
+          <div class="dd-sub" role="none">
+            <a href="https://portal.southernsoftware.com/new/Training_New/Public/virtual_classroom.php" target="_blank" rel="noopener" role="menuitem">Virtual Classes</a>
+            <div class="dd-flyout" role="menu" aria-label="Virtual Classes">
+              <span class="dd-flyout-label">Upcoming Classes</span>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=238" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">Apr 7</span>CAD Searches &amp; Reports</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=234" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">Apr 13</span>Clery Compliance Overview</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=235" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">May 4</span>Analytics Overview</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=239" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">May 12</span>CAD Workspace Customization</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=236" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">Jun 1</span>Citizen Connect Overview</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=240" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">Jun 2</span>CAD Response Plans</a>
+              <hr>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/virtual_classroom.php" target="_blank" rel="noopener" role="menuitem" style="color:var(--ss-green);font-weight:600">View All Classes →</a>
+            </div>
+          </div>
         </div>
       </div>
       <div class="nav-dd">
