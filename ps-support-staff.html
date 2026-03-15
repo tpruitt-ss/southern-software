@@ -227,6 +227,16 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 body.mob-open .nav-links{display:flex;flex-direction:column;position:fixed;top:70px;left:0;right:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:1.25rem 1.5rem 2rem;gap:.25rem;z-index:199;overflow-y:auto;max-height:calc(100vh - 70px)}
 body.mob-open .nav-dd>a::after{content:" ▾"}
 body.mob-open .dd-menu{visibility:visible;opacity:1;pointer-events:auto;position:static;box-shadow:none;background:rgba(255,255,255,.04);border:none;border-radius:8px;margin:.25rem 0;padding:.25rem .5rem}
+
+/* ══ MOBILE ══ */
+@media(max-width:860px){.topbar .container{gap:.6rem}.topbar a span span{display:none}.topbar a span{gap:0}}
+@media(max-width:600px){.topbar{display:none}}
+@media(max-width:900px){.nav-actions{gap:.4rem}.nav-btn{padding:.42rem .7rem;font-size:11px}}
+@media(max-width:680px){.nav-actions .nh{display:none}.nav-btn{padding:.4rem .65rem;font-size:11px}}
+@media(max-width:600px){.foot-grid{grid-template-columns:1fr;gap:2rem}}
+@media(max-width:480px){.cf-in,.cf-sel,.cf-ta{font-size:16px}}
+@media(max-width:500px){.page-title{font-size:clamp(2.2rem,8vw,3.5rem)}}
+@media(max-width:480px){.card-grid-2,.card-grid-3{grid-template-columns:1fr}}
 </style>
 </head>
 <body>

@@ -390,6 +390,75 @@ body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;bo
   .ticker-date{font-size:12px}
   .ticker-name{font-size:12px}
 }
+
+/* ══════════════════════════════════════════════
+   MOBILE IMPROVEMENTS
+   ══════════════════════════════════════════════ */
+
+/* Topbar — hide text labels on small screens, show icons only */
+@media(max-width:860px){
+  .topbar .container{gap:.6rem}
+  .topbar a span span{display:none}          /* hide text, keep icon */
+  .topbar a span{gap:0}
+}
+@media(max-width:600px){
+  .topbar{display:none}                      /* hide entirely on phone — nav has the links */
+}
+
+/* Nav action buttons — shrink on tablet, stack on phone */
+@media(max-width:900px){
+  .nav-actions{gap:.4rem}
+  .nav-btn{padding:.42rem .7rem;font-size:11px}
+}
+@media(max-width:680px){
+  .nav-actions .nh{display:none}             /* hide Customer Portal — saves space */
+  .nav-btn{padding:.4rem .65rem;font-size:11px}
+}
+
+/* Hero checks — slightly smaller on phone */
+@media(max-width:480px){
+  .hero-check{font-size:1.4rem;gap:.65rem}
+  .hero-tagline{font-size:1rem}
+  .hero-esop-badge{font-size:11px}
+}
+
+/* Partner grid — 2 cols on tablet, 2 cols on phone */
+@media(max-width:900px){
+  .part-row{grid-template-columns:repeat(3,1fr) !important}
+}
+@media(max-width:560px){
+  .part-row{grid-template-columns:repeat(2,1fr) !important}
+  .part-chip{min-height:64px;padding:12px 14px}
+}
+
+/* Support grid — 2 col on tablet already, 1 col on phone */
+@media(max-width:480px){
+  .supp-grid{grid-template-columns:1fr}
+}
+
+/* Footer — single col on phone */
+@media(max-width:600px){
+  .foot-grid{grid-template-columns:1fr;gap:2rem}
+}
+
+/* ESOP banner strip — wrap on mobile */
+@media(max-width:700px){
+  .events-banner-cta{display:none}          /* remove View All on tiny screens */
+}
+@media(max-width:500px){
+  .hero-ctas{flex-direction:column}
+  .hero-ctas .btn{text-align:center}
+}
+
+/* Contact form full-width on mobile */
+@media(max-width:480px){
+  .cf-in,.cf-sel,.cf-ta{font-size:16px}     /* prevent iOS zoom on focus */
+}
+
+/* Nucleus callout on ps-overview — stack on mobile */
+@media(max-width:600px){
+  .nucleus-box{padding:2rem 1.25rem}
+}
 </style>
 </head>
 <body>
