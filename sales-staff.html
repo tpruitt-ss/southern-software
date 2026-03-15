@@ -43,19 +43,20 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* Buttons */
 .btn{display:inline-flex;align-items:center;gap:8px;padding:.75rem 1.75rem;font-family:var(--fbody);font-size:15px;font-weight:600;border-radius:8px;transition:var(--tr);cursor:pointer;white-space:nowrap;text-decoration:none;border:2px solid transparent}
-.btn-p{background:var(--ss-blue);color:#fff;border-color:var(--ss-blue)}
-.btn-p:hover{background:#1f6abf;border-color:#1f6abf;transform:translateY(-2px);box-shadow:0 6px 20px rgba(46,127,212,.4)}
-.btn-o{background:transparent;color:var(--white);border-color:var(--border2)}
-.btn-o:hover{border-color:rgba(255,255,255,.45);background:rgba(255,255,255,.06)}
+.btn-p{background:var(--ss-green);color:#fff;border:2px solid var(--ss-green);font-weight:600}
+.btn-p:hover{background:#2a9a3a;border-color:#2a9a3a;transform:translateY(-2px);box-shadow:0 6px 20px rgba(58,181,74,.4)}
+.btn-o{background:rgba(255,255,255,.07);color:var(--white);border:2px solid var(--border2)}
+.btn-o:hover{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.12);transform:translateY(-2px)}
 .btn-g{background:var(--ss-green);color:#fff;border-color:var(--ss-green)}
 .btn-g:hover{background:#2a9a3a;transform:translateY(-2px)}
 .btn-lg{padding:.9rem 2.4rem;font-size:16px;border-radius:10px}
-.btn-nucleus{background:linear-gradient(135deg,#1b6fe8,#3ab54a);color:#fff;border-color:transparent;font-weight:700}
-.btn-nucleus:hover{opacity:.88;transform:translateY(-2px);box-shadow:0 6px 20px rgba(27,111,232,.4)}
+.nav-btn{padding:.52rem 1.1rem;font-size:13px;border-radius:8px;font-weight:600;letter-spacing:.01em}
+.btn-nucleus{background:var(--ss-blue);color:#fff;border:2px solid var(--ss-blue);font-weight:600}
+.btn-nucleus:hover{background:#1f6abf;border-color:#1f6abf;transform:translateY(-2px);box-shadow:0 6px 20px rgba(27,111,232,.4)}
 
 /* TOPBAR */
 .topbar{background:rgba(0,0,0,.55);border-bottom:1px solid var(--border);padding:.5rem 0;font-size:12px;color:var(--muted)}
-.topbar .container{display:flex;justify-content:flex-end;align-items:center;gap:2rem;flex-wrap:wrap}
+.topbar .container{display:flex;justify-content:center;align-items:center;gap:2rem;flex-wrap:wrap}
 .topbar a{color:var(--muted);transition:color var(--tr);padding:.2rem 0}
 .topbar a:hover{color:var(--white)}
 
@@ -326,9 +327,9 @@ body.mob-open .dd-menu{visibility:visible;opacity:1;pointer-events:auto;position
       </div>
     </nav>
     <div class="nav-actions">
-      <a href="https://nucleuspsp.com/Nucleus/" target="_blank" rel="noopener" class="btn btn-nucleus" aria-label="Nucleus Platform (opens in new tab)">Nucleus ↗</a>
-      <a href="https://portal.southernsoftware.com/index.php" target="_blank" rel="noopener" class="btn btn-o nh" aria-label="Customer Portal (opens in new tab)">Customer Portal</a>
-      <a href="index.html#contact" class="btn btn-p">Request Demo</a>
+      <a href="https://nucleuspsp.com/Nucleus/" target="_blank" rel="noopener" class="btn btn-nucleus nav-btn" aria-label="Nucleus Platform (opens in new tab)">Nucleus ↗</a>
+      <a href="https://portal.southernsoftware.com/index.php" target="_blank" rel="noopener" class="btn btn-o nav-btn nh" aria-label="Customer Portal (opens in new tab)">Customer Portal</a>
+      <a href="index.html#contact" class="btn btn-p nav-btn">Request Demo</a>
     </div>
     <button class="nav-toggle" id="nav-tog" aria-label="Toggle navigation" aria-expanded="false" aria-controls="main-nav">
       <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
