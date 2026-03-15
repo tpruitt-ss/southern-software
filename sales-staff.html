@@ -344,8 +344,7 @@ body.light-mode .staff-title{color:#3d5c7a}
 
 /* Toggle button */
 .theme-toggle{
-  position:fixed;top:1.5rem;left:1.5rem;
-  width:46px;height:46px;border-radius:50%;
+  position:fixed;top:1.5rem;left:1.5rem;width:46px;height:46px;border-radius:50%;
   border:1.5px solid var(--border2);
   background:var(--bg2);
   cursor:pointer;
@@ -759,5 +758,11 @@ document.querySelectorAll('.dd-sub').forEach(sub=>{
 })();
 
 </script>
+
+<!-- Dark/Light mode toggle -->
+<button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
+  <span class="icon-moon" aria-hidden="true">🌙</span>
+  <span class="icon-sun"  aria-hidden="true">☀️</span>
+</button>
 </body>
 </html>
