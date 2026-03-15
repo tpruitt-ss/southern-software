@@ -126,9 +126,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .hero-bar{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ss-blue) 0%,var(--ss-green) 50%,var(--ss-red) 100%)}
 
 .hero .container{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
-.hero .container>div:first-child{min-height:400px}
 
-.hero-logo{margin-bottom:.75rem;min-height:40px}
+.hero-logo{margin-bottom:.75rem}
 .hero-logo img{height:80px;width:auto}
 .hero-esop-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:linear-gradient(90deg,rgba(46,127,212,.15),rgba(58,181,74,.12),rgba(224,48,48,.12));border:1px solid rgba(255,255,255,.15);border-radius:100px;font-size:12px;font-weight:600;color:var(--white);letter-spacing:.05em;margin-bottom:1.25rem}
 .hero-esop-badge svg{flex-shrink:0}
@@ -562,16 +561,7 @@ body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;bo
   <div class="container">
     <div>
       <div class="hero-logo fu">
-        <img src="logo-full-trans.png" alt="Southern Software, Inc. — an employee-owned company" width="280" height="auto"
-             onerror="this.style.display='none';document.getElementById('hero-logo-fallback').style.display='flex'">
-        <div id="hero-logo-fallback" style="display:none;align-items:center;gap:12px;margin-bottom:.5rem">
-          <img src="logo-mark-trans.png" alt="" width="52" height="52"
-               onerror="this.style.display='none'">
-          <div>
-            <div style="font-family:var(--fhead);font-weight:900;font-size:2rem;color:var(--white);text-transform:uppercase;letter-spacing:.02em;line-height:1">Southern Software, Inc.</div>
-            <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:3px">An Employee-Owned Company</div>
-          </div>
-        </div>
+        <img src="logo-full-trans.png" alt="Southern Software, Inc. — an employee-owned company" width="280" height="auto">
       </div>
 
       <!-- ESOP badge under logo -->
