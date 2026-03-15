@@ -5,730 +5,858 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Southern Software, Inc. — Purpose-built software and industry-leading support for public safety and financial management since 1988." />
   <title>Southern Software, Inc. — Public Safety &amp; Financial Management Solutions</title>
-  <link rel="stylesheet" href="./assets/css/styles.css" />
-  <!-- Favicon placeholder: replace with your actual favicon -->
-  <!-- <link rel="icon" href="assets/img/favicon.ico" /> -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Variables ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+:root {
+  --bg:       #06101f;
+  --bg2:      #0b1a2e;
+  --bg3:      #0f2240;
+  --bgcard:   rgba(255,255,255,0.04);
+  --border:   rgba(255,255,255,0.08);
+  --border2:  rgba(255,255,255,0.16);
+  --blue:     #1b6fe8;
+  --bluel:    #4a90f5;
+  --teal:     #00c4a0;
+  --amber:    #f5a623;
+  --white:    #ffffff;
+  --text:     #ccd9ee;
+  --muted:    #6b89aa;
+  --dim:      #3d5470;
+  --fhead:    'Barlow Condensed', sans-serif;
+  --fbody:    'Inter', sans-serif;
+  --tr:       0.22s ease;
+}
+
+body {
+  font-family: var(--fbody);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.65;
+  overflow-x: hidden;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; }
+button { cursor: pointer; font-family: inherit; border: none; outline: none; background: transparent; }
+
+/* ── Layout ── */
+.container { max-width: 1080px; margin: 0 auto; padding: 0 2rem; }
+.section    { padding: 7rem 0; }
+.section-alt { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+/* ── Typography ── */
+.eyebrow {
+  display: inline-block;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--teal); margin-bottom: 0.75rem;
+}
+.section-title {
+  font-family: var(--fhead);
+  font-weight: 900;
+  font-size: clamp(2.4rem, 4.5vw, 3.6rem);
+  line-height: 1.0; letter-spacing: 0.01em;
+  text-transform: uppercase; color: var(--white);
+  margin-bottom: 1.1rem;
+}
+.section-sub {
+  font-size: 17px; font-weight: 300;
+  color: var(--muted); max-width: 560px;
+  line-height: 1.75; margin-bottom: 3rem;
+}
+
+/* ── Fade animation ── */
+.fu { opacity: 0; transform: translateY(28px); transition: opacity .65s ease, transform .65s ease; }
+.fu.vis { opacity: 1; transform: translateY(0); }
+.fu[data-d="1"] { transition-delay: .1s; }
+.fu[data-d="2"] { transition-delay: .2s; }
+.fu[data-d="3"] { transition-delay: .3s; }
+.fu[data-d="4"] { transition-delay: .4s; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: .7rem 1.6rem;
+  font-family: var(--fbody); font-size: 14px; font-weight: 600;
+  border-radius: 6px; transition: var(--tr);
+  cursor: pointer; white-space: nowrap; text-decoration: none;
+}
+.btn-p {
+  background: var(--blue); color: #fff;
+  border: 1px solid transparent;
+}
+.btn-p:hover { background: var(--bluel); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(27,111,232,.4); }
+.btn-o {
+  background: transparent; color: var(--text);
+  border: 1px solid var(--border2);
+}
+.btn-o:hover { border-color: rgba(255,255,255,.35); color: var(--white); background: rgba(255,255,255,.04); }
+.btn-lg { padding: .9rem 2.2rem; font-size: 15px; border-radius: 10px; }
+
+/* ── TOPBAR ── */
+.topbar {
+  background: rgba(0,0,0,.5);
+  border-bottom: 1px solid var(--border);
+  padding: .45rem 0;
+  font-size: 12px; color: var(--muted);
+}
+.topbar .container { display: flex; justify-content: flex-end; align-items: center; gap: 1.75rem; }
+.topbar a { color: var(--muted); transition: color var(--tr); }
+.topbar a:hover { color: var(--white); }
+
+/* ── NAV ── */
+.nav {
+  position: sticky; top: 0; z-index: 200;
+  height: 66px; display: flex; align-items: center;
+  background: rgba(6,16,31,.9);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  transition: background var(--tr);
+}
+.nav.scrolled { background: rgba(6,16,31,.98); }
+.nav .container { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+
+.nav-logo { display: flex; align-items: center; gap: 11px; flex-shrink: 0; }
+.nav-logo-mark {
+  width: 38px; height: 38px; background: var(--blue); border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--fhead); font-weight: 900; font-size: 17px; color: #fff; letter-spacing: -.5px;
+}
+.nav-logo-name { font-family: var(--fhead); font-weight: 700; font-size: 17px; color: var(--white); }
+.nav-logo-sub  { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+.nav-links { display: flex; align-items: center; gap: .2rem; }
+.nav-links > a, .nav-dd > a {
+  display: block; padding: .45rem .85rem;
+  font-size: 14px; color: var(--muted);
+  border-radius: 6px; transition: color var(--tr), background var(--tr);
+  cursor: pointer;
+}
+.nav-links > a:hover, .nav-dd > a:hover, .nav-links > a.active { color: var(--white); background: rgba(255,255,255,.06); }
+
+.nav-dd { position: relative; }
+.nav-dd > a::after { content: ' ▾'; font-size: 10px; }
+.dd-menu {
+  display: none; position: absolute; top: calc(100% + 8px); left: 0;
+  min-width: 210px;
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 10px; padding: .5rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,.4); z-index: 300;
+}
+.nav-dd:hover .dd-menu { display: block; }
+.dd-menu a {
+  display: block; padding: .5rem .85rem;
+  font-size: 13px; color: var(--muted);
+  border-radius: 6px; transition: color var(--tr), background var(--tr);
+}
+.dd-menu a:hover { color: var(--white); background: rgba(255,255,255,.06); }
+.dd-menu hr { border: none; border-top: 1px solid var(--border); margin: .4rem .85rem; }
+.dd-label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); padding: .6rem .85rem .2rem; }
+
+.nav-actions { display: flex; align-items: center; gap: .65rem; }
+
+.nav-toggle { display: none; flex-direction: column; gap: 5px; padding: 4px; }
+.nav-toggle span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: var(--tr); }
+
+/* ── HERO ── */
+.hero {
+  position: relative; min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 6rem 0 5rem; overflow: hidden;
+}
+.hero-grid {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(27,111,232,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(27,111,232,.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 85% at 50% 40%, black 35%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 85% at 50% 40%, black 35%, transparent 100%);
+}
+.hero-glow1 {
+  position: absolute; top: -180px; left: 50%; transform: translateX(-55%);
+  width: 860px; height: 680px;
+  background: radial-gradient(ellipse at center, rgba(27,111,232,.2) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero-glow2 {
+  position: absolute; bottom: -80px; right: -80px;
+  width: 560px; height: 480px;
+  background: radial-gradient(ellipse at center, rgba(0,196,160,.10) 0%, transparent 65%);
+  pointer-events: none;
+}
+.hero .container {
+  position: relative; display: grid;
+  grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+}
+
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 14px;
+  background: rgba(27,111,232,.12); border: 1px solid rgba(27,111,232,.28);
+  border-radius: 100px; font-size: 11px; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--bluel); margin-bottom: 1.4rem;
+}
+.dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--teal);
+  animation: blink 2.2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.75)} }
+
+.hero-h1 {
+  font-family: var(--fhead); font-weight: 900;
+  font-size: clamp(3.4rem, 6vw, 5.6rem);
+  line-height: .93; letter-spacing: .005em;
+  text-transform: uppercase; color: var(--white); margin-bottom: 1.5rem;
+}
+.hero-h1 em { font-style: normal; color: var(--bluel); }
+
+.hero-lead {
+  font-size: 17px; font-weight: 300;
+  color: var(--muted); line-height: 1.75;
+  max-width: 480px; margin-bottom: 2.2rem;
+}
+.hero-ctas { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 3rem; }
+.hero-divider { border: none; border-top: 1px solid var(--border); margin-bottom: 2rem; }
+.hero-stats { display: flex; gap: 2.5rem; }
+.hero-stat-num { font-family: var(--fhead); font-weight: 900; font-size: 2.2rem; line-height: 1; color: var(--white); }
+.hero-stat-lbl { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); margin-top: 3px; }
+
+/* Hero cards */
+.hero-cards { display: flex; flex-direction: column; gap: 1rem; }
+.hero-card {
+  background: var(--bgcard); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.25rem 1.5rem;
+  transition: border-color var(--tr), background var(--tr), transform var(--tr);
+}
+.hero-card:hover { border-color: var(--border2); background: rgba(255,255,255,.06); transform: translateX(-4px); }
+.hc-top { display: flex; align-items: center; gap: 10px; margin-bottom: .5rem; }
+.hc-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.hc-title { font-family: var(--fhead); font-weight: 700; font-size: 14px; letter-spacing: .05em; text-transform: uppercase; color: var(--white); flex: 1; }
+.badge { padding: 2px 9px; border-radius: 100px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.badge-b { background: rgba(27,111,232,.18); color: var(--bluel); }
+.badge-t { background: rgba(0,196,160,.15); color: var(--teal); }
+.badge-a { background: rgba(245,166,35,.15); color: var(--amber); }
+.hero-card p { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+/* ── WHO WE ARE ── */
+.who-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+.who-body p { font-size: 16px; color: var(--muted); line-height: 1.8; margin-bottom: 1.1rem; }
+.tags { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.75rem; }
+.tag {
+  padding: 5px 14px; border: 1px solid var(--border2); border-radius: 100px;
+  font-size: 12px; color: var(--muted);
+  transition: border-color var(--tr), color var(--tr);
+}
+.tag:hover { border-color: var(--bluel); color: var(--white); }
+
+.who-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.wf { background: var(--bg2); padding: 2rem; transition: background var(--tr); }
+.wf:hover { background: var(--bg3); }
+.wf-num { font-family: var(--fhead); font-weight: 900; font-size: 2.8rem; line-height: 1; color: var(--bluel); margin-bottom: 4px; }
+.wf-lbl { font-size: 13px; color: var(--muted); line-height: 1.45; }
+
+/* ── PRODUCTS ── */
+.prod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 3.5rem; }
+.prod-card {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 16px; padding: 2.5rem;
+  position: relative; overflow: hidden;
+  transition: border-color var(--tr), transform var(--tr), box-shadow var(--tr);
+}
+.prod-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.prod-card.ps::before  { background: linear-gradient(90deg, var(--blue), var(--bluel)); }
+.prod-card.fms::before { background: linear-gradient(90deg, #009f83, var(--teal)); }
+.prod-card:hover { border-color: var(--border2); transform: translateY(-5px); box-shadow: 0 8px 32px rgba(0,0,0,.4); }
+
+.prod-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 1.5rem; }
+.prod-icon.ps  { background: rgba(27,111,232,.12); }
+.prod-icon.fms { background: rgba(0,196,160,.10); }
+.prod-tag  { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin-bottom: .35rem; }
+.prod-card h3  { font-family: var(--fhead); font-weight: 900; font-size: 2rem; text-transform: uppercase; color: var(--white); margin-bottom: .8rem; }
+.prod-card > p { font-size: 15px; color: var(--muted); line-height: 1.7; margin-bottom: 1.75rem; }
+.prod-feats { display: flex; flex-direction: column; gap: .55rem; margin-bottom: 2rem; }
+.prod-feats li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--muted); }
+.prod-feats li::before { content: '›'; font-size: 17px; font-weight: 700; flex-shrink: 0; line-height: 1.2; }
+.prod-card.ps  .prod-feats li::before { color: var(--bluel); }
+.prod-card.fms .prod-feats li::before { color: var(--teal); }
+.prod-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; transition: gap var(--tr); }
+.prod-card.ps  .prod-link { color: var(--bluel); }
+.prod-card.fms .prod-link { color: var(--teal); }
+.prod-link:hover { gap: 10px; }
+
+.nucleus-box {
+  margin-top: 2rem; padding: 3.5rem;
+  background: linear-gradient(135deg, rgba(27,111,232,.10), rgba(0,196,160,.07));
+  border: 1px solid rgba(27,111,232,.22);
+  border-radius: 24px; text-align: center;
+  position: relative; overflow: hidden;
+}
+.nucleus-box h3 { font-family: var(--fhead); font-weight: 900; font-size: 2.2rem; text-transform: uppercase; color: var(--white); margin-bottom: .75rem; }
+.nucleus-box p  { font-size: 16px; color: var(--muted); max-width: 520px; margin: 0 auto 2rem; line-height: 1.7; }
+
+/* ── SUPPORT ── */
+.supp-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-top: 3rem; }
+.supp-card {
+  background: var(--bgcard); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.75rem;
+  text-decoration: none; display: block;
+  transition: border-color var(--tr), background var(--tr), transform var(--tr);
+}
+.supp-card:hover { border-color: var(--border2); background: rgba(255,255,255,.06); transform: translateY(-3px); }
+.supp-icon { font-size: 26px; margin-bottom: 1rem; }
+.supp-card h4 { font-family: var(--fhead); font-weight: 700; font-size: 15px; text-transform: uppercase; letter-spacing: .05em; color: var(--white); margin-bottom: .4rem; }
+.supp-card p  { font-size: 13px; color: var(--dim); line-height: 1.55; }
+
+/* ── TRAINING ── */
+.train-grid { display: grid; grid-template-columns: 1fr 1.35fr; gap: 5rem; align-items: start; }
+.train-links { display: flex; flex-direction: column; gap: .65rem; margin-top: 2rem; }
+.train-links .btn { font-size: 13px; }
+
+.ev-label { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin-bottom: .85rem; }
+.ev-list   { display: flex; flex-direction: column; gap: .6rem; }
+.ev-item {
+  display: flex; align-items: center; gap: 1rem;
+  padding: .95rem 1.2rem; background: var(--bgcard);
+  border: 1px solid var(--border); border-radius: 10px;
+  text-decoration: none;
+  transition: border-color var(--tr), background var(--tr);
+}
+.ev-item:hover { border-color: var(--border2); background: rgba(255,255,255,.05); }
+.ev-date  { flex-shrink: 0; width: 50px; text-align: center; }
+.ev-mo    { display: block; font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--bluel); }
+.ev-dy    { display: block; font-family: var(--fhead); font-size: 24px; font-weight: 900; line-height: 1; color: var(--white); }
+.ev-info  { flex: 1; }
+.ev-title { font-size: 14px; font-weight: 500; color: var(--white); margin-bottom: 2px; }
+.ev-when  { font-size: 12px; color: var(--dim); }
+.ev-arr   { font-size: 20px; color: var(--dim); }
+
+.virt-box { margin-top: 1.5rem; }
+.pill-row { display: flex; flex-wrap: wrap; gap: .5rem; }
+.pill {
+  padding: 5px 13px;
+  background: rgba(27,111,232,.10); border: 1px solid rgba(27,111,232,.22);
+  border-radius: 100px; font-size: 12px; color: var(--bluel); text-decoration: none;
+  transition: background var(--tr), border-color var(--tr);
+}
+.pill:hover { background: rgba(27,111,232,.20); border-color: rgba(27,111,232,.4); }
+
+/* ── PARTNERS ── */
+.partners { padding: 4rem 0; border-top: 1px solid var(--border); }
+.part-lbl { text-align: center; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin-bottom: 2rem; }
+.part-row { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: center; }
+.part-chip {
+  padding: 7px 18px; border: 1px solid var(--border); border-radius: 100px;
+  font-size: 13px; color: var(--dim);
+  transition: border-color var(--tr), color var(--tr); text-decoration: none;
+}
+.part-chip:hover { border-color: var(--border2); color: var(--text); }
+
+/* ── CONTACT ── */
+.contact-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 5rem; align-items: start; }
+.ci-list { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem; }
+.ci { display: flex; gap: 1rem; align-items: flex-start; }
+.ci-icon { width: 42px; height: 42px; background: rgba(27,111,232,.15); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.ci-lbl  { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); margin-bottom: 3px; }
+.ci-val  { font-size: 15px; color: var(--white); }
+.ci-val a { color: var(--white); transition: color var(--tr); }
+.ci-val a:hover { color: var(--bluel); }
+
+.cf { display: flex; flex-direction: column; gap: 1rem; }
+.cf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.cf-grp { display: flex; flex-direction: column; gap: 6px; }
+.cf-lbl { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+.cf-in, .cf-sel, .cf-ta {
+  background: rgba(255,255,255,.04); border: 1px solid var(--border2);
+  border-radius: 6px; padding: .7rem 1rem;
+  font-family: var(--fbody); font-size: 14px; color: var(--white);
+  outline: none; transition: border-color var(--tr); width: 100%;
+}
+.cf-in::placeholder, .cf-ta::placeholder { color: var(--dim); }
+.cf-in:focus, .cf-sel:focus, .cf-ta:focus { border-color: var(--blue); }
+.cf-sel option { background: var(--bg2); color: var(--white); }
+.cf-ta { resize: vertical; min-height: 130px; }
+
+/* ── FOOTER ── */
+.footer { background: rgba(0,0,0,.35); border-top: 1px solid var(--border); padding: 4rem 0 2rem; }
+.foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+.foot-brand p { font-size: 14px; color: var(--dim); line-height: 1.7; margin-top: 1rem; max-width: 270px; }
+.foot-esop { display: inline-flex; align-items: center; gap: 7px; margin-top: 1.1rem; padding: 5px 13px; border: 1px solid var(--border); border-radius: 100px; font-size: 12px; color: var(--dim); }
+.foot-col h5 { font-family: var(--fhead); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 1rem; }
+.foot-col ul { display: flex; flex-direction: column; gap: .55rem; }
+.foot-col ul li a { font-size: 13px; color: var(--dim); transition: color var(--tr); }
+.foot-col ul li a:hover { color: var(--white); }
+.foot-bottom { border-top: 1px solid var(--border); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--dim); }
+.foot-links { display: flex; gap: 1.5rem; }
+.foot-links a { color: var(--dim); transition: color var(--tr); }
+.foot-links a:hover { color: var(--white); }
+
+/* ── RESPONSIVE ── */
+@media(max-width:960px){
+  .hero .container,.who-grid,.prod-grid,.contact-grid,.train-grid{grid-template-columns:1fr}
+  .hero-right,.nav-links,.btn-o.nav-hide{display:none}
+  .supp-grid{grid-template-columns:1fr 1fr}
+  .foot-grid{grid-template-columns:1fr 1fr}
+  .nav-toggle{display:flex}
+}
+@media(max-width:600px){
+  .section{padding:5rem 0}
+  .hero{padding:4rem 0}
+  .supp-grid,.foot-grid{grid-template-columns:1fr}
+  .cf-row{grid-template-columns:1fr}
+  .nucleus-box{padding:2rem 1.5rem}
+}
+body.mob-open .nav-links {
+  display:flex; flex-direction:column;
+  position:fixed; top:66px; left:0; right:0;
+  background:var(--bg2); border-bottom:1px solid var(--border);
+  padding:1rem 1.5rem 1.5rem; gap:.2rem; z-index:199;
+}
+body.mob-open .nav-links > a,
+body.mob-open .nav-dd > a { font-size:16px; }
+body.mob-open .dd-menu { position:static; box-shadow:none; background:transparent; border:none; }
+</style>
 </head>
 <body>
 
-  <!-- ══════════════════════════════════════════════
-       TOP UTILITY BAR
-  ══════════════════════════════════════════════ -->
-  <div class="topbar">
-    <div class="container">
-      <a href="tel:8008428190">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14z"/></svg>
-        (800) 842-8190
-      </a>
-      <a href="mailto:pssupport@southernsoftware.com">PS Support</a>
-      <a href="mailto:fmssupport@southernsoftware.com">FMS Support</a>
-      <a href="https://support.southernsoftware.com/" target="_blank" rel="noopener">Remote Support</a>
-      <a href="https://portal.southernsoftware.com/index.php" target="_blank" rel="noopener">Customer Portal</a>
-    </div>
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="container">
+    <a href="tel:8008428190">(800) 842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com">PS Support</a>
+    <a href="mailto:fmssupport@southernsoftware.com">FMS Support</a>
+    <a href="https://support.southernsoftware.com/" target="_blank" rel="noopener">Remote Support</a>
+    <a href="https://portal.southernsoftware.com/index.php" target="_blank" rel="noopener">Customer Portal</a>
   </div>
+</div>
 
-  <!-- ══════════════════════════════════════════════
-       NAVIGATION
-  ══════════════════════════════════════════════ -->
-  <header class="nav" role="banner">
-    <div class="container">
-
-      <!-- Logo -->
-      <a href="./" class="nav-logo" aria-label="Southern Software Home">
-        <div class="nav-logo-mark">SS</div>
-        <div class="nav-logo-text">
-          <div class="nav-logo-name">Southern Software</div>
-          <div class="nav-logo-sub">Est. 1988 &middot; Employee Owned</div>
-        </div>
-      </a>
-
-      <!-- Links -->
-      <nav class="nav-links" aria-label="Main navigation">
-        <div class="nav-dropdown">
-          <a href="#about">About</a>
-          <div class="nav-dropdown-menu">
-            <a href="pages/mission.html">Our Mission</a>
-            <a href="pages/testimonials.html">Client Testimonials</a>
-            <a href="pages/involvement.html">Community Involvement</a>
-            <div class="divider"></div>
-            <div class="sub-label">We Believe</div>
-            <a href="pages/faith.html">Our Faith</a>
-            <a href="pages/prayer-list.html">Prayer List</a>
-          </div>
-        </div>
-        <div class="nav-dropdown">
-          <a href="#products">Products</a>
-          <div class="nav-dropdown-menu">
-            <a href="pages/ps-overview.html">Public Safety Suite</a>
-            <a href="pages/fms-overview.html">Financial Management Suite</a>
-            <div class="divider"></div>
-            <a href="https://nucleuspsp.com/Nucleus/" target="_blank" rel="noopener">Nucleus Platform ↗</a>
-            <a href="#contact">Request a Demo</a>
-            <a href="pages/downloads.html">Hardware Requirements</a>
-          </div>
-        </div>
-        <div class="nav-dropdown">
-          <a href="#support">Support</a>
-          <div class="nav-dropdown-menu">
-            <div class="sub-label">Documentation</div>
-            <a href="pages/downloads.html">PS Docs &amp; Downloads</a>
-            <a href="pages/downloads.html#fms">FMS Docs &amp; Updates</a>
-            <div class="divider"></div>
-            <a href="https://support.southernsoftware.com/" target="_blank" rel="noopener">Remote Support (Bomgar)</a>
-            <a href="https://portal.southernsoftware.com/" target="_blank" rel="noopener">Customer Portal</a>
-            <div class="divider"></div>
-            <div class="sub-label">Support Teams</div>
-            <a href="pages/ps-support-staff.html">PS Support Team</a>
-            <a href="pages/fms-staff.html">FMS Support Team</a>
-            <a href="pages/ps-updates-staff.html">Product Update Team</a>
-            <a href="pages/install-staff.html">Implementation &amp; IT Team</a>
-          </div>
-        </div>
-        <div class="nav-dropdown">
-          <a href="#training">Training</a>
-          <div class="nav-dropdown-menu">
-            <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=232" target="_blank" rel="noopener">2026 PS Users' Conference</a>
-            <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=84" target="_blank" rel="noopener">FMS Biennial Conference</a>
-            <a href="pages/regionaltrainings.html">Regional Trainings</a>
-            <a href="https://portal.southernsoftware.com/new/Training_New/Public/SingleClasses/" target="_blank" rel="noopener">Virtual Classes</a>
-            <a href="pages/QMStraining.html">QMS Online Training</a>
-          </div>
-        </div>
-        <div class="nav-dropdown">
-          <a href="#team">Team</a>
-          <div class="nav-dropdown-menu">
-            <a href="pages/executive-staff.html">Executive Team</a>
-            <a href="pages/administrative-staff.html">Administrative Team</a>
-            <a href="pages/management-staff.html">Management Team</a>
-            <a href="pages/sales-staff.html">Sales Team</a>
-            <a href="pages/ps-training-staff.html">PS Training Team</a>
-            <a href="pages/project-management-staff.html">Project Management</a>
-          </div>
-        </div>
-        <div class="nav-dropdown">
-          <a href="#">Newsletters</a>
-          <div class="nav-dropdown-menu">
-            <a href="https://lp.constantcontactpages.com/sl/O7CLOtV/southernsoftware" target="_blank" rel="noopener">PS Newsletter Sign-up</a>
-            <a href="pages/downloads/FMS/The Ledger.pdf" target="_blank">FMS — The Ledger</a>
-          </div>
-        </div>
-      </nav>
-
-      <!-- Actions -->
-      <div class="nav-actions">
-        <a href="https://portal.southernsoftware.com/index.php" target="_blank" rel="noopener" class="btn btn-outline">Customer Portal</a>
-        <a href="#contact" class="btn btn-primary">Request Demo</a>
+<!-- NAV -->
+<header class="nav" id="nav">
+  <div class="container">
+    <a href="#top" class="nav-logo">
+      <div class="nav-logo-mark">SS</div>
+      <div>
+        <div class="nav-logo-name">Southern Software</div>
+        <div class="nav-logo-sub">Est. 1988 &middot; Employee Owned</div>
       </div>
+    </a>
 
-      <!-- Mobile toggle -->
-      <button class="nav-toggle" aria-label="Toggle navigation">
-        <span></span><span></span><span></span>
-      </button>
+    <nav class="nav-links">
+      <div class="nav-dd">
+        <a href="#about">About</a>
+        <div class="dd-menu">
+          <a href="https://www.southernsoftware.com/mission.php" target="_blank">Our Mission</a>
+          <a href="https://www.southernsoftware.com/testimonials.php" target="_blank">Client Testimonials</a>
+          <a href="https://www.southernsoftware.com/involvement.php" target="_blank">Community Involvement</a>
+          <hr><div class="dd-label">We Believe</div>
+          <a href="https://www.southernsoftware.com/faith.php" target="_blank">Our Faith</a>
+          <a href="https://www.southernsoftware.com/prayer-list.php" target="_blank">Prayer List</a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <a href="#products">Products</a>
+        <div class="dd-menu">
+          <a href="https://www.southernsoftware.com/ps-overview.php" target="_blank">Public Safety Suite</a>
+          <a href="https://www.southernsoftware.com/fms-overview.php" target="_blank">Financial Management Suite</a>
+          <hr>
+          <a href="https://nucleuspsp.com/Nucleus/" target="_blank">Nucleus Platform ↗</a>
+          <a href="#contact">Request a Demo</a>
+          <a href="https://www.southernsoftware.com/downloads.php" target="_blank">Hardware Requirements</a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <a href="#support">Support</a>
+        <div class="dd-menu">
+          <div class="dd-label">Documentation</div>
+          <a href="https://www.southernsoftware.com/downloads.php" target="_blank">PS Docs &amp; Downloads</a>
+          <a href="https://www.southernsoftware.com/downloads.php#FMSDocs" target="_blank">FMS Docs &amp; Updates</a>
+          <hr>
+          <a href="https://support.southernsoftware.com/" target="_blank">Remote Support (Bomgar)</a>
+          <a href="https://portal.southernsoftware.com/" target="_blank">Customer Portal</a>
+          <hr><div class="dd-label">Support Teams</div>
+          <a href="https://www.southernsoftware.com/ps-support-staff.php" target="_blank">PS Support Team</a>
+          <a href="https://www.southernsoftware.com/fms-staff.php" target="_blank">FMS Support Team</a>
+          <a href="https://www.southernsoftware.com/ps-updates-staff.php" target="_blank">Product Update Team</a>
+          <a href="https://www.southernsoftware.com/install-staff.php" target="_blank">Implementation &amp; IT Team</a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <a href="#training">Training</a>
+        <div class="dd-menu">
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=232" target="_blank">2026 PS Users' Conference</a>
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=84" target="_blank">FMS Biennial Conference</a>
+          <a href="https://www.southernsoftware.com/regionaltrainings.php" target="_blank">Regional Trainings</a>
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/SingleClasses/" target="_blank">Virtual Classes</a>
+          <a href="https://www.southernsoftware.com/QMStraining.html" target="_blank">QMS Online Training</a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <a href="#team">Team</a>
+        <div class="dd-menu">
+          <a href="https://www.southernsoftware.com/executive-staff.php" target="_blank">Executive Team</a>
+          <a href="https://www.southernsoftware.com/administrative-staff.php" target="_blank">Administrative Team</a>
+          <a href="https://www.southernsoftware.com/management-staff.php" target="_blank">Management Team</a>
+          <a href="https://www.southernsoftware.com/sales-staff.php" target="_blank">Sales Team</a>
+          <a href="https://www.southernsoftware.com/ps-training-staff.php" target="_blank">PS Training Team</a>
+          <a href="https://www.southernsoftware.com/project-management-staff.php" target="_blank">Project Management</a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <a href="#">Newsletters</a>
+        <div class="dd-menu">
+          <a href="https://lp.constantcontactpages.com/sl/O7CLOtV/southernsoftware" target="_blank">PS Newsletter Sign-up</a>
+          <a href="https://www.southernsoftware.com/downloads/FMS/The%20Ledger.pdf" target="_blank">FMS — The Ledger</a>
+        </div>
+      </div>
+    </nav>
 
+    <div class="nav-actions">
+      <a href="https://portal.southernsoftware.com/index.php" target="_blank" class="btn btn-o nav-hide">Customer Portal</a>
+      <a href="#contact" class="btn btn-p">Request Demo</a>
     </div>
-  </header>
+    <button class="nav-toggle" id="nav-tog" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
 
-  <!-- ══════════════════════════════════════════════
-       HERO
-  ══════════════════════════════════════════════ -->
-  <section class="hero" id="top">
-    <div class="hero-grid" aria-hidden="true"></div>
-    <div class="hero-glow-1" aria-hidden="true"></div>
-    <div class="hero-glow-2" aria-hidden="true"></div>
-
-    <div class="container">
-      <!-- Left -->
-      <div class="hero-left">
-        <div class="hero-tag fade-up">
-          <span class="dot" aria-hidden="true"></span>
-          Employee-Owned &middot; Since 1988
-        </div>
-
-        <h1 class="hero-h1 fade-up" data-delay="1">
-          Built For<br>
-          <em>Public Safety.</em><br>
-          Backed By<br>
-          People.
-        </h1>
-
-        <p class="hero-lead fade-up" data-delay="2">
-          Southern Software delivers purpose-built solutions and unwavering support
-          for law enforcement, municipalities, and finance departments across the
-          country — always staffed by our own team.
-        </p>
-
-        <div class="hero-actions fade-up" data-delay="3">
-          <a href="#contact" class="btn btn-primary btn-lg">Request a Demo &rarr;</a>
-          <a href="#products" class="btn btn-outline btn-lg">Explore Products</a>
-        </div>
-
-        <hr class="hero-divider fade-up" data-delay="4" />
-
-        <div class="hero-stats fade-up" data-delay="4">
-          <div>
-            <div class="hero-stat-num">35+</div>
-            <div class="hero-stat-label">Years Serving</div>
-          </div>
-          <div>
-            <div class="hero-stat-num">2</div>
-            <div class="hero-stat-label">Product Suites</div>
-          </div>
-          <div>
-            <div class="hero-stat-num">100%</div>
-            <div class="hero-stat-label">In-House Support</div>
-          </div>
-          <div>
-            <div class="hero-stat-num">ESOP</div>
-            <div class="hero-stat-label">Employee Owned</div>
-          </div>
-        </div>
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="hero-grid"></div>
+  <div class="hero-glow1"></div>
+  <div class="hero-glow2"></div>
+  <div class="container">
+    <!-- Left -->
+    <div>
+      <div class="hero-tag fu"><span class="dot"></span>Employee-Owned &middot; Since 1988</div>
+      <h1 class="hero-h1 fu" data-d="1">Built For<br><em>Public Safety.</em><br>Backed By<br>People.</h1>
+      <p class="hero-lead fu" data-d="2">Southern Software delivers purpose-built solutions and unwavering support for law enforcement, municipalities, and finance departments across the country — always staffed by our own team.</p>
+      <div class="hero-ctas fu" data-d="3">
+        <a href="#contact" class="btn btn-p btn-lg">Request a Demo &rarr;</a>
+        <a href="#products" class="btn btn-o btn-lg">Explore Products</a>
       </div>
-
-      <!-- Right — feature cards -->
-      <div class="hero-right" aria-hidden="true">
-        <div class="hero-cards">
-
-          <div class="hero-card fade-up" data-delay="2">
-            <div class="hero-card-top">
-              <div class="hero-card-icon" style="background:rgba(27,111,232,0.15);">🚔</div>
-              <span class="hero-card-title">Public Safety Suite</span>
-              <span class="hero-card-badge badge-blue">CAD · RMS · JMS</span>
-            </div>
-            <p>Computer-Aided Dispatch, Records Management, Jail Management, Mobile, Narcotics, Quarter Master, Analytics, and Citizen Connect — unified for agencies of all sizes.</p>
-          </div>
-
-          <div class="hero-card fade-up" data-delay="3">
-            <div class="hero-card-top">
-              <div class="hero-card-icon" style="background:rgba(0,196,160,0.12);">📊</div>
-              <span class="hero-card-title">Financial Management Suite</span>
-              <span class="hero-card-badge badge-teal">10 Modules</span>
-            </div>
-            <p>10 user-friendly modules — from accounts payable to payroll — designed to integrate fully or operate standalone for any municipality or government agency.</p>
-          </div>
-
-          <div class="hero-card fade-up" data-delay="4">
-            <div class="hero-card-top">
-              <div class="hero-card-icon" style="background:rgba(245,166,35,0.12);">🌐</div>
-              <span class="hero-card-title">Nucleus Platform</span>
-              <span class="hero-card-badge badge-amber">New</span>
-            </div>
-            <p>Our next-generation unified command platform — analytics, incident command, training, compliance, and intelligence in a single secure, cloud-native environment.</p>
-          </div>
-
-        </div>
+      <hr class="hero-divider fu" data-d="4">
+      <div class="hero-stats fu" data-d="4">
+        <div><div class="hero-stat-num">35+</div><div class="hero-stat-lbl">Years Serving</div></div>
+        <div><div class="hero-stat-num">2</div><div class="hero-stat-lbl">Product Suites</div></div>
+        <div><div class="hero-stat-num">100%</div><div class="hero-stat-lbl">In-House Support</div></div>
+        <div><div class="hero-stat-num">ESOP</div><div class="hero-stat-lbl">Employee Owned</div></div>
       </div>
     </div>
-  </section>
-
-  <!-- ══════════════════════════════════════════════
-       WHO WE ARE
-  ══════════════════════════════════════════════ -->
-  <section class="section section--alt" id="about">
-    <div class="container">
-      <div class="who-grid">
-
-        <div class="who-body">
-          <span class="eyebrow fade-up">Who We Are</span>
-          <h2 class="section-title fade-up" data-delay="1">More Than<br>a Vendor</h2>
-          <p class="fade-up" data-delay="2">
-            Since 1988, Southern Software has been dedicated to building the best software
-            solutions using proven, cutting-edge technology — developed with an intimate,
-            personal understanding of our clients' needs.
-          </p>
-          <p class="fade-up" data-delay="2">
-            We back every product with industry-leading support and training, always provided
-            by our own staff. As an employee-owned company, our success is directly tied
-            to yours.
-          </p>
-          <p class="fade-up" data-delay="2">
-            We are headquartered in Southern Pines, NC, and are proud to serve the communities
-            that serve others — from small-town sheriff departments to large municipal
-            finance offices.
-          </p>
-          <div class="tag-row fade-up" data-delay="3">
-            <span class="tag">Employee-Owned (ESOP)</span>
-            <span class="tag">Southern Pines, NC</span>
-            <span class="tag">In-House Support Staff</span>
-            <span class="tag">Faith-Based Values</span>
-            <span class="tag">Nationwide Training</span>
+    <!-- Right cards -->
+    <div class="hero-right">
+      <div class="hero-cards">
+        <div class="hero-card fu" data-d="2">
+          <div class="hc-top">
+            <div class="hc-icon" style="background:rgba(27,111,232,.15)">🚔</div>
+            <span class="hc-title">Public Safety Suite</span>
+            <span class="badge badge-b">CAD · RMS · JMS</span>
           </div>
+          <p>Computer-Aided Dispatch, Records Management, Jail Management, Mobile, Narcotics, Quarter Master, Analytics, and Citizen Connect — unified for agencies of all sizes.</p>
         </div>
-
-        <div class="who-facts fade-up" data-delay="2">
-          <div class="who-fact">
-            <div class="who-fact-num">1988</div>
-            <div class="who-fact-label">Founded in Southern Pines, NC</div>
+        <div class="hero-card fu" data-d="3">
+          <div class="hc-top">
+            <div class="hc-icon" style="background:rgba(0,196,160,.12)">📊</div>
+            <span class="hc-title">Financial Management Suite</span>
+            <span class="badge badge-t">10 Modules</span>
           </div>
-          <div class="who-fact">
-            <div class="who-fact-num">35+</div>
-            <div class="who-fact-label">Years serving public agencies</div>
-          </div>
-          <div class="who-fact">
-            <div class="who-fact-num">100%</div>
-            <div class="who-fact-label">Employee-owned (ESOP)</div>
-          </div>
-          <div class="who-fact">
-            <div class="who-fact-num">10+</div>
-            <div class="who-fact-label">States with regional training</div>
-          </div>
+          <p>10 user-friendly modules — from accounts payable to payroll — designed to integrate fully or operate standalone for any municipality or government agency.</p>
         </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ══════════════════════════════════════════════
-       PRODUCTS
-  ══════════════════════════════════════════════ -->
-  <section class="section" id="products">
-    <div class="container">
-      <span class="eyebrow fade-up">Our Solutions</span>
-      <h2 class="section-title fade-up" data-delay="1">Two Powerful<br>Product Suites</h2>
-      <p class="section-subtitle fade-up" data-delay="2">
-        Purpose-built for the specific demands of public safety agencies and
-        government finance departments — backed by people who know the software inside out.
-      </p>
-
-      <div class="product-grid">
-
-        <!-- Public Safety -->
-        <div class="product-card ps fade-up" data-delay="1">
-          <div class="product-icon ps">🚔</div>
-          <div class="product-tag">Public Safety Suite</div>
-          <h3>PS Suite</h3>
-          <p>
-            A comprehensive, ever-growing family of products that gives law enforcement
-            and public safety agencies the tools they need — from dispatch to data analytics
-            and everything in between.
-          </p>
-          <ul class="product-features">
-            <li>CAD — Computer-Aided Dispatch with real-time mapping</li>
-            <li>RMS — Records Management System</li>
-            <li>JMS — Jail Management System</li>
-            <li>Mobile Communication &amp; Field Unit Integration</li>
-            <li>Narcotics Management &amp; Quarter Master</li>
-            <li>Data Analytics &amp; Clery Compliance Center</li>
-            <li>Citizen Connect — Public-Facing Data Portal</li>
-          </ul>
-          <a href="pages/ps-overview.html" class="product-link">Explore PS Suite &rarr;</a>
-        </div>
-
-        <!-- FMS -->
-        <div class="product-card fms fade-up" data-delay="2">
-          <div class="product-icon fms">📊</div>
-          <div class="product-tag">Financial Management Suite</div>
-          <h3>FMS Suite</h3>
-          <p>
-            10 user-configurable modules that can be used individually or integrated
-            together for a complete, powerful Financial Management System designed
-            for government agencies of all sizes.
-          </p>
-          <ul class="product-features">
-            <li>General Ledger &amp; Budget Management</li>
-            <li>Accounts Payable &amp; Receivable</li>
-            <li>Payroll &amp; Human Resources</li>
-            <li>Purchase Orders &amp; Inventory Control</li>
-            <li>Fixed Assets &amp; Project Accounting</li>
-            <li>Utility Billing — Citi-Pak</li>
-            <li>Fully configurable by end users</li>
-          </ul>
-          <a href="pages/fms-overview.html" class="product-link">Explore FMS Suite &rarr;</a>
-        </div>
-
-      </div>
-
-      <!-- Nucleus callout -->
-      <div class="nucleus-callout fade-up" data-delay="3">
-        <h3>Introducing Nucleus</h3>
-        <p>
-          Our next-generation unified command platform — bringing analytics, incident command,
-          training, compliance, K-9 &amp; drone management, and officer wellness together into a
-          single secure, cloud-native environment purpose-built for public safety.
-        </p>
-        <a href="https://nucleuspsp.com/Nucleus/" target="_blank" rel="noopener" class="btn btn-primary btn-lg">
-          Explore Nucleus &rarr;
-        </a>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ══════════════════════════════════════════════
-       SUPPORT
-  ══════════════════════════════════════════════ -->
-  <section class="section section--alt" id="support">
-    <div class="container">
-      <span class="eyebrow fade-up">Support</span>
-      <h2 class="section-title fade-up" data-delay="1">Help When<br>You Need It</h2>
-      <p class="section-subtitle fade-up" data-delay="2">
-        Every support interaction is handled by our own staff — not a call center.
-        Our teams know your products because we built them.
-      </p>
-
-      <div class="support-grid" style="margin-top:3rem;">
-
-        <a href="mailto:pssupport@southernsoftware.com" class="support-card fade-up" data-delay="1">
-          <div class="support-card-icon">🚔</div>
-          <h4>PS Support</h4>
-          <p>Email our dedicated public safety software team directly. We know the system because we built it.</p>
-        </a>
-
-        <a href="mailto:fmssupport@southernsoftware.com" class="support-card fade-up" data-delay="2">
-          <div class="support-card-icon">📊</div>
-          <h4>FMS Support</h4>
-          <p>Financial management specialists ready to help you through any question or issue.</p>
-        </a>
-
-        <a href="https://portal.southernsoftware.com/index.php" target="_blank" rel="noopener" class="support-card fade-up" data-delay="3">
-          <div class="support-card-icon">🔐</div>
-          <h4>Customer Portal</h4>
-          <p>Submit tickets, track status, and manage your account through our secure portal.</p>
-        </a>
-
-        <a href="https://support.southernsoftware.com/" target="_blank" rel="noopener" class="support-card fade-up" data-delay="1">
-          <div class="support-card-icon">🖥️</div>
-          <h4>Remote Support</h4>
-          <p>Launch a secure Bomgar remote session with a technician for real-time assistance.</p>
-        </a>
-
-        <a href="pages/downloads.html" class="support-card fade-up" data-delay="2">
-          <div class="support-card-icon">📄</div>
-          <h4>PS Documentation</h4>
-          <p>Download the latest Public Safety documentation, guides, and hardware requirements.</p>
-        </a>
-
-        <a href="pages/downloads.html#fms" class="support-card fade-up" data-delay="3">
-          <div class="support-card-icon">📋</div>
-          <h4>FMS Documentation</h4>
-          <p>Access FMS product documentation, Citi-Pak updates, and current release notes.</p>
-        </a>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ══════════════════════════════════════════════
-       TRAINING
-  ══════════════════════════════════════════════ -->
-  <section class="section" id="training">
-    <div class="container">
-      <div class="training-layout">
-
-        <!-- Left -->
-        <div>
-          <span class="eyebrow fade-up">Training</span>
-          <h2 class="section-title fade-up" data-delay="1">Learn From<br>Our Team</h2>
-          <p class="section-subtitle fade-up" data-delay="2">
-            Regional trainings, annual conferences, virtual classes, and QMS online
-            training — all taught by the people who know the software best.
-          </p>
-          <div class="training-links fade-up" data-delay="3">
-            <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=232"
-               target="_blank" rel="noopener" class="btn btn-outline">
-              2026 PS Users' Conference &mdash; Oct 26&ndash;29 &rarr;
-            </a>
-            <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=84"
-               target="_blank" rel="noopener" class="btn btn-outline">
-              FMS Biennial Conference &mdash; Mar 16&ndash;19 &rarr;
-            </a>
-            <a href="https://portal.southernsoftware.com/new/Training_New/Public/SingleClasses/"
-               target="_blank" rel="noopener" class="btn btn-outline">
-              Browse Virtual Classes &rarr;
-            </a>
-            <a href="pages/QMStraining.html" class="btn btn-outline">QMS Online Training &rarr;</a>
+        <div class="hero-card fu" data-d="4">
+          <div class="hc-top">
+            <div class="hc-icon" style="background:rgba(245,166,35,.12)">🌐</div>
+            <span class="hc-title">Nucleus Platform</span>
+            <span class="badge badge-a">New</span>
           </div>
+          <p>Our next-generation unified command platform — analytics, incident command, training, compliance, and intelligence in a single secure, cloud-native environment.</p>
         </div>
-
-        <!-- Right — event list -->
-        <div class="fade-up" data-delay="2">
-          <div class="events-label">2026 Regional Trainings — PS Suite</div>
-          <div class="event-list">
-
-            <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=AL"
-               target="_blank" rel="noopener" class="event-item">
-              <div class="event-date"><span class="mo">Mar</span><span class="dy">17</span></div>
-              <div class="event-info">
-                <div class="ev-title">Alabama Regional Training</div>
-                <div class="ev-date">Mar 17&ndash;19, 2026</div>
-              </div>
-              <span class="event-arrow">›</span>
-            </a>
-
-            <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=VA"
-               target="_blank" rel="noopener" class="event-item">
-              <div class="event-date"><span class="mo">Apr</span><span class="dy">14</span></div>
-              <div class="event-info">
-                <div class="ev-title">Virginia Regional Training</div>
-                <div class="ev-date">Apr 14&ndash;16, 2026</div>
-              </div>
-              <span class="event-arrow">›</span>
-            </a>
-
-            <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TN"
-               target="_blank" rel="noopener" class="event-item">
-              <div class="event-date"><span class="mo">May</span><span class="dy">5</span></div>
-              <div class="event-info">
-                <div class="ev-title">Tennessee Regional Training</div>
-                <div class="ev-date">May 5&ndash;7, 2026</div>
-              </div>
-              <span class="event-arrow">›</span>
-            </a>
-
-            <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TX-Kaufaman_and_Surrounding_Areas"
-               target="_blank" rel="noopener" class="event-item">
-              <div class="event-date"><span class="mo">May</span><span class="dy">19</span></div>
-              <div class="event-info">
-                <div class="ev-title">Texas Regional Training</div>
-                <div class="ev-date">May 19&ndash;21, 2026</div>
-              </div>
-              <span class="event-arrow">›</span>
-            </a>
-
-            <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=NC-Western"
-               target="_blank" rel="noopener" class="event-item">
-              <div class="event-date"><span class="mo">Jun</span><span class="dy">9</span></div>
-              <div class="event-info">
-                <div class="ev-title">North Carolina Regional Training</div>
-                <div class="ev-date">Jun 9&ndash;11, 2026</div>
-              </div>
-              <span class="event-arrow">›</span>
-            </a>
-
-            <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TX-Victoria_and_Surrounding_Areas"
-               target="_blank" rel="noopener" class="event-item">
-              <div class="event-date"><span class="mo">Jun</span><span class="dy">23</span></div>
-              <div class="event-info">
-                <div class="ev-title">Texas Regional Training (Victoria)</div>
-                <div class="ev-date">Jun 23&ndash;25, 2026</div>
-              </div>
-              <span class="event-arrow">›</span>
-            </a>
-
-            <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=AR"
-               target="_blank" rel="noopener" class="event-item">
-              <div class="event-date"><span class="mo">Jul</span><span class="dy">28</span></div>
-              <div class="event-info">
-                <div class="ev-title">Arkansas Regional Training</div>
-                <div class="ev-date">Jul 28&ndash;30, 2026</div>
-              </div>
-              <span class="event-arrow">›</span>
-            </a>
-
-            <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=NC-Eastern"
-               target="_blank" rel="noopener" class="event-item">
-              <div class="event-date"><span class="mo">Aug</span><span class="dy">18</span></div>
-              <div class="event-info">
-                <div class="ev-title">North Carolina Regional Training (Eastern)</div>
-                <div class="ev-date">Aug 18&ndash;20, 2026</div>
-              </div>
-              <span class="event-arrow">›</span>
-            </a>
-
-          </div>
-
-          <!-- Virtual classes -->
-          <div class="virtual-classes">
-            <div class="ev-label">Upcoming Virtual Classes</div>
-            <div class="class-pills">
-              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=238"
-                 target="_blank" rel="noopener" class="class-pill">CAD Searches &amp; Reports — Apr 7</a>
-              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=234"
-                 target="_blank" rel="noopener" class="class-pill">Clery Compliance Overview — Apr 13</a>
-              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=235"
-                 target="_blank" rel="noopener" class="class-pill">Analytics Overview — May 4</a>
-              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=239"
-                 target="_blank" rel="noopener" class="class-pill">CAD Workspace — May 12</a>
-              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=236"
-                 target="_blank" rel="noopener" class="class-pill">Citizen Connect Overview — Jun 1</a>
-              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=240"
-                 target="_blank" rel="noopener" class="class-pill">CAD Response Plans — Jun 2</a>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══════════════════════════════════════════════
-       STRATEGIC PARTNERS
-  ══════════════════════════════════════════════ -->
-  <div class="partners-section">
-    <div class="container">
-      <p class="partners-label">Strategic Partners</p>
-      <div class="partners-row">
-        <a href="https://risk.lexisnexis.com/law-enforcement-and-public-safety" target="_blank" rel="noopener" class="partner-chip">LexisNexis</a>
-        <a href="http://www.crywolf.us/" target="_blank" rel="noopener" class="partner-chip">CryWolf</a>
-        <a href="https://us.getac.com/" target="_blank" rel="noopener" class="partner-chip">Getac</a>
-        <a href="https://www.esri.com/" target="_blank" rel="noopener" class="partner-chip">Esri (si3)</a>
-        <a href="https://www.govcap.com/" target="_blank" rel="noopener" class="partner-chip">GovCap</a>
-        <a href="http://www.m2sys.com/" target="_blank" rel="noopener" class="partner-chip">M2Sys</a>
-        <a href="https://www.stratus.com/" target="_blank" rel="noopener" class="partner-chip">Stratus Technologies</a>
-        <a href="http://www.wthgis.com/" target="_blank" rel="noopener" class="partner-chip">WTH GIS</a>
-        <a href="https://ncsheriffs.org/" target="_blank" rel="noopener" class="partner-chip">NC Sheriffs' Association</a>
-        <a href="https://vasheriff.org/" target="_blank" rel="noopener" class="partner-chip">VA Sheriffs' Association</a>
       </div>
     </div>
   </div>
+</section>
 
-  <!-- ══════════════════════════════════════════════
-       CONTACT
-  ══════════════════════════════════════════════ -->
-  <section class="section section--alt" id="contact">
-    <div class="container">
-      <div class="contact-grid">
-
-        <!-- Info -->
-        <div>
-          <span class="eyebrow fade-up">Contact Us</span>
-          <h2 class="section-title fade-up" data-delay="1">Let's Talk</h2>
-          <p class="section-subtitle fade-up" data-delay="2">
-            Ready to see a demo, need support, or just have a question?
-            Our team is here — and it's always a real person on the other end.
-          </p>
-          <div class="contact-items fade-up" data-delay="3">
-            <div class="contact-item">
-              <div class="contact-item-icon">📍</div>
-              <div>
-                <div class="contact-item-label">Address</div>
-                <div class="contact-item-value">150 Perry Dr, Southern Pines, NC 28387</div>
-              </div>
-            </div>
-            <div class="contact-item">
-              <div class="contact-item-icon">📞</div>
-              <div>
-                <div class="contact-item-label">Phone</div>
-                <div class="contact-item-value"><a href="tel:8008428190">(800) 842-8190</a></div>
-              </div>
-            </div>
-            <div class="contact-item">
-              <div class="contact-item-icon">✉️</div>
-              <div>
-                <div class="contact-item-label">PS Support Email</div>
-                <div class="contact-item-value"><a href="mailto:pssupport@southernsoftware.com">pssupport@southernsoftware.com</a></div>
-              </div>
-            </div>
-            <div class="contact-item">
-              <div class="contact-item-icon">✉️</div>
-              <div>
-                <div class="contact-item-label">FMS Support Email</div>
-                <div class="contact-item-value"><a href="mailto:fmssupport@southernsoftware.com">fmssupport@southernsoftware.com</a></div>
-              </div>
-            </div>
-          </div>
+<!-- WHO WE ARE -->
+<section class="section section-alt" id="about">
+  <div class="container">
+    <div class="who-grid">
+      <div class="who-body">
+        <span class="eyebrow fu">Who We Are</span>
+        <h2 class="section-title fu" data-d="1">More Than<br>a Vendor</h2>
+        <p class="fu" data-d="2">Since 1988, Southern Software has been dedicated to building the best software solutions using proven, cutting-edge technology — developed with an intimate, personal understanding of our clients' needs.</p>
+        <p class="fu" data-d="2">We back every product with industry-leading support and training, always provided by our own staff. As an employee-owned company, our success is directly tied to yours.</p>
+        <p class="fu" data-d="2">Headquartered in Southern Pines, NC — proudly serving the communities that serve others, from small-town sheriff departments to large municipal finance offices.</p>
+        <div class="tags fu" data-d="3">
+          <span class="tag">Employee-Owned (ESOP)</span>
+          <span class="tag">Southern Pines, NC</span>
+          <span class="tag">In-House Support Staff</span>
+          <span class="tag">Faith-Based Values</span>
+          <span class="tag">Nationwide Training</span>
         </div>
-
-        <!-- Form -->
-        <form class="contact-form fade-up" data-delay="2" novalidate>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="contact-name">Your Name</label>
-              <input id="contact-name" type="text" class="form-control" placeholder="First and last name" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="contact-email">Email Address</label>
-              <input id="contact-email" type="email" class="form-control" placeholder="you@agency.gov" required />
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="contact-phone">Phone Number</label>
-            <input id="contact-phone" type="tel" class="form-control" placeholder="(555) 000-0000" />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="contact-subject">Subject</label>
-            <select id="contact-subject" class="form-control">
-              <option value="">Select a topic…</option>
-              <option>Sales / Demo Request</option>
-              <option>Public Safety Support</option>
-              <option>FMS Support</option>
-              <option>Training Information</option>
-              <option>Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="contact-message">Message</label>
-            <textarea id="contact-message" class="form-control" placeholder="Tell us how we can help…"></textarea>
-          </div>
-          <button type="submit" class="btn btn-primary btn-lg form-submit">Send Message &rarr;</button>
-        </form>
-
+      </div>
+      <div class="who-facts fu" data-d="2">
+        <div class="wf"><div class="wf-num">1988</div><div class="wf-lbl">Founded in Southern Pines, NC</div></div>
+        <div class="wf"><div class="wf-num">35+</div><div class="wf-lbl">Years serving public agencies</div></div>
+        <div class="wf"><div class="wf-num">100%</div><div class="wf-lbl">Employee-owned (ESOP)</div></div>
+        <div class="wf"><div class="wf-num">10+</div><div class="wf-lbl">States with regional training</div></div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ══════════════════════════════════════════════
-       FOOTER
-  ══════════════════════════════════════════════ -->
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-grid">
-
-        <!-- Brand -->
-        <div class="footer-brand">
-          <a href="./" class="nav-logo">
-            <div class="nav-logo-mark">SS</div>
-            <div class="nav-logo-text">
-              <div class="nav-logo-name">Southern Software</div>
-              <div class="nav-logo-sub">Est. 1988 &middot; Employee Owned</div>
-            </div>
-          </a>
-          <p>
-            Dedicated to building the best software solutions for public safety and
-            government finance — backed by industry-leading support, always provided by our own staff.
-          </p>
-          <div class="footer-esop">⭐ Employee-Owned Company (ESOP)</div>
-        </div>
-
-        <!-- Products -->
-        <div class="footer-col">
-          <h5>Products</h5>
-          <ul>
-            <li><a href="pages/ps-overview.html">Public Safety Suite</a></li>
-            <li><a href="pages/fms-overview.html">Financial Management Suite</a></li>
-            <li><a href="https://nucleuspsp.com/Nucleus/" target="_blank" rel="noopener">Nucleus Platform ↗</a></li>
-            <li><a href="pages/downloads.html">Hardware Requirements</a></li>
-            <li><a href="#contact">Request a Demo</a></li>
-          </ul>
-        </div>
-
-        <!-- Support -->
-        <div class="footer-col">
-          <h5>Support</h5>
-          <ul>
-            <li><a href="https://portal.southernsoftware.com/" target="_blank" rel="noopener">Customer Portal</a></li>
-            <li><a href="https://support.southernsoftware.com/" target="_blank" rel="noopener">Remote Support</a></li>
-            <li><a href="pages/downloads.html">PS Documentation</a></li>
-            <li><a href="pages/downloads.html#fms">FMS Documentation</a></li>
-            <li><a href="pages/ps-support-staff.html">PS Support Team</a></li>
-            <li><a href="pages/fms-staff.html">FMS Support Team</a></li>
-          </ul>
-        </div>
-
-        <!-- Company -->
-        <div class="footer-col">
-          <h5>Company</h5>
-          <ul>
-            <li><a href="pages/mission.html">Our Mission</a></li>
-            <li><a href="pages/testimonials.html">Client Testimonials</a></li>
-            <li><a href="pages/involvement.html">Community Involvement</a></li>
-            <li><a href="pages/faith.html">Our Faith</a></li>
-            <li><a href="https://lp.constantcontactpages.com/sl/O7CLOtV/southernsoftware" target="_blank" rel="noopener">PS Newsletter</a></li>
-            <li><a href="pages/downloads/FMS/The Ledger.pdf" target="_blank">FMS — The Ledger</a></li>
-          </ul>
-        </div>
-
+<!-- PRODUCTS -->
+<section class="section" id="products">
+  <div class="container">
+    <span class="eyebrow fu">Our Solutions</span>
+    <h2 class="section-title fu" data-d="1">Two Powerful<br>Product Suites</h2>
+    <p class="section-sub fu" data-d="2">Purpose-built for public safety agencies and government finance departments — backed by people who know the software inside out.</p>
+    <div class="prod-grid">
+      <div class="prod-card ps fu" data-d="1">
+        <div class="prod-icon ps">🚔</div>
+        <div class="prod-tag">Public Safety Suite</div>
+        <h3>PS Suite</h3>
+        <p>A comprehensive, ever-growing family of products that gives law enforcement the tools they need — from dispatch to analytics and everything in between.</p>
+        <ul class="prod-feats">
+          <li>CAD — Computer-Aided Dispatch with real-time mapping</li>
+          <li>RMS — Records Management System</li>
+          <li>JMS — Jail Management System</li>
+          <li>Mobile Communication &amp; Field Unit Integration</li>
+          <li>Narcotics Management &amp; Quarter Master</li>
+          <li>Data Analytics &amp; Clery Compliance Center</li>
+          <li>Citizen Connect — Public-Facing Data Portal</li>
+        </ul>
+        <a href="https://www.southernsoftware.com/ps-overview.php" target="_blank" class="prod-link">Explore PS Suite &rarr;</a>
       </div>
+      <div class="prod-card fms fu" data-d="2">
+        <div class="prod-icon fms">📊</div>
+        <div class="prod-tag">Financial Management Suite</div>
+        <h3>FMS Suite</h3>
+        <p>10 user-configurable modules that can be used individually or integrated together for a complete, powerful Financial Management System.</p>
+        <ul class="prod-feats">
+          <li>General Ledger &amp; Budget Management</li>
+          <li>Accounts Payable &amp; Receivable</li>
+          <li>Payroll &amp; Human Resources</li>
+          <li>Purchase Orders &amp; Inventory Control</li>
+          <li>Fixed Assets &amp; Project Accounting</li>
+          <li>Utility Billing — Citi-Pak</li>
+          <li>Fully configurable by end users</li>
+        </ul>
+        <a href="https://www.southernsoftware.com/fms-overview.php" target="_blank" class="prod-link">Explore FMS Suite &rarr;</a>
+      </div>
+    </div>
+    <div class="nucleus-box fu" data-d="3">
+      <h3>Introducing Nucleus</h3>
+      <p>Our next-generation platform — bringing analytics, incident command, training, compliance, K-9 &amp; drone management, and officer wellness into a single secure, cloud-native environment purpose-built for public safety.</p>
+      <a href="https://nucleuspsp.com/Nucleus/" target="_blank" class="btn btn-p btn-lg">Explore Nucleus &rarr;</a>
+    </div>
+  </div>
+</section>
 
-      <div class="footer-bottom">
-        <p>&copy; 2026 Southern Software, Inc. All Rights Reserved.</p>
-        <div class="footer-bottom-links">
-          <a href="pages/termsofservice.html">Terms of Service</a>
-          <a href="pages/privacy.html">Privacy Policy</a>
+<!-- SUPPORT -->
+<section class="section section-alt" id="support">
+  <div class="container">
+    <span class="eyebrow fu">Support</span>
+    <h2 class="section-title fu" data-d="1">Help When<br>You Need It</h2>
+    <p class="section-sub fu" data-d="2">Every support interaction is handled by our own staff — not a call center. Our teams know your products because we built them.</p>
+    <div class="supp-grid">
+      <a href="mailto:pssupport@southernsoftware.com" class="supp-card fu" data-d="1"><div class="supp-icon">🚔</div><h4>PS Support</h4><p>Email our dedicated public safety software team directly. We know the system because we built it.</p></a>
+      <a href="mailto:fmssupport@southernsoftware.com" class="supp-card fu" data-d="2"><div class="supp-icon">📊</div><h4>FMS Support</h4><p>Financial management specialists ready to help you through any question or issue.</p></a>
+      <a href="https://portal.southernsoftware.com/index.php" target="_blank" class="supp-card fu" data-d="3"><div class="supp-icon">🔐</div><h4>Customer Portal</h4><p>Submit tickets, track status, and manage your account through our secure portal.</p></a>
+      <a href="https://support.southernsoftware.com/" target="_blank" class="supp-card fu" data-d="1"><div class="supp-icon">🖥️</div><h4>Remote Support</h4><p>Launch a secure Bomgar remote session with a technician for real-time assistance.</p></a>
+      <a href="https://www.southernsoftware.com/downloads.php" target="_blank" class="supp-card fu" data-d="2"><div class="supp-icon">📄</div><h4>PS Documentation</h4><p>Download the latest Public Safety documentation, guides, and hardware requirements.</p></a>
+      <a href="https://www.southernsoftware.com/downloads.php#FMSDocs" target="_blank" class="supp-card fu" data-d="3"><div class="supp-icon">📋</div><h4>FMS Documentation</h4><p>Access FMS product documentation, Citi-Pak updates, and current release notes.</p></a>
+    </div>
+  </div>
+</section>
+
+<!-- TRAINING -->
+<section class="section" id="training">
+  <div class="container">
+    <div class="train-grid">
+      <div>
+        <span class="eyebrow fu">Training</span>
+        <h2 class="section-title fu" data-d="1">Learn From<br>Our Team</h2>
+        <p class="section-sub fu" data-d="2">Regional trainings, annual conferences, virtual classes, and QMS online training — all taught by the people who know the software best.</p>
+        <div class="train-links fu" data-d="3">
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=232" target="_blank" class="btn btn-o">2026 PS Users' Conference &mdash; Oct 26&ndash;29 &rarr;</a>
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=84" target="_blank" class="btn btn-o">FMS Biennial Conference &mdash; Mar 16&ndash;19 &rarr;</a>
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/SingleClasses/" target="_blank" class="btn btn-o">Browse Virtual Classes &rarr;</a>
+          <a href="https://www.southernsoftware.com/QMStraining.html" target="_blank" class="btn btn-o">QMS Online Training &rarr;</a>
+        </div>
+      </div>
+      <div class="fu" data-d="2">
+        <div class="ev-label">2026 Regional Trainings — PS Suite</div>
+        <div class="ev-list">
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=AL" target="_blank" class="ev-item"><div class="ev-date"><span class="ev-mo">Mar</span><span class="ev-dy">17</span></div><div class="ev-info"><div class="ev-title">Alabama Regional Training</div><div class="ev-when">Mar 17&ndash;19, 2026</div></div><span class="ev-arr">›</span></a>
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=VA" target="_blank" class="ev-item"><div class="ev-date"><span class="ev-mo">Apr</span><span class="ev-dy">14</span></div><div class="ev-info"><div class="ev-title">Virginia Regional Training</div><div class="ev-when">Apr 14&ndash;16, 2026</div></div><span class="ev-arr">›</span></a>
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TN" target="_blank" class="ev-item"><div class="ev-date"><span class="ev-mo">May</span><span class="ev-dy">5</span></div><div class="ev-info"><div class="ev-title">Tennessee Regional Training</div><div class="ev-when">May 5&ndash;7, 2026</div></div><span class="ev-arr">›</span></a>
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TX-Kaufaman_and_Surrounding_Areas" target="_blank" class="ev-item"><div class="ev-date"><span class="ev-mo">May</span><span class="ev-dy">19</span></div><div class="ev-info"><div class="ev-title">Texas Regional Training</div><div class="ev-when">May 19&ndash;21, 2026</div></div><span class="ev-arr">›</span></a>
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=NC-Western" target="_blank" class="ev-item"><div class="ev-date"><span class="ev-mo">Jun</span><span class="ev-dy">9</span></div><div class="ev-info"><div class="ev-title">North Carolina Regional Training</div><div class="ev-when">Jun 9&ndash;11, 2026</div></div><span class="ev-arr">›</span></a>
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TX-Victoria_and_Surrounding_Areas" target="_blank" class="ev-item"><div class="ev-date"><span class="ev-mo">Jun</span><span class="ev-dy">23</span></div><div class="ev-info"><div class="ev-title">Texas Regional Training (Victoria)</div><div class="ev-when">Jun 23&ndash;25, 2026</div></div><span class="ev-arr">›</span></a>
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=AR" target="_blank" class="ev-item"><div class="ev-date"><span class="ev-mo">Jul</span><span class="ev-dy">28</span></div><div class="ev-info"><div class="ev-title">Arkansas Regional Training</div><div class="ev-when">Jul 28&ndash;30, 2026</div></div><span class="ev-arr">›</span></a>
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=NC-Eastern" target="_blank" class="ev-item"><div class="ev-date"><span class="ev-mo">Aug</span><span class="ev-dy">18</span></div><div class="ev-info"><div class="ev-title">North Carolina Regional Training (Eastern)</div><div class="ev-when">Aug 18&ndash;20, 2026</div></div><span class="ev-arr">›</span></a>
+        </div>
+        <div class="virt-box" style="margin-top:1.5rem">
+          <div class="ev-label">Upcoming Virtual Classes</div>
+          <div class="pill-row">
+            <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=238" target="_blank" class="pill">CAD Searches &amp; Reports — Apr 7</a>
+            <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=234" target="_blank" class="pill">Clery Compliance — Apr 13</a>
+            <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=235" target="_blank" class="pill">Analytics Overview — May 4</a>
+            <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=239" target="_blank" class="pill">CAD Workspace — May 12</a>
+            <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=236" target="_blank" class="pill">Citizen Connect — Jun 1</a>
+            <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=240" target="_blank" class="pill">CAD Response Plans — Jun 2</a>
+          </div>
         </div>
       </div>
     </div>
-  </footer>
+  </div>
+</section>
 
-  <script src="./assets/js/main.js"></script>
+<!-- PARTNERS -->
+<div class="partners">
+  <div class="container">
+    <p class="part-lbl">Strategic Partners</p>
+    <div class="part-row">
+      <a href="https://risk.lexisnexis.com/law-enforcement-and-public-safety" target="_blank" class="part-chip">LexisNexis</a>
+      <a href="http://www.crywolf.us/" target="_blank" class="part-chip">CryWolf</a>
+      <a href="https://us.getac.com/" target="_blank" class="part-chip">Getac</a>
+      <a href="https://www.esri.com/" target="_blank" class="part-chip">Esri (si3)</a>
+      <a href="https://www.govcap.com/" target="_blank" class="part-chip">GovCap</a>
+      <a href="http://www.m2sys.com/" target="_blank" class="part-chip">M2Sys</a>
+      <a href="https://www.stratus.com/" target="_blank" class="part-chip">Stratus Technologies</a>
+      <a href="http://www.wthgis.com/" target="_blank" class="part-chip">WTH GIS</a>
+      <a href="https://ncsheriffs.org/" target="_blank" class="part-chip">NC Sheriffs' Association</a>
+      <a href="https://vasheriff.org/" target="_blank" class="part-chip">VA Sheriffs' Association</a>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT -->
+<section class="section section-alt" id="contact">
+  <div class="container">
+    <div class="contact-grid">
+      <div>
+        <span class="eyebrow fu">Contact Us</span>
+        <h2 class="section-title fu" data-d="1">Let's Talk</h2>
+        <p class="section-sub fu" data-d="2">Ready to see a demo, need support, or just have a question? Our team is here — and it's always a real person on the other end.</p>
+        <div class="ci-list fu" data-d="3">
+          <div class="ci"><div class="ci-icon">📍</div><div><div class="ci-lbl">Address</div><div class="ci-val">150 Perry Dr, Southern Pines, NC 28387</div></div></div>
+          <div class="ci"><div class="ci-icon">📞</div><div><div class="ci-lbl">Phone</div><div class="ci-val"><a href="tel:8008428190">(800) 842-8190</a></div></div></div>
+          <div class="ci"><div class="ci-icon">✉️</div><div><div class="ci-lbl">PS Support Email</div><div class="ci-val"><a href="mailto:pssupport@southernsoftware.com">pssupport@southernsoftware.com</a></div></div></div>
+          <div class="ci"><div class="ci-icon">✉️</div><div><div class="ci-lbl">FMS Support Email</div><div class="ci-val"><a href="mailto:fmssupport@southernsoftware.com">fmssupport@southernsoftware.com</a></div></div></div>
+        </div>
+      </div>
+      <form class="cf fu" data-d="2" id="contact-form">
+        <div class="cf-row">
+          <div class="cf-grp"><label class="cf-lbl">Your Name</label><input type="text" class="cf-in" placeholder="First and last name" required></div>
+          <div class="cf-grp"><label class="cf-lbl">Email Address</label><input type="email" class="cf-in" placeholder="you@agency.gov" required></div>
+        </div>
+        <div class="cf-grp"><label class="cf-lbl">Phone Number</label><input type="tel" class="cf-in" placeholder="(555) 000-0000"></div>
+        <div class="cf-grp">
+          <label class="cf-lbl">Subject</label>
+          <select class="cf-sel">
+            <option value="">Select a topic…</option>
+            <option>Sales / Demo Request</option>
+            <option>Public Safety Support</option>
+            <option>FMS Support</option>
+            <option>Training Information</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="cf-grp"><label class="cf-lbl">Message</label><textarea class="cf-ta" placeholder="Tell us how we can help…"></textarea></div>
+        <button type="submit" class="btn btn-p btn-lg" id="form-btn">Send Message &rarr;</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#top" class="nav-logo">
+          <div class="nav-logo-mark">SS</div>
+          <div><div class="nav-logo-name">Southern Software</div><div class="nav-logo-sub">Est. 1988 &middot; Employee Owned</div></div>
+        </a>
+        <p>Dedicated to building the best software solutions for public safety and government finance — backed by industry-leading support, always provided by our own staff.</p>
+        <div class="foot-esop">⭐ Employee-Owned Company (ESOP)</div>
+      </div>
+      <div class="foot-col"><h5>Products</h5><ul>
+        <li><a href="https://www.southernsoftware.com/ps-overview.php" target="_blank">Public Safety Suite</a></li>
+        <li><a href="https://www.southernsoftware.com/fms-overview.php" target="_blank">Financial Management Suite</a></li>
+        <li><a href="https://nucleuspsp.com/Nucleus/" target="_blank">Nucleus Platform ↗</a></li>
+        <li><a href="https://www.southernsoftware.com/downloads.php" target="_blank">Hardware Requirements</a></li>
+        <li><a href="#contact">Request a Demo</a></li>
+      </ul></div>
+      <div class="foot-col"><h5>Support</h5><ul>
+        <li><a href="https://portal.southernsoftware.com/" target="_blank">Customer Portal</a></li>
+        <li><a href="https://support.southernsoftware.com/" target="_blank">Remote Support</a></li>
+        <li><a href="https://www.southernsoftware.com/downloads.php" target="_blank">PS Documentation</a></li>
+        <li><a href="https://www.southernsoftware.com/downloads.php#FMSDocs" target="_blank">FMS Documentation</a></li>
+        <li><a href="https://www.southernsoftware.com/ps-support-staff.php" target="_blank">PS Support Team</a></li>
+        <li><a href="https://www.southernsoftware.com/fms-staff.php" target="_blank">FMS Support Team</a></li>
+      </ul></div>
+      <div class="foot-col"><h5>Company</h5><ul>
+        <li><a href="https://www.southernsoftware.com/mission.php" target="_blank">Our Mission</a></li>
+        <li><a href="https://www.southernsoftware.com/testimonials.php" target="_blank">Client Testimonials</a></li>
+        <li><a href="https://www.southernsoftware.com/involvement.php" target="_blank">Community Involvement</a></li>
+        <li><a href="https://www.southernsoftware.com/faith.php" target="_blank">Our Faith</a></li>
+        <li><a href="https://lp.constantcontactpages.com/sl/O7CLOtV/southernsoftware" target="_blank">PS Newsletter</a></li>
+        <li><a href="https://www.southernsoftware.com/downloads/FMS/The%20Ledger.pdf" target="_blank">FMS — The Ledger</a></li>
+      </ul></div>
+    </div>
+    <div class="foot-bottom">
+      <p>&copy; 2026 Southern Software, Inc. All Rights Reserved.</p>
+      <div class="foot-links">
+        <a href="https://www.southernsoftware.com/termsofservice.html" target="_blank">Terms of Service</a>
+        <a href="https://www.southernsoftware.com/privacy.html" target="_blank">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Sticky nav
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 40), {passive:true});
+
+// Mobile nav toggle
+document.getElementById('nav-tog').addEventListener('click', () => document.body.classList.toggle('mob-open'));
+document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => document.body.classList.remove('mob-open')));
+
+// Fade-up on scroll
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('vis'); io.unobserve(e.target); } });
+}, {threshold:.1, rootMargin:'0px 0px -50px 0px'});
+document.querySelectorAll('.fu').forEach(el => io.observe(el));
+
+// Smooth scroll with nav offset
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if(!t) return;
+    e.preventDefault();
+    window.scrollTo({top: t.offsetTop - 74, behavior:'smooth'});
+  });
+});
+
+// Contact form
+document.getElementById('contact-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const btn = document.getElementById('form-btn');
+  btn.textContent = 'Message Sent ✓';
+  btn.style.cssText = 'background:var(--teal);color:#041a14';
+  btn.disabled = true;
+  setTimeout(() => { btn.textContent = 'Send Message →'; btn.style.cssText = ''; btn.disabled = false; e.target.reset(); }, 4000);
+});
+</script>
 </body>
 </html>
