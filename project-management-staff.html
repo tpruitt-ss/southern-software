@@ -251,8 +251,7 @@ body.mob-open .dd-menu{visibility:visible;opacity:1;pointer-events:auto;position
   box-shadow:0 12px 40px rgba(0,0,0,.55);
   z-index:400;
 }
-.dd-sub:hover .dd-flyout,
-.dd-sub:focus-within .dd-flyout{display:block}
+.dd-sub:hover .dd-flyout,.dd-sub:focus-within .dd-flyout,.dd-sub.open .dd-flyout{display:block}
 .dd-flyout a{display:flex;align-items:center;gap:.65rem;padding:.55rem .9rem;font-size:13px;color:var(--muted);border-radius:6px;transition:color var(--tr),background var(--tr);text-decoration:none;white-space:nowrap}
 .dd-flyout a:hover{color:var(--white);background:rgba(255,255,255,.07)}
 .dd-flyout-date{font-family:var(--fhead);font-weight:700;font-size:12px;color:var(--ss-blue);min-width:56px;flex-shrink:0}
@@ -333,10 +332,38 @@ body.mob-open .dd-sub:focus-within .dd-flyout{display:block}
       </div>
       <div class="nav-dd">
         <a aria-haspopup="true">Training</a>
-        <div class="dd-menu" role="menu">
-          <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=232" target="_blank" rel="noopener" role="menuitem">2026 PS Users' Conference</a>
-          <a href="regionaltrainings.html" role="menuitem">Regional Trainings</a>
-          <a href="https://portal.southernsoftware.com/new/Training_New/Public/SingleClasses/" target="_blank" rel="noopener" role="menuitem">Virtual Classes</a>
+        <div class="dd-menu" role="menu" aria-label="Training submenu">
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=232" target="_blank" rel="noopener" role="menuitem">⭐ 2026 PS Users' Conference</a>
+          <hr>
+          <div class="dd-sub" role="none">
+            <a href="regionaltrainings.html" role="menuitem">Regional Trainings</a>
+            <div class="dd-flyout" role="menu" aria-label="Regional Trainings">
+              <span class="dd-flyout-label">2026 Schedule</span>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=VA" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">Apr 14–16</span>Virginia Regional</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TN" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">May 5–7</span>Tennessee Regional</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TX-Kaufaman_and_Surrounding_Areas" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">May 19–21</span>Texas Regional</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=NC-Western" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">Jun 9–11</span>NC Regional (West)</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TX-Victoria_and_Surrounding_Areas" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">Jun 23–25</span>Texas Regional (Victoria)</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=AR" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">Jul 28–30</span>Arkansas Regional</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=NC-Eastern" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">Aug 18–20</span>NC Regional (East)</a>
+              <hr>
+              <a href="regionaltrainings.html" role="menuitem" style="color:var(--bluel);font-weight:600">View All Trainings →</a>
+            </div>
+          </div>
+          <div class="dd-sub" role="none">
+            <a href="https://portal.southernsoftware.com/new/Training_New/Public/virtual_classroom.php" target="_blank" rel="noopener" role="menuitem">Virtual Classes</a>
+            <div class="dd-flyout" role="menu" aria-label="Virtual Classes">
+              <span class="dd-flyout-label">Upcoming Classes</span>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=238" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">Apr 7</span>CAD Searches &amp; Reports</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=234" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">Apr 13</span>Clery Compliance Overview</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=235" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">May 4</span>Analytics Overview</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=239" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">May 12</span>CAD Workspace Customization</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=236" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">Jun 1</span>Citizen Connect Overview</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=240" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">Jun 2</span>CAD Response Plans</a>
+              <hr>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/virtual_classroom.php" target="_blank" rel="noopener" role="menuitem" style="color:var(--ss-green);font-weight:600">View All Classes →</a>
+            </div>
+          </div>
         </div>
       </div>
       <div class="nav-dd">
@@ -545,6 +572,18 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
     if(!t)return;e.preventDefault();
     window.scrollTo({top:t.offsetTop-74,behavior:'smooth'});
   });
+});
+
+// Sticky nav dropdowns — close delay so menu doesn't snap shut
+document.querySelectorAll('.nav-dd').forEach(dd=>{
+  let closeTimer;
+  dd.addEventListener('mouseenter',()=>{clearTimeout(closeTimer);dd.classList.add('open')});
+  dd.addEventListener('mouseleave',()=>{closeTimer=setTimeout(()=>dd.classList.remove('open'),200)});
+});
+document.querySelectorAll('.dd-sub').forEach(sub=>{
+  let t;
+  sub.addEventListener('mouseenter',()=>{clearTimeout(t);sub.classList.add('open')});
+  sub.addEventListener('mouseleave',()=>{t=setTimeout(()=>sub.classList.remove('open'),200)});
 });
 </script>
 </body>
