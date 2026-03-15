@@ -3,268 +3,446 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta name="description" content="Product Update Team — Southern Software, Inc."/>
+<title>Product Update Team — Southern Software, Inc.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
 <style>
+.skip-nav{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;z-index:9999}
+.skip-nav:focus{position:fixed;top:0;left:0;width:auto;height:auto;padding:.75rem 1.5rem;background:#2e7fd4;color:#fff;font-size:14px;font-weight:600;border-radius:0 0 8px 0;z-index:9999;outline:3px solid #fff}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
 :root{
+  --ss-blue:#2e7fd4;--ss-green:#3ab54a;--ss-red:#e03030;
   --bg:#06101f;--bg2:#0b1a2e;--bg3:#0f2240;
-  --bgcard:rgba(255,255,255,.04);
-  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.16);
-  --blue:#1b6fe8;--bluel:#4a90f5;--teal:#00c4a0;--amber:#f5a623;
-  --white:#fff;--text:#ccd9ee;--muted:#6b89aa;--dim:#3d5470;
-  --fhead:"Barlow Condensed",sans-serif;--fbody:"Inter",sans-serif;
-  --tr:.22s ease
+  --bgcard:rgba(255,255,255,.05);
+  --border:rgba(255,255,255,.09);--border2:rgba(255,255,255,.18);
+  --blue:#2e7fd4;--bluel:#5ba3f5;--teal:#00c4a0;
+  --white:#fff;--text:#d4e2f4;--muted:#7a9bbe;--dim:#3d5470;
+  --fhead:'Barlow Condensed',sans-serif;--fbody:'Inter',sans-serif;--tr:.22s ease
 }
 body{font-family:var(--fbody);background:var(--bg);color:var(--text);font-size:16px;line-height:1.65;overflow-x:hidden}
 img{max-width:100%;display:block}
 a{color:inherit;text-decoration:none}
 ul{list-style:none}
 button{cursor:pointer;font-family:inherit;border:none;outline:none;background:transparent}
-.container{max-width:1080px;margin:0 auto;padding:0 2rem}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--bluel);outline-offset:3px;border-radius:4px}
+
+/* Full width */
+.container{width:100%;padding:0 3rem}
 .section{padding:6rem 0}
 .section-alt{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.eyebrow{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:.75rem}
-.page-title{font-family:var(--fhead);font-weight:900;font-size:clamp(2.6rem,5vw,4.2rem);line-height:1;letter-spacing:.01em;text-transform:uppercase;color:var(--white);margin-bottom:1rem}
-.page-lead{font-size:17px;font-weight:300;color:var(--muted);max-width:640px;line-height:1.75}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:.7rem 1.6rem;font-family:var(--fbody);font-size:14px;font-weight:600;border-radius:6px;transition:var(--tr);cursor:pointer;white-space:nowrap;text-decoration:none}
-.btn-p{background:var(--blue);color:#fff;border:1px solid transparent}
-.btn-p:hover{background:var(--bluel);transform:translateY(-2px);box-shadow:0 6px 20px rgba(27,111,232,.4)}
-.btn-o{background:transparent;color:var(--text);border:1px solid var(--border2)}
-.btn-o:hover{border-color:rgba(255,255,255,.35);color:var(--white);background:rgba(255,255,255,.04)}
+.eyebrow{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ss-green);margin-bottom:.75rem}
+.page-title{font-family:var(--fhead);font-weight:900;font-size:clamp(2.8rem,5vw,4.5rem);line-height:.95;letter-spacing:.01em;text-transform:uppercase;color:var(--white);margin-bottom:1.1rem}
+.page-lead{font-size:18px;font-weight:300;color:var(--muted);max-width:760px;line-height:1.8}
+
+/* Animations */
 .fu{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
 .fu.vis{opacity:1;transform:translateY(0)}
 .fu[data-d="1"]{transition-delay:.1s}.fu[data-d="2"]{transition-delay:.2s}.fu[data-d="3"]{transition-delay:.3s}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:.75rem 1.75rem;font-family:var(--fbody);font-size:15px;font-weight:600;border-radius:8px;transition:var(--tr);cursor:pointer;white-space:nowrap;text-decoration:none;border:2px solid transparent}
+.btn-p{background:var(--ss-blue);color:#fff;border-color:var(--ss-blue)}
+.btn-p:hover{background:#1f6abf;border-color:#1f6abf;transform:translateY(-2px);box-shadow:0 6px 20px rgba(46,127,212,.4)}
+.btn-o{background:transparent;color:var(--white);border-color:var(--border2)}
+.btn-o:hover{border-color:rgba(255,255,255,.45);background:rgba(255,255,255,.06)}
+.btn-g{background:var(--ss-green);color:#fff;border-color:var(--ss-green)}
+.btn-g:hover{background:#2a9a3a;transform:translateY(-2px)}
+.btn-lg{padding:.9rem 2.4rem;font-size:16px;border-radius:10px}
+
 /* TOPBAR */
-.topbar{background:rgba(0,0,0,.5);border-bottom:1px solid var(--border);padding:.45rem 0;font-size:12px;color:var(--muted)}
-.topbar .container{display:flex;justify-content:flex-end;align-items:center;gap:1.75rem}
-.topbar a{color:var(--muted);transition:color var(--tr)}.topbar a:hover{color:var(--white)}
-/* NAV */
-.nav{position:sticky;top:0;z-index:200;height:66px;display:flex;align-items:center;background:rgba(6,16,31,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);transition:background var(--tr)}
-.nav.scrolled{background:rgba(6,16,31,.98)}
+.topbar{background:rgba(0,0,0,.55);border-bottom:1px solid var(--border);padding:.5rem 0;font-size:12px;color:var(--muted)}
+.topbar .container{display:flex;justify-content:flex-end;align-items:center;gap:2rem;flex-wrap:wrap}
+.topbar a{color:var(--muted);transition:color var(--tr);padding:.2rem 0}
+.topbar a:hover{color:var(--white)}
+
+/* ── NAV — fixed dropdown with delay so it doesn't snap shut ── */
+.nav{position:sticky;top:0;z-index:200;height:70px;display:flex;align-items:center;background:rgba(6,16,31,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);transition:background var(--tr)}
+.nav.scrolled{background:rgba(6,16,31,.99)}
 .nav .container{display:flex;align-items:center;justify-content:space-between;width:100%}
-.nav-logo{display:flex;align-items:center;gap:11px;flex-shrink:0}
-.nav-logo-mark{width:38px;height:38px;background:var(--blue);border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:var(--fhead);font-weight:900;font-size:17px;color:#fff;letter-spacing:-.5px}
-.nav-logo-name{font-family:var(--fhead);font-weight:700;font-size:17px;color:var(--white)}
+.nav-logo{display:flex;align-items:center;gap:12px;flex-shrink:0;text-decoration:none}
+.nav-logo img{height:42px;width:auto}
+.nav-logo-name{font-family:var(--fhead);font-weight:700;font-size:18px;color:var(--white);letter-spacing:.02em}
 .nav-logo-sub{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.nav-links{display:flex;align-items:center;gap:.2rem}
-.nav-links>a,.nav-dd>a{display:block;padding:.45rem .85rem;font-size:14px;color:var(--muted);border-radius:6px;transition:color var(--tr),background var(--tr);cursor:pointer}
-.nav-links>a:hover,.nav-dd>a:hover,.nav-links>a.active{color:var(--white);background:rgba(255,255,255,.06)}
+.nav-logo-accent{height:2px;width:100%;margin-top:3px;background:linear-gradient(90deg,var(--ss-blue),var(--ss-green),var(--ss-red));border-radius:2px}
+.nav-links{display:flex;align-items:center;gap:.25rem}
+.nav-links>a,.nav-dd>a{display:block;padding:.5rem .95rem;font-size:14px;color:var(--muted);border-radius:6px;transition:color var(--tr),background var(--tr);cursor:pointer;font-weight:400}
+.nav-links>a:hover,.nav-dd>a:hover,.nav-dd:hover>a{color:var(--white);background:rgba(255,255,255,.07)}
 .nav-dd{position:relative}
-.nav-dd>a::after{content:" ▾";font-size:10px}
-.dd-menu{display:none;position:absolute;top:calc(100% + 8px);left:0;min-width:210px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:.5rem;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:300}
-.nav-dd:hover .dd-menu{display:block}
-.dd-menu a{display:block;padding:.5rem .85rem;font-size:13px;color:var(--muted);border-radius:6px;transition:color var(--tr),background var(--tr)}
-.dd-menu a:hover{color:var(--white);background:rgba(255,255,255,.06)}
-.dd-menu hr{border:none;border-top:1px solid var(--border);margin:.4rem .85rem}
-.dd-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:.6rem .85rem .2rem}
-.nav-actions{display:flex;align-items:center;gap:.65rem}
-.nav-toggle{display:none;flex-direction:column;gap:5px;padding:4px}
+.nav-dd>a::after{content:" ▾";font-size:10px;opacity:.7}
+
+/* Dropdown — stays open with pointer-events bridge, closes with delay */
+.dd-menu{
+  display:block;visibility:hidden;opacity:0;pointer-events:none;
+  position:absolute;top:calc(100% + 4px);left:0;min-width:230px;
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:12px;padding:.6rem;
+  box-shadow:0 12px 40px rgba(0,0,0,.55);z-index:300;
+  transition:opacity .18s ease, visibility .18s ease;
+  /* 6px invisible extension above to bridge gap between trigger and menu */
+  margin-top:0;padding-top:.6rem;
+}
+/* Invisible bridge — fills the gap so mouse can move from link to menu */
+.dd-menu::before{content:'';position:absolute;top:-10px;left:0;right:0;height:10px}
+
+.nav-dd:hover .dd-menu,
+.nav-dd:focus-within .dd-menu{visibility:visible;opacity:1;pointer-events:auto}
+
+/* Keep menu open for a moment after mouse leaves */
+.nav-dd .dd-menu{transition-delay:0s}
+.nav-dd:not(:hover):not(:focus-within) .dd-menu{transition-delay:.18s}
+
+.dd-menu a{display:block;padding:.6rem .95rem;font-size:13px;color:var(--muted);border-radius:8px;transition:color var(--tr),background var(--tr);line-height:1.3}
+.dd-menu a:hover{color:var(--white);background:rgba(255,255,255,.08)}
+.dd-menu hr{border:none;border-top:1px solid var(--border);margin:.45rem .95rem}
+.dd-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:.55rem .95rem .15rem}
+.nav-actions{display:flex;align-items:center;gap:.75rem}
+.nav-toggle{display:none;flex-direction:column;gap:5px;padding:6px;border-radius:6px}
 .nav-toggle span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:var(--tr)}
+
 /* PAGE HERO BANNER */
-.page-hero{padding:5rem 0 3.5rem;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
-.page-hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(27,111,232,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(27,111,232,.05) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 100% 100% at 0% 50%,black 30%,transparent 100%);-webkit-mask-image:radial-gradient(ellipse 100% 100% at 0% 50%,black 30%,transparent 100%)}
-.page-hero-glow{position:absolute;top:-100px;left:-100px;width:500px;height:400px;background:radial-gradient(ellipse at center,rgba(27,111,232,.18) 0%,transparent 65%);pointer-events:none}
+.page-hero{padding:5rem 0 3.5rem;position:relative;overflow:hidden;border-bottom:1px solid var(--border)}
+.hero-bar{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ss-blue),var(--ss-green),var(--ss-red))}
+.page-hero-grid{position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(46,127,212,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(46,127,212,.06) 1px,transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse 100% 100% at 0% 50%,black 30%,transparent 100%);
+  -webkit-mask-image:radial-gradient(ellipse 100% 100% at 0% 50%,black 30%,transparent 100%)}
+.page-hero-glow{position:absolute;top:-120px;left:-80px;width:600px;height:500px;background:radial-gradient(ellipse at center,rgba(46,127,212,.16) 0%,transparent 65%);pointer-events:none}
 .page-hero .container{position:relative}
-.breadcrumb{display:flex;align-items:center;gap:.5rem;font-size:12px;color:var(--dim);margin-bottom:1.5rem}
+.breadcrumb{display:flex;align-items:center;gap:.5rem;font-size:12px;color:var(--dim);margin-bottom:1.5rem;flex-wrap:wrap}
 .breadcrumb a{color:var(--dim);transition:color var(--tr)}.breadcrumb a:hover{color:var(--bluel)}
-.breadcrumb span{color:var(--dim)}
-/* CONTENT STYLES */
-.content-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start}
-.content-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem}
-.module-card{background:var(--bgcard);border:1px solid var(--border);border-radius:12px;padding:1.75rem;transition:border-color var(--tr),background var(--tr),transform var(--tr)}
-.module-card:hover{border-color:var(--border2);background:rgba(255,255,255,.06);transform:translateY(-3px)}
-.module-card-top{display:flex;align-items:center;gap:10px;margin-bottom:.75rem}
-.module-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:rgba(27,111,232,.12)}
-.module-icon.teal{background:rgba(0,196,160,.10)}
-.module-card h3{font-family:var(--fhead);font-weight:700;font-size:16px;text-transform:uppercase;letter-spacing:.04em;color:var(--white)}
-.module-card ul{display:flex;flex-direction:column;gap:.4rem;margin-top:.5rem}
-.module-card ul li{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--muted)}
-.module-card ul li::before{content:"›";color:var(--bluel);font-weight:700;flex-shrink:0}
-.module-card.fms ul li::before{color:var(--teal)}
-.module-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--bluel);margin-top:.85rem;transition:gap var(--tr)}
-.module-link.teal{color:var(--teal)}.module-link:hover{gap:10px}
-/* TESTIMONIAL CARDS */
-.testi-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
-.testi-card{background:var(--bgcard);border:1px solid var(--border);border-radius:12px;padding:1.75rem;transition:border-color var(--tr)}
+
+/* CONTENT CARDS */
+.card-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem}
+.card-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.mod-card{background:var(--bgcard);border:1px solid var(--border);border-radius:12px;padding:1.85rem;transition:border-color var(--tr),background var(--tr),transform var(--tr)}
+.mod-card:hover{border-color:var(--border2);background:rgba(255,255,255,.07);transform:translateY(-3px)}
+.mod-card-top{display:flex;align-items:center;gap:11px;margin-bottom:.85rem}
+.mod-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;background:rgba(46,127,212,.13)}
+.mod-icon.g{background:rgba(58,181,74,.12)}
+.mod-icon.r{background:rgba(224,48,48,.12)}
+.mod-card h3{font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;letter-spacing:.04em;color:var(--white)}
+.mod-card ul{display:flex;flex-direction:column;gap:.45rem;margin-top:.55rem}
+.mod-card ul li{display:flex;align-items:flex-start;gap:9px;font-size:13.5px;color:var(--muted);line-height:1.45}
+.mod-card ul li::before{content:"›";font-size:17px;font-weight:700;flex-shrink:0;line-height:1.2;color:var(--ss-blue)}
+.mod-card.fms ul li::before{color:var(--ss-green)}
+.mod-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--bluel);margin-top:.9rem;transition:gap var(--tr)}
+.mod-link.g{color:#5dca6a}.mod-link:hover{gap:11px}
+.mod-card-accent{border-top:3px solid var(--ss-blue)}
+.mod-card-accent.g{border-top-color:var(--ss-green)}
+.mod-card-accent.r{border-top-color:var(--ss-red)}
+
+/* TESTIMONIALS */
+.testi-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.35rem}
+.testi-card{background:var(--bgcard);border:1px solid var(--border);border-radius:14px;padding:2rem;transition:border-color var(--tr);display:flex;flex-direction:column;gap:.75rem}
 .testi-card:hover{border-color:var(--border2)}
-.testi-type{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.85rem;padding:3px 10px;border-radius:100px}
-.testi-type.ps{background:rgba(27,111,232,.12);color:var(--bluel)}
-.testi-type.fms{background:rgba(0,196,160,.10);color:var(--teal)}
-.testi-quote{font-size:14px;color:var(--muted);line-height:1.7;font-style:italic;margin-bottom:1rem}
-.testi-who{font-size:12px;font-weight:600;color:var(--white)}
+.testi-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:100px;width:fit-content}
+.testi-badge.ps{background:rgba(46,127,212,.15);color:var(--bluel)}
+.testi-badge.fms{background:rgba(58,181,74,.12);color:#5dca6a}
+.testi-quote{font-size:14.5px;color:var(--muted);line-height:1.75;font-style:italic;flex:1}
+.testi-who{font-size:13px;font-weight:600;color:var(--white)}
 .testi-org{font-size:12px;color:var(--dim)}
-/* MISSION / FAITH */
-.prose{font-size:16px;color:var(--muted);line-height:1.8;max-width:780px}
-.prose p{margin-bottom:1.25rem}
-.prose h3{font-family:var(--fhead);font-weight:700;font-size:1.4rem;text-transform:uppercase;color:var(--white);margin:2rem 0 .75rem;letter-spacing:.03em}
-.scripture{background:rgba(27,111,232,.08);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:1rem 1.25rem;margin:1.25rem 0;font-style:italic;font-size:15px;color:var(--text)}
-.step-card{display:flex;gap:1rem;align-items:flex-start;padding:1.5rem;background:var(--bgcard);border:1px solid var(--border);border-radius:12px;margin-bottom:1rem}
-.step-num{width:40px;height:40px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fhead);font-weight:900;font-size:18px;color:#fff;flex-shrink:0}
-.step-body h4{font-family:var(--fhead);font-weight:700;font-size:15px;text-transform:uppercase;color:var(--white);margin-bottom:.4rem;letter-spacing:.04em}
-.step-body p{font-size:14px;color:var(--muted);line-height:1.65}
+
+/* PROSE */
+.prose-block{max-width:820px;margin:0 auto}
+.prose-block p{font-size:17px;color:var(--muted);line-height:1.85;margin-bottom:1.25rem}
+.prose-block h3{font-family:var(--fhead);font-weight:700;font-size:1.6rem;text-transform:uppercase;color:var(--white);margin:2.25rem 0 .85rem;letter-spacing:.03em}
+.scripture{background:rgba(46,127,212,.09);border-left:4px solid var(--ss-blue);border-radius:0 8px 8px 0;padding:1.1rem 1.4rem;margin:1.5rem 0;font-style:italic;font-size:15px;color:var(--text)}
+.step-card{display:flex;gap:1.1rem;align-items:flex-start;padding:1.6rem;background:var(--bgcard);border:1px solid var(--border);border-radius:12px;margin-bottom:1rem}
+.step-num{width:42px;height:42px;background:var(--ss-blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fhead);font-weight:900;font-size:19px;color:#fff;flex-shrink:0}
+.step-body h4{font-family:var(--fhead);font-weight:700;font-size:16px;text-transform:uppercase;color:var(--white);margin-bottom:.45rem;letter-spacing:.04em}
+.step-body p{font-size:14px;color:var(--muted);line-height:1.7}
+
 /* CTA BANNER */
-.cta-banner{background:linear-gradient(135deg,rgba(27,111,232,.12),rgba(0,196,160,.07));border:1px solid rgba(27,111,232,.22);border-radius:20px;padding:3rem;text-align:center;margin-top:4rem}
-.cta-banner h3{font-family:var(--fhead);font-weight:900;font-size:2rem;text-transform:uppercase;color:var(--white);margin-bottom:.65rem}
-.cta-banner p{font-size:16px;color:var(--muted);max-width:480px;margin:0 auto 1.75rem;line-height:1.7}
+.cta-box{background:linear-gradient(135deg,rgba(46,127,212,.12),rgba(58,181,74,.08));border:1px solid rgba(46,127,212,.25);border-radius:20px;padding:3.5rem;text-align:center;margin-top:3.5rem;position:relative;overflow:hidden}
+.cta-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ss-blue),var(--ss-green),var(--ss-red))}
+.cta-box h3{font-family:var(--fhead);font-weight:900;font-size:2.2rem;text-transform:uppercase;color:var(--white);margin-bottom:.75rem}
+.cta-box p{font-size:16px;color:var(--muted);max-width:520px;margin:0 auto 2rem;line-height:1.75}
+.cta-box-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+
+/* EVENT LIST */
+.ev-list{display:flex;flex-direction:column;gap:.7rem}
+.ev-item{display:flex;align-items:center;gap:1.1rem;padding:1rem 1.35rem;background:var(--bgcard);border:1px solid var(--border);border-radius:10px;text-decoration:none;transition:border-color var(--tr),background var(--tr)}
+.ev-item:hover{border-color:var(--border2);background:rgba(255,255,255,.06)}
+.ev-date{flex-shrink:0;width:54px;text-align:center}
+.ev-mo{display:block;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ss-blue)}
+.ev-dy{display:block;font-family:var(--fhead);font-size:27px;font-weight:900;line-height:1;color:var(--white)}
+.ev-info{flex:1}
+.ev-title{font-size:14px;font-weight:500;color:var(--white);margin-bottom:2px}
+.ev-when{font-size:12px;color:var(--dim)}
+.ev-arr{font-size:22px;color:var(--dim)}
+.pill-row{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:1rem}
+.pill{padding:6px 15px;background:rgba(46,127,212,.10);border:1px solid rgba(46,127,212,.25);border-radius:100px;font-size:12px;color:var(--bluel);text-decoration:none;transition:background var(--tr),border-color var(--tr)}
+.pill:hover{background:rgba(46,127,212,.22);border-color:rgba(46,127,212,.45)}
+
+/* INVOLVEMENT */
+.involve-card{background:var(--bgcard);border:1px solid var(--border);border-radius:14px;padding:2rem;display:flex;gap:1.5rem;align-items:flex-start;transition:border-color var(--tr)}
+.involve-card:hover{border-color:var(--border2)}
+.involve-icon{font-size:2.5rem;flex-shrink:0;width:60px;text-align:center}
+.involve-card h3{font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);margin-bottom:.5rem;letter-spacing:.03em}
+.involve-card p{font-size:14px;color:var(--muted);line-height:1.7}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:3rem}
+.stat-cell{background:var(--bg2);padding:2rem;text-align:center;position:relative}
+.stat-cell::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
+.stat-cell:nth-child(1)::after{background:var(--ss-blue)}
+.stat-cell:nth-child(2)::after{background:var(--ss-green)}
+.stat-cell:nth-child(3)::after{background:var(--ss-red)}
+.stat-cell:nth-child(4)::after{background:linear-gradient(90deg,var(--ss-blue),var(--ss-green))}
+.stat-num{font-family:var(--fhead);font-weight:900;font-size:2.8rem;line-height:1;color:var(--white);margin-bottom:6px}
+.stat-lbl{font-size:13px;color:var(--muted)}
+
+/* DOWNLOADS */
+.dl-section-title{font-family:var(--fhead);font-weight:900;font-size:1.8rem;text-transform:uppercase;color:var(--white);letter-spacing:.02em;margin-bottom:1.5rem;padding-bottom:.75rem;border-bottom:2px solid var(--ss-blue)}
+.dl-section-title.g{border-bottom-color:var(--ss-green)}
+
 /* FOOTER */
-.footer{background:rgba(0,0,0,.35);border-top:1px solid var(--border);padding:4rem 0 2rem}
+.footer{background:rgba(0,0,0,.4);border-top:1px solid var(--border);padding:0}
+.footer-bar{height:3px;background:linear-gradient(90deg,var(--ss-blue),var(--ss-green),var(--ss-red))}
+.footer-inner{padding:4rem 0 2rem}
 .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;margin-bottom:3rem}
-.foot-brand p{font-size:14px;color:var(--dim);line-height:1.7;margin-top:1rem;max-width:270px}
-.foot-esop{display:inline-flex;align-items:center;gap:7px;margin-top:1.1rem;padding:5px 13px;border:1px solid var(--border);border-radius:100px;font-size:12px;color:var(--dim)}
+.foot-brand img{height:56px;width:auto}
+.foot-brand p{font-size:14px;color:var(--dim);line-height:1.75;margin-top:1rem;max-width:300px}
+.foot-esop{display:inline-flex;align-items:center;gap:8px;margin-top:1.25rem;padding:6px 14px;border:1px solid var(--border);border-radius:100px;font-size:12px;color:var(--dim)}
 .foot-col h5{font-family:var(--fhead);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1rem}
-.foot-col ul{display:flex;flex-direction:column;gap:.55rem}
+.foot-col ul{display:flex;flex-direction:column;gap:.6rem}
 .foot-col ul li a{font-size:13px;color:var(--dim);transition:color var(--tr)}
 .foot-col ul li a:hover{color:var(--white)}
-.foot-bottom{border-top:1px solid var(--border);padding-top:1.5rem;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--dim)}
+.foot-bottom{border-top:1px solid var(--border);padding-top:1.75rem;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--dim);flex-wrap:wrap;gap:1rem}
 .foot-links{display:flex;gap:1.5rem}
 .foot-links a{color:var(--dim);transition:color var(--tr)}.foot-links a:hover{color:var(--white)}
+
 /* RESPONSIVE */
-@media(max-width:900px){
-  .content-grid,.testi-grid,.foot-grid{grid-template-columns:1fr}
-  .content-grid-3{grid-template-columns:1fr 1fr}
-  .nav-links,.btn-o.nh{display:none}
-  .nav-toggle{display:flex}
-}
-@media(max-width:600px){
-  .section{padding:4rem 0}
-  .page-hero{padding:3.5rem 0 2.5rem}
-  .content-grid-3{grid-template-columns:1fr}
-  .foot-grid{grid-template-columns:1fr 1fr}
-}
-body.mob-open .nav-links{display:flex;flex-direction:column;position:fixed;top:66px;left:0;right:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:1rem 1.5rem 1.5rem;gap:.2rem;z-index:199}
-body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;border:none}
+@media(max-width:1024px){.container{padding:0 2rem}.card-grid-3{grid-template-columns:1fr 1fr}.foot-grid{grid-template-columns:1fr 1fr}.stats-row{grid-template-columns:1fr 1fr}}
+@media(max-width:768px){.nav-links,.btn-o.nh{display:none}.nav-toggle{display:flex}.card-grid-3,.card-grid-2,.testi-grid{grid-template-columns:1fr}.page-hero{padding:3.5rem 0 2.5rem}}
+@media(max-width:500px){.container{padding:0 1.25rem}.foot-grid,.stats-row{grid-template-columns:1fr}}
+
+/* Mobile nav open */
+body.mob-open .nav-links{display:flex;flex-direction:column;position:fixed;top:70px;left:0;right:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:1.25rem 1.5rem 2rem;gap:.25rem;z-index:199;overflow-y:auto;max-height:calc(100vh - 70px)}
+body.mob-open .nav-dd>a::after{content:" ▾"}
+body.mob-open .dd-menu{visibility:visible;opacity:1;pointer-events:auto;position:static;box-shadow:none;background:rgba(255,255,255,.04);border:none;border-radius:8px;margin:.25rem 0;padding:.25rem .5rem}
 </style>
 </head>
 <body>
-<title>Product Update Team — Southern Software, Inc.</title>
-<div class="topbar"><div class="container">
-  <a href="tel:8008428190">(800) 842-8190</a>
-  <a href="mailto:pssupport@southernsoftware.com">PS Support</a>
-  <a href="mailto:fmssupport@southernsoftware.com">FMS Support</a>
-  <a href="https://support.southernsoftware.com/" target="_blank">Remote Support</a>
-  <a href="https://portal.southernsoftware.com/index.php" target="_blank">Customer Portal</a>
-</div></div>
-<header class="nav" id="nav"><div class="container">
-  <a href="index.html" class="nav-logo">
-    <img src="logo-mark.png" alt="Southern Software" style="height:38px;width:auto;border-radius:0">
-    <div><div class="nav-logo-name">Southern Software</div><div class="nav-logo-sub">Est. 1988 &middot; Employee Owned</div></div>
-  </a>
-  <nav class="nav-links">
-    <div class="nav-dd"><a href="index.html">Home</a></div>
-    <div class="nav-dd"><a>About</a><div class="dd-menu">
-      <a href="mission.html">Our Mission</a>
-      <a href="testimonials.html">Client Testimonials</a>
-      <a href="involvement.html">Community Involvement</a>
-      <hr><div class="dd-label">We Believe</div>
-      <a href="faith.html">Our Faith</a>
-      <a href="prayer-list.html">Prayer List</a>
-    </div></div>
-    <div class="nav-dd"><a>Products</a><div class="dd-menu">
-      <a href="ps-overview.html">Public Safety Suite</a>
-      <a href="fms-overview.html">Financial Management Suite</a>
-      <hr>
-      <a href="https://nucleuspsp.com/Nucleus/" target="_blank">Nucleus Platform ↗</a>
-      <a href="index.html#contact">Request a Demo</a>
-    </div></div>
-    <div class="nav-dd"><a>Support</a><div class="dd-menu">
-      <div class="dd-label">Documentation</div>
-      <a href="downloads.html">PS Docs &amp; Downloads</a>
-      <a href="downloads.html#fms">FMS Docs &amp; Updates</a>
-      <hr>
-      <a href="https://support.southernsoftware.com/" target="_blank">Remote Support (Bomgar)</a>
-      <a href="https://portal.southernsoftware.com/" target="_blank">Customer Portal</a>
-      <hr><div class="dd-label">Support Teams</div>
-      <a href="ps-support-staff.html">PS Support Team</a>
-      <a href="fms-staff.html">FMS Support Team</a>
-      <a href="ps-updates-staff.html">Product Update Team</a>
-      <a href="install-staff.html">Implementation &amp; IT Team</a>
-    </div></div>
-    <div class="nav-dd"><a>Training</a><div class="dd-menu">
-      <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=232" target="_blank">2026 PS Users' Conference</a>
-      <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=84" target="_blank">FMS Biennial Conference</a>
-      <a href="regionaltrainings.html">Regional Trainings</a>
-      <a href="https://portal.southernsoftware.com/new/Training_New/Public/SingleClasses/" target="_blank">Virtual Classes</a>
-    </div></div>
-    <div class="nav-dd"><a>Team</a><div class="dd-menu">
-      <a href="executive-staff.html">Executive Team</a>
-      <a href="administrative-staff.html">Administrative Team</a>
-      <a href="management-staff.html">Management Team</a>
-      <a href="sales-staff.html">Sales Team</a>
-      <a href="ps-support-staff.html">PS Support Team</a>
-      <a href="fms-staff.html">FMS Support Team</a>
-      <a href="install-staff.html">Implementation &amp; IT Team</a>
-      <a href="ps-training-staff.html">PS Training Team</a>
-      <a href="project-management-staff.html">Project Management</a>
-    </div></div>
-  </nav>
-  <div class="nav-actions">
-    <a href="https://portal.southernsoftware.com/index.php" target="_blank" class="btn btn-o nh">Customer Portal</a>
-    <a href="index.html#contact" class="btn btn-p">Request Demo</a>
-  </div>
-  <button class="nav-toggle" id="nav-tog"><span></span><span></span><span></span></button>
-</div></header>
-<div class="page-hero">
-  <div class="page-hero-grid"></div>
-  <div class="page-hero-glow"></div>
+<a href="#main-content" class="skip-nav">Skip to main content</a>
+<div class="topbar" role="complementary" aria-label="Contact information">
   <div class="container">
-    <div class="breadcrumb fu"><a href="index.html">Home</a> <span>›</span> <span>Product Update Team</span></div>
+    <a href="tel:8008428190" aria-label="Call (800) 842-8190">(800) 842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com">PS Support</a>
+    <a href="mailto:fmssupport@southernsoftware.com">FMS Support</a>
+    <a href="https://support.southernsoftware.com/" target="_blank" rel="noopener" aria-label="Remote Support (opens in new tab)">Remote Support</a>
+    <a href="https://portal.southernsoftware.com/index.php" target="_blank" rel="noopener" aria-label="Customer Portal (opens in new tab)">Customer Portal</a>
+  </div>
+</div>
+<header class="nav" id="nav" role="banner">
+  <div class="container">
+    <a href="index.html" class="nav-logo" aria-label="Southern Software — Home">
+      <img src="logo-mark-trans.png" alt="Southern Software" width="42" height="42">
+      <div>
+        <div class="nav-logo-name">Southern Software</div>
+        <div class="nav-logo-sub">Est. 1988 &middot; Employee Owned</div>
+        <div class="nav-logo-accent" aria-hidden="true"></div>
+      </div>
+    </a>
+    <nav class="nav-links" id="main-nav" aria-label="Main navigation">
+      <div class="nav-dd">
+        <a href="index.html">Home</a>
+      </div>
+      <div class="nav-dd">
+        <a aria-haspopup="true">About</a>
+        <div class="dd-menu" role="menu">
+          <a href="mission.html" role="menuitem">Our Mission</a>
+          <a href="testimonials.html" role="menuitem">Client Testimonials</a>
+          <a href="involvement.html" role="menuitem">Community Involvement</a>
+          <hr aria-hidden="true"><div class="dd-label">We Believe</div>
+          <a href="faith.html" role="menuitem">Our Faith</a>
+          <a href="prayer-list.html" role="menuitem">Prayer List</a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <a aria-haspopup="true">Products</a>
+        <div class="dd-menu" role="menu">
+          <a href="ps-overview.html" role="menuitem">Public Safety Suite</a>
+          <a href="fms-overview.html" role="menuitem">Financial Management Suite</a>
+          <hr aria-hidden="true">
+          <a href="https://nucleuspsp.com/Nucleus/" target="_blank" rel="noopener" role="menuitem">Nucleus Platform ↗</a>
+          <a href="index.html#contact" role="menuitem">Request a Demo</a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <a aria-haspopup="true">Support</a>
+        <div class="dd-menu" role="menu">
+          <div class="dd-label">Documentation</div>
+          <a href="downloads.html" role="menuitem">PS Docs &amp; Downloads</a>
+          <a href="downloads.html#fms" role="menuitem">FMS Docs &amp; Updates</a>
+          <hr aria-hidden="true">
+          <a href="https://support.southernsoftware.com/" target="_blank" rel="noopener" role="menuitem">Remote Support (Bomgar)</a>
+          <a href="https://portal.southernsoftware.com/" target="_blank" rel="noopener" role="menuitem">Customer Portal</a>
+          <hr aria-hidden="true"><div class="dd-label">Support Teams</div>
+          <a href="ps-support-staff.html" role="menuitem">PS Support Team</a>
+          <a href="fms-staff.html" role="menuitem">FMS Support Team</a>
+          <a href="ps-updates-staff.html" role="menuitem">Product Update Team</a>
+          <a href="install-staff.html" role="menuitem">Implementation &amp; IT</a>
+          <a href="ps-support-triage.html" role="menuitem">Support Triage Team</a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <a aria-haspopup="true">Training</a>
+        <div class="dd-menu" role="menu">
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=232" target="_blank" rel="noopener" role="menuitem">2026 PS Users' Conference</a>
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=84" target="_blank" rel="noopener" role="menuitem">FMS Biennial Conference</a>
+          <a href="regionaltrainings.html" role="menuitem">Regional Trainings</a>
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/SingleClasses/" target="_blank" rel="noopener" role="menuitem">Virtual Classes</a>
+          <a href="https://www.southernsoftware.com/QMStraining.html" target="_blank" rel="noopener" role="menuitem">QMS Online Training</a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <a aria-haspopup="true">Team</a>
+        <div class="dd-menu" role="menu">
+          <a href="executive-staff.html" role="menuitem">Executive Team</a>
+          <a href="administrative-staff.html" role="menuitem">Administrative Team</a>
+          <a href="management-staff.html" role="menuitem">Management Team</a>
+          <a href="sales-staff.html" role="menuitem">Sales Team</a>
+          <a href="ps-support-staff.html" role="menuitem">PS Support Team</a>
+          <a href="fms-staff.html" role="menuitem">FMS Support Team</a>
+          <a href="ps-updates-staff.html" role="menuitem">Product Update Team</a>
+          <a href="install-staff.html" role="menuitem">Implementation &amp; IT</a>
+          <a href="ps-training-staff.html" role="menuitem">PS Training Team</a>
+          <a href="project-management-staff.html" role="menuitem">Project Management</a>
+          <a href="ps-support-triage.html" role="menuitem">Support Triage Team</a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <a aria-haspopup="true">Newsletters</a>
+        <div class="dd-menu" role="menu">
+          <a href="https://lp.constantcontactpages.com/sl/O7CLOtV/southernsoftware" target="_blank" rel="noopener" role="menuitem">PS Newsletter Sign-up</a>
+          <a href="https://www.southernsoftware.com/downloads/FMS/The%20Ledger.pdf" target="_blank" rel="noopener" role="menuitem">FMS — The Ledger</a>
+        </div>
+      </div>
+    </nav>
+    <div class="nav-actions">
+      <a href="https://portal.southernsoftware.com/index.php" target="_blank" rel="noopener" class="btn btn-o nh" aria-label="Customer Portal (opens in new tab)">Customer Portal</a>
+      <a href="index.html#contact" class="btn btn-p">Request Demo</a>
+    </div>
+    <button class="nav-toggle" id="nav-tog" aria-label="Toggle navigation" aria-expanded="false" aria-controls="main-nav">
+      <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+    </button>
+  </div>
+</header>
+<div class="page-hero" aria-label="Page header">
+  <div class="hero-bar" aria-hidden="true"></div>
+  <div class="page-hero-grid" aria-hidden="true"></div>
+  <div class="page-hero-glow" aria-hidden="true"></div>
+  <div class="container">
+    <nav class="breadcrumb fu" aria-label="Breadcrumb">
+      <a href="index.html">Home</a>
+      <span aria-hidden="true">›</span>
+      <span aria-current="page">Product Update Team</span>
+    </nav>
     <span class="eyebrow fu">Meet Our Team</span>
     <h1 class="page-title fu" data-d="1">Product Update<br>Team</h1>
     <p class="page-lead fu" data-d="2">The developers and quality assurance staff who keep our software current, reliable, and improving.</p>
   </div>
 </div>
-<section class="section"><div class="container"><div class="module-card fu" style="max-width:700px;margin:0 auto;text-align:center;padding:3rem">
-    <div style="font-size:3rem;margin-bottom:1rem">👥</div>
-    <h3 style="font-size:1.2rem;margin-bottom:.75rem">Meet the Product Update Team</h3>
-    <p style="font-size:15px;color:var(--muted);max-width:440px;margin:0 auto 1.75rem;line-height:1.7">Our full team directory with photos and contact info is available on our current staff pages.</p>
-    <a href="https://www.southernsoftware.com/ps-updates-staff.php" target="_blank" class="btn btn-p" style="font-size:15px;padding:.9rem 2rem">View Team Directory →</a>
-  </div></div></section>
-<footer class="footer"><div class="container">
-  <div class="foot-grid">
-    <div class="foot-brand">
-      <a href="index.html" style="display:inline-block;text-decoration:none">
-        <img src="logo-full.png" alt="Southern Software, Inc." style="height:60px;width:auto;border-radius:0;filter:brightness(1.05)">
-      </a>
-      <p>Dedicated to building the best software solutions for public safety and government finance — backed by industry-leading support, always provided by our own staff.</p>
-      <div class="foot-esop">⭐ Employee-Owned (ESOP)</div>
-    </div>
-    <div class="foot-col"><h5>Products</h5><ul>
-      <li><a href="ps-overview.html">Public Safety Suite</a></li>
-      <li><a href="fms-overview.html">Financial Management Suite</a></li>
-      <li><a href="https://nucleuspsp.com/Nucleus/" target="_blank">Nucleus Platform ↗</a></li>
-      <li><a href="index.html#contact">Request a Demo</a></li>
-    </ul></div>
-    <div class="foot-col"><h5>Support</h5><ul>
-      <li><a href="https://portal.southernsoftware.com/" target="_blank">Customer Portal</a></li>
-      <li><a href="https://support.southernsoftware.com/" target="_blank">Remote Support</a></li>
-      <li><a href="downloads.html">PS Documentation</a></li>
-      <li><a href="downloads.html#fms">FMS Documentation</a></li>
-    </ul></div>
-    <div class="foot-col"><h5>Company</h5><ul>
-      <li><a href="mission.html">Our Mission</a></li>
-      <li><a href="testimonials.html">Testimonials</a></li>
-      <li><a href="involvement.html">Community</a></li>
-      <li><a href="faith.html">Our Faith</a></li>
-      <li><a href="https://lp.constantcontactpages.com/sl/O7CLOtV/southernsoftware" target="_blank">PS Newsletter</a></li>
-    </ul></div>
+<main id="main-content">
+<section class="section"><div class="container">
+<div class="card-grid-2" style="margin-bottom:3rem">
+  <div class="mod-card mod-card-accent fu" style="padding:2.25rem">
+    <h3 style="font-size:1rem;margin-bottom:.75rem">About This Team</h3>
+    <p style="font-size:15px;color:var(--muted);line-height:1.75">Our Product Update team is responsible for the ongoing development, enhancement, and quality assurance of all Southern Software products. They work directly with client feedback and industry requirements to ensure our software stays ahead of the curve.</p>
   </div>
-  <div class="foot-bottom">
-    <p>&copy; 2026 Southern Software, Inc. All Rights Reserved.</p>
-    <div class="foot-links">
-      <a href="https://www.southernsoftware.com/termsofservice.html" target="_blank">Terms of Service</a>
-      <a href="https://www.southernsoftware.com/privacy.html" target="_blank">Privacy Policy</a>
+  <div class="mod-card mod-card-accent g fu" data-d="1" style="padding:2.25rem;text-align:center">
+    <div style="font-size:2.5rem;margin-bottom:.75rem" aria-hidden="true">👥</div>
+    <h3 style="font-size:1rem;margin-bottom:.75rem">View Full Directory</h3>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:1.25rem;line-height:1.65">Staff photos, direct contacts, and bios are available in our full team directory.</p>
+    <a href="https://www.southernsoftware.com/ps-updates-staff.php" target="_blank" rel="noopener" class="btn btn-p" aria-label="View full team directory on Southern Software website (opens in new tab)">View Team Directory →</a>
+  </div>
+</div>
+<div class="cta-box fu" data-d="2">
+  <h3>Need to Reach Our Team?</h3>
+  <p>Our staff is always available to help. Call us at (800) 842-8190 or reach out by email.</p>
+  <div class="cta-box-btns">
+    <a href="tel:8008428190" class="btn btn-p btn-lg" aria-label="Call (800) 842-8190">Call (800) 842-8190</a>
+    <a href="index.html#contact" class="btn btn-o btn-lg">Send a Message</a>
+  </div>
+</div>
+</div></section>
+</main>
+<footer class="footer" role="contentinfo">
+  <div class="footer-bar" aria-hidden="true"></div>
+  <div class="footer-inner">
+    <div class="container">
+      <div class="foot-grid">
+        <div class="foot-brand">
+          <a href="index.html" aria-label="Southern Software home">
+            <img src="logo-full-trans.png" alt="Southern Software, Inc." width="200" height="auto">
+          </a>
+          <p>Dedicated to building the best software solutions for public safety and government finance — backed by industry-leading support, always provided by our own staff.</p>
+          <div class="foot-esop">⭐ Employee-Owned Company (ESOP)</div>
+        </div>
+        <nav class="foot-col" aria-label="Products footer links">
+          <h5>Products</h5>
+          <ul>
+            <li><a href="ps-overview.html">Public Safety Suite</a></li>
+            <li><a href="fms-overview.html">Financial Management Suite</a></li>
+            <li><a href="https://nucleuspsp.com/Nucleus/" target="_blank" rel="noopener" aria-label="Nucleus Platform (opens in new tab)">Nucleus Platform ↗</a></li>
+            <li><a href="index.html#contact">Request a Demo</a></li>
+          </ul>
+        </nav>
+        <nav class="foot-col" aria-label="Support footer links">
+          <h5>Support</h5>
+          <ul>
+            <li><a href="https://portal.southernsoftware.com/" target="_blank" rel="noopener" aria-label="Customer Portal (opens in new tab)">Customer Portal</a></li>
+            <li><a href="https://support.southernsoftware.com/" target="_blank" rel="noopener" aria-label="Remote Support (opens in new tab)">Remote Support</a></li>
+            <li><a href="downloads.html">PS Documentation</a></li>
+            <li><a href="downloads.html#fms">FMS Documentation</a></li>
+          </ul>
+        </nav>
+        <nav class="foot-col" aria-label="Company footer links">
+          <h5>Company</h5>
+          <ul>
+            <li><a href="mission.html">Our Mission</a></li>
+            <li><a href="testimonials.html">Testimonials</a></li>
+            <li><a href="involvement.html">Community</a></li>
+            <li><a href="faith.html">Our Faith</a></li>
+            <li><a href="https://lp.constantcontactpages.com/sl/O7CLOtV/southernsoftware" target="_blank" rel="noopener" aria-label="PS Newsletter signup (opens in new tab)">PS Newsletter</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div class="foot-bottom">
+        <p>&copy; 2026 Southern Software, Inc. All Rights Reserved.</p>
+        <div class="foot-links">
+          <a href="https://www.southernsoftware.com/termsofservice.html" target="_blank" rel="noopener">Terms of Service</a>
+          <a href="https://www.southernsoftware.com/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>
+        </div>
+      </div>
     </div>
   </div>
-</div></footer>
+</footer>
 <script>
-const nav=document.getElementById("nav");
-window.addEventListener("scroll",()=>nav.classList.toggle("scrolled",scrollY>40),{passive:true});
-document.getElementById("nav-tog").addEventListener("click",()=>document.body.classList.toggle("mob-open"));
-document.querySelectorAll(".nav-links a").forEach(a=>a.addEventListener("click",()=>document.body.classList.remove("mob-open")));
-const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add("vis");io.unobserve(x.target)}}),{threshold:.1,rootMargin:"0px 0px -40px 0px"});
-document.querySelectorAll(".fu").forEach(el=>io.observe(el));
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>40),{passive:true});
+const tog=document.getElementById('nav-tog');
+tog.addEventListener('click',()=>{
+  const open=document.body.classList.toggle('mob-open');
+  tog.setAttribute('aria-expanded',open?'true':'false');
+});
+document.querySelectorAll('#main-nav a').forEach(a=>a.addEventListener('click',()=>{
+  document.body.classList.remove('mob-open');
+  tog.setAttribute('aria-expanded','false');
+}));
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('vis');io.unobserve(x.target)}}),{threshold:.08,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.fu').forEach(el=>io.observe(el));
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const t=document.querySelector(a.getAttribute('href'));
+    if(!t)return;e.preventDefault();
+    window.scrollTo({top:t.offsetTop-74,behavior:'smooth'});
+  });
+});
 </script>
-</body></html>
+</body>
+</html>
