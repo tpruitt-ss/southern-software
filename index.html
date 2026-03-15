@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<meta name="description" content="Southern Software, Inc. — Purpose-built software and industry-leading support for public safety and financial management since 1988."/>
+<meta name="description" content="Southern Software — Purpose-built software and industry-leading support for public safety and financial management since 1988."/>
 <title>Southern Software, Inc. — Public Safety &amp; Financial Management Solutions</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -318,6 +318,70 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 body.mob-open .nav-links{display:flex;flex-direction:column;position:fixed;top:70px;left:0;right:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:1.25rem 1.5rem 2rem;gap:.25rem;z-index:199}
 body.mob-open .nav-links>a,body.mob-open .nav-dd>a{font-size:17px;padding:.65rem .9rem}
 body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;border:none;padding-left:1rem}
+
+/* ── EVENTS ROLLING BANNER ── */
+.events-banner{
+  display:flex;align-items:center;
+  background:linear-gradient(90deg,rgba(6,16,31,1) 0%,rgba(11,26,46,.98) 40%,rgba(11,26,46,.98) 60%,rgba(6,16,31,1) 100%);
+  border-top:2px solid var(--ss-blue);
+  border-bottom:1px solid rgba(27,111,232,.3);
+  height:46px;overflow:hidden;position:relative;
+}
+.events-banner::before,.events-banner::after{
+  content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;pointer-events:none;
+}
+.events-banner::before{left:0;background:linear-gradient(90deg,rgba(6,16,31,1),transparent)}
+.events-banner::after{right:80px;background:linear-gradient(90deg,transparent,rgba(6,16,31,1))}
+
+.events-banner-label{
+  display:flex;align-items:center;gap:7px;
+  flex-shrink:0;padding:0 1.25rem 0 1.5rem;
+  font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ss-blue);white-space:nowrap;border-right:1px solid var(--border);
+  height:100%;z-index:3;background:var(--bg);
+}
+.events-ticker-wrap{flex:1;overflow:hidden;height:100%;display:flex;align-items:center}
+.events-ticker{
+  display:flex;align-items:center;gap:0;
+  white-space:nowrap;
+  animation:ticker-scroll 28s linear infinite;
+  will-change:transform;
+}
+.events-ticker:hover{animation-play-state:paused}
+@keyframes ticker-scroll{
+  0%{transform:translateX(0)}
+  100%{transform:translateX(-50%)}
+}
+.ticker-event{
+  display:inline-flex;align-items:center;gap:.6rem;
+  padding:.5rem 1.5rem;text-decoration:none;
+  transition:background var(--tr);border-radius:4px;
+  flex-shrink:0;
+}
+.ticker-event:hover{background:rgba(27,111,232,.12)}
+.ticker-event:focus-visible{outline:2px solid var(--bluel);outline-offset:2px}
+.ticker-date{
+  font-family:var(--fhead);font-weight:700;font-size:13px;
+  color:var(--ss-blue);letter-spacing:.04em;white-space:nowrap;
+}
+.ticker-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap}
+.ticker-event--featured .ticker-date{color:var(--ss-green)}
+.ticker-event--featured .ticker-name{color:var(--white);font-weight:600}
+.ticker-sep{color:var(--dim);padding:0 .75rem;font-size:8px;flex-shrink:0}
+.events-banner-cta{
+  flex-shrink:0;padding:0 1.5rem;height:100%;
+  display:flex;align-items:center;
+  font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ss-green);border-left:1px solid var(--border);
+  white-space:nowrap;transition:color var(--tr),background var(--tr);
+  z-index:3;background:var(--bg);text-decoration:none;
+}
+.events-banner-cta:hover{color:var(--white);background:rgba(58,181,74,.1)}
+@media(max-width:600px){
+  .events-banner-label span{display:none}
+  .ticker-date{font-size:12px}
+  .ticker-name{font-size:12px}
+}
 </style>
 </head>
 <body>
@@ -340,10 +404,10 @@ body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;bo
 <!-- NAV -->
 <header class="nav" id="nav" role="banner">
   <div class="container">
-    <a href="#top" class="nav-logo" aria-label="Southern Software — Home">
-      <img src="logo-mark-trans.png" alt="Southern Software logo mark" width="42" height="42">
+    <a href="#top" class="nav-logo" aria-label="Southern Software, Inc. — Home">
+      <img src="logo-mark-trans.png" alt="Southern Software, Inc. logo mark" width="42" height="42">
       <div class="nav-logo-text">
-        <div class="nav-logo-name">Southern Software</div>
+        <div class="nav-logo-name">Southern Software, Inc.</div>
         <div class="nav-logo-sub">Est. 1988 &middot; An Employee-Owned Company</div>
         <div class="nav-logo-accent" aria-hidden="true"></div>
       </div>
@@ -431,6 +495,63 @@ body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;bo
 
 <!-- HERO -->
 <main id="main">
+
+<!-- ═══ UPCOMING EVENTS ROLLING BANNER ═══ -->
+<div class="events-banner" role="complementary" aria-label="Upcoming training events">
+  <div class="events-banner-label" aria-hidden="true">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="1" y="2" width="14" height="13" rx="2"/>
+      <path d="M1 6h14M5 1v2M11 1v2"/>
+    </svg>
+    Upcoming Events
+  </div>
+  <div class="events-ticker-wrap" aria-live="polite">
+    <div class="events-ticker" id="events-ticker">
+      <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=VA" target="_blank" rel="noopener" class="ticker-event" aria-label="Virginia Regional Training April 14 to 16">
+        <span class="ticker-date">Apr 14–16</span>
+        <span class="ticker-name">Virginia Regional Training</span>
+      </a>
+      <span class="ticker-sep" aria-hidden="true">◆</span>
+      <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TN" target="_blank" rel="noopener" class="ticker-event" aria-label="Tennessee Regional Training May 5 to 7">
+        <span class="ticker-date">May 5–7</span>
+        <span class="ticker-name">Tennessee Regional Training</span>
+      </a>
+      <span class="ticker-sep" aria-hidden="true">◆</span>
+      <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TX-Kaufaman_and_Surrounding_Areas" target="_blank" rel="noopener" class="ticker-event" aria-label="Texas Regional Training May 19 to 21">
+        <span class="ticker-date">May 19–21</span>
+        <span class="ticker-name">Texas Regional Training</span>
+      </a>
+      <span class="ticker-sep" aria-hidden="true">◆</span>
+      <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=232" target="_blank" rel="noopener" class="ticker-event ticker-event--featured" aria-label="2026 Annual PS Users Conference October 26 to 29">
+        <span class="ticker-date">Oct 26–29</span>
+        <span class="ticker-name">2026 PS Users' Conference ★</span>
+      </a>
+      <!-- Duplicate for seamless loop -->
+      <span class="ticker-sep" aria-hidden="true">◆</span>
+      <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=VA" target="_blank" rel="noopener" class="ticker-event" aria-label="Virginia Regional Training April 14 to 16">
+        <span class="ticker-date">Apr 14–16</span>
+        <span class="ticker-name">Virginia Regional Training</span>
+      </a>
+      <span class="ticker-sep" aria-hidden="true">◆</span>
+      <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TN" target="_blank" rel="noopener" class="ticker-event" aria-label="Tennessee Regional Training May 5 to 7">
+        <span class="ticker-date">May 5–7</span>
+        <span class="ticker-name">Tennessee Regional Training</span>
+      </a>
+      <span class="ticker-sep" aria-hidden="true">◆</span>
+      <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TX-Kaufaman_and_Surrounding_Areas" target="_blank" rel="noopener" class="ticker-event" aria-label="Texas Regional Training May 19 to 21">
+        <span class="ticker-date">May 19–21</span>
+        <span class="ticker-name">Texas Regional Training</span>
+      </a>
+      <span class="ticker-sep" aria-hidden="true">◆</span>
+      <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=232" target="_blank" rel="noopener" class="ticker-event ticker-event--featured" aria-label="2026 Annual PS Users Conference October 26 to 29">
+        <span class="ticker-date">Oct 26–29</span>
+        <span class="ticker-name">2026 PS Users' Conference ★</span>
+      </a>
+    </div>
+  </div>
+  <a href="regionaltrainings.html" class="events-banner-cta" aria-label="View all training events">View All →</a>
+</div>
+
 <section class="hero" id="top" aria-label="Hero">
   <div class="hero-bar" aria-hidden="true"></div>
   <div class="hero-grid" aria-hidden="true"></div>
@@ -549,7 +670,7 @@ body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;bo
       <div class="who-body">
         <span class="eyebrow fu">Who We Are</span>
         <h2 class="section-title fu" data-d="1" id="about-heading">More Than<br>a Vendor</h2>
-        <p class="fu" data-d="2">Since 1988, Southern Software has been dedicated to building the best software solutions using proven, cutting-edge technology — developed with an intimate, personal understanding of our clients' needs.</p>
+        <p class="fu" data-d="2">Since 1988, Southern Software, Inc. has been dedicated to building the best software solutions using proven, cutting-edge technology — developed with an intimate, personal understanding of our clients' needs.</p>
         <p class="fu" data-d="2">We back every product with industry-leading support and training, always provided by our own staff. As an employee-owned company, our success is directly tied to yours.</p>
         <p class="fu" data-d="2">Headquartered in Southern Pines, NC — proudly serving the communities that serve others, from small-town sheriff departments to large municipal finance offices.</p>
         <div class="tags fu" data-d="3" role="list" aria-label="Company attributes">
@@ -560,7 +681,7 @@ body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;bo
           <span class="tag" role="listitem">Nationwide Training</span>
         </div>
       </div>
-      <div class="who-facts fu" data-d="2" role="list" aria-label="Key facts about Southern Software">
+      <div class="who-facts fu" data-d="2" role="list" aria-label="Key facts about Southern Software, Inc.">
         <div class="wf" role="listitem"><div class="wf-num" aria-label="Founded in 1988">1988</div><div class="wf-lbl">Founded in Southern Pines, NC</div></div>
         <div class="wf" role="listitem"><div class="wf-num" aria-label="35 plus years">35+</div><div class="wf-lbl">Years serving public agencies</div></div>
         <div class="wf" role="listitem"><div class="wf-num" aria-label="100 percent employee owned">100%</div><div class="wf-lbl">Employee-owned (ESOP)</div></div>
@@ -737,7 +858,7 @@ body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;bo
   <div class="container">
     <div class="foot-grid">
       <div class="foot-brand">
-        <a href="#top" aria-label="Southern Software — back to top">
+        <a href="#top" aria-label="Southern Software, Inc. — back to top">
           <img src="logo-full-trans.png" alt="Southern Software, Inc." width="200" height="auto">
         </a>
         <p>Dedicated to building the best software solutions for public safety and government finance — backed by industry-leading support, always provided by our own staff.</p>
