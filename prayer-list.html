@@ -262,6 +262,107 @@ body.mob-open .dd-menu{visibility:visible;opacity:1;pointer-events:auto;position
 body.mob-open .dd-flyout{position:static;box-shadow:none;background:transparent;border:none;padding-left:1.5rem;display:none}
 body.mob-open .dd-sub:hover .dd-flyout,
 body.mob-open .dd-sub:focus-within .dd-flyout{display:block}
+
+/* ══ LIGHT MODE ══════════════════════════════════════════════════════════ */
+body.light-mode{
+  --bg:        #f0f4f9;
+  --bg2:       #e2eaf4;
+  --bg3:       #d4e0ef;
+  --bgcard:    rgba(0,0,0,0.04);
+  --border:    rgba(0,0,0,0.10);
+  --border2:   rgba(0,0,0,0.20);
+  --white:     #0d1b2e;
+  --text:      #1a2e45;
+  --muted:     #3d5c7a;
+  --dim:       #8aa0b8;
+  --bluel:     #1a60b0;
+}
+body.light-mode .nav,
+body.light-mode header.nav{background:rgba(240,244,249,.96);border-bottom-color:rgba(0,0,0,.1)}
+body.light-mode .nav.scrolled{background:rgba(240,244,249,.98);box-shadow:0 2px 20px rgba(0,0,0,.12)}
+body.light-mode .topbar{background:rgba(255,255,255,.9);border-bottom-color:rgba(0,0,0,.1)}
+body.light-mode .topbar a{color:#3d5c7a}
+body.light-mode .nav-logo-name{color:#0d1b2e}
+body.light-mode .nav-logo-sub{color:#3d5c7a}
+body.light-mode .dd-menu{background:#fff;border-color:rgba(0,0,0,.12);box-shadow:0 12px 40px rgba(0,0,0,.15)}
+body.light-mode .dd-flyout{background:#fff;border-color:rgba(0,0,0,.12);box-shadow:0 8px 28px rgba(0,0,0,.12)}
+body.light-mode .dd-menu a:hover,
+body.light-mode .dd-flyout a:hover{background:rgba(0,0,0,.05)}
+body.light-mode .hero{background:linear-gradient(135deg,#dde8f5 0%,#e8f0fb 50%,#d5e4f2 100%)}
+body.light-mode .hero-h1{color:#0d1b2e}
+body.light-mode .hero-h1 em{color:var(--ss-blue)}
+body.light-mode .section{background:transparent}
+body.light-mode .section:nth-child(even){background:rgba(0,0,0,.03)}
+body.light-mode .who-card,
+body.light-mode .supp-card,
+body.light-mode .mod-card,
+body.light-mode .hero-card{background:rgba(255,255,255,.8);border-color:rgba(0,0,0,.1);color:#1a2e45}
+body.light-mode .supp-card:hover,
+body.light-mode .mod-card:hover{background:#fff;border-color:var(--ss-blue)}
+body.light-mode .supp-card p,
+body.light-mode .mod-card p{color:#3d5c7a}
+body.light-mode .cf-in,
+body.light-mode .cf-sel,
+body.light-mode .cf-ta{background:#fff;border-color:rgba(0,0,0,.15);color:#0d1b2e}
+body.light-mode .cf-in::placeholder,
+body.light-mode .cf-ta::placeholder{color:#8aa0b8}
+body.light-mode .cf-lbl{color:#3d5c7a}
+body.light-mode footer,
+body.light-mode .footer{background:#1a2e45;color:#d4e2f4}
+body.light-mode .events-banner{background:linear-gradient(90deg,#dde8f5,#e8f0fb,#dde8f5);border-top-color:var(--ss-blue)}
+body.light-mode .events-banner::before{background:linear-gradient(90deg,#dde8f5,transparent)}
+body.light-mode .events-banner::after{background:linear-gradient(90deg,transparent,#dde8f5)}
+body.light-mode .events-banner-label,
+body.light-mode .events-banner-cta{background:#dde8f5}
+body.light-mode .ticker-name{color:#1a2e45}
+body.light-mode .hero-stat-num{color:var(--ss-blue)}
+body.light-mode .hero-stat-lbl{color:#3d5c7a}
+body.light-mode .section-title{color:#0d1b2e}
+body.light-mode .section-sub{color:#3d5c7a}
+body.light-mode .page-hero{background:linear-gradient(135deg,#dde8f5,#e8f0fb)}
+body.light-mode .page-title{color:#0d1b2e}
+body.light-mode .page-lead{color:#3d5c7a}
+body.light-mode .hero-esop-badge{background:rgba(46,127,212,.1);border-color:rgba(46,127,212,.25)}
+body.light-mode .part-chip{border-color:rgba(0,0,0,.12)}
+body.light-mode .stat-cell{border-color:rgba(0,0,0,.1)}
+body.light-mode .stat-num{color:var(--ss-blue)}
+body.light-mode .foot-esop{background:linear-gradient(90deg,rgba(46,127,212,.12),rgba(58,181,74,.1));border-color:rgba(0,0,0,.15);color:#0d1b2e}
+body.light-mode .who-facts span{background:rgba(0,0,0,.06);color:#1a2e45}
+body.light-mode .ev-item{background:rgba(255,255,255,.8);border-color:rgba(0,0,0,.1)}
+body.light-mode .ev-item:hover{background:#fff;border-color:var(--ss-blue)}
+body.light-mode .ev-date{background:rgba(46,127,212,.1)}
+body.light-mode .ev-mo{color:var(--ss-blue)}
+body.light-mode .ev-dy{color:#0d1b2e}
+body.light-mode .ev-title{color:#0d1b2e}
+body.light-mode .ev-when{color:#3d5c7a}
+body.light-mode .breadcrumb a{color:var(--ss-blue)}
+body.light-mode .tab-btn{background:rgba(0,0,0,.06);color:#3d5c7a}
+body.light-mode .tab-btn.active{background:var(--ss-blue);color:#fff}
+body.light-mode .staff-card{background:#fff;border-color:rgba(0,0,0,.1)}
+body.light-mode .staff-name{color:#0d1b2e}
+body.light-mode .staff-title{color:#3d5c7a}
+
+/* Toggle button */
+.theme-toggle{
+  position:fixed;top:1.5rem;left:1.5rem;
+  width:46px;height:46px;border-radius:50%;
+  border:1.5px solid var(--border2);
+  background:var(--bg2);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  box-shadow:0 4px 16px rgba(0,0,0,.3);
+  transition:transform .2s ease,box-shadow .2s ease,background var(--tr),border-color var(--tr);
+  z-index:9999;
+  outline:none;
+}
+.theme-toggle:hover{transform:scale(1.12);box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.theme-toggle:focus-visible{outline:2px solid var(--ss-blue);outline-offset:3px}
+body.light-mode .theme-toggle{background:#fff;border-color:rgba(0,0,0,.15);box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.theme-toggle .icon-moon{display:block}
+.theme-toggle .icon-sun{display:none}
+body.light-mode .theme-toggle .icon-moon{display:none}
+body.light-mode .theme-toggle .icon-sun{display:block}
 </style>
 </head>
 <body>
@@ -521,6 +622,22 @@ document.querySelectorAll('.dd-sub').forEach(sub=>{
   sub.addEventListener('mouseenter',()=>{clearTimeout(t);sub.classList.add('open')});
   sub.addEventListener('mouseleave',()=>{t=setTimeout(()=>sub.classList.remove('open'),200)});
 });
+
+// Dark / Light mode toggle
+(function(){
+  const btn = document.getElementById('theme-toggle');
+  const PREF_KEY = 'ss-theme';
+  // Apply saved preference immediately
+  const saved = localStorage.getItem(PREF_KEY);
+  if(saved === 'light') document.body.classList.add('light-mode');
+  if(btn){
+    btn.addEventListener('click', function(){
+      const isLight = document.body.classList.toggle('light-mode');
+      localStorage.setItem(PREF_KEY, isLight ? 'light' : 'dark');
+    });
+  }
+})();
+
 </script>
 </body>
 </html>
