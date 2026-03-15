@@ -604,6 +604,24 @@ body.light-mode .theme-toggle .icon-sun{display:block}
 
 
 
+
+/* Impl subsections */
+.impl-subsection{margin-bottom:2.5rem}
+.impl-sub-header{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;
+  border-left:3px solid var(--sub-color);
+  padding:.7rem 1.25rem;margin-bottom:1.25rem;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--sub-color) 10%,transparent),transparent);
+  border-radius:0 10px 10px 0;
+}
+.impl-sub-label{
+  font-family:var(--fhead);font-weight:800;font-size:1.1rem;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--white);
+}
+.impl-sub-supervisor{
+  font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;
+}
+
 /* Staff grid & cards */
 .staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1.25rem;margin-bottom:3.5rem}
 .staff-card{background:var(--bgcard);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color var(--tr),transform var(--tr),box-shadow var(--tr)}
@@ -852,7 +870,7 @@ body.light-mode .team-search{background:#fff;border-color:rgba(0,0,0,.15);color:
 <button class="tf-btn" data-filter="ps-updates">🔄 PS Updates</button>
 <button class="tf-btn" data-filter="triage">🎯 Support Triage</button>
 <button class="tf-btn" data-filter="install">⚙️ Implementation & IT</button>
-<button class="tf-btn" data-filter="ps-training">🎓 PS Training</button>
+<button class="tf-btn" data-filter="ps-training">🚔 PS Implementation</button>
 <button class="tf-btn" data-filter="project-mgmt">📁 Project Management</button>
 
     <span class="tf-count" id="tf-count" aria-live="polite">58 members</span>
@@ -1610,30 +1628,23 @@ body.light-mode .team-search{background:#fff;border-color:rgba(0,0,0,.15);color:
 <div class="team-section" id="team-ps-training" data-section="ps-training">
   <div class="team-banner" style="--team-color:#3ab54a">
     <div class="team-banner-inner">
-      <span class="team-banner-icon" aria-hidden="true">🎓</span>
+      <span class="team-banner-icon" aria-hidden="true">🚔</span>
       <div>
-        <h2 class="team-banner-title">PS Training Team</h2>
+        <h2 class="team-banner-title">Public Safety Implementation Team</h2>
         <p class="team-banner-count">12 team members</p>
       </div>
     </div>
   </div>
-  <div class="staff-grid tf-grid">
-<article class="staff-card" data-team="ps-training" supervisor-card fu" aria-label="Ronn Brigman, Training Team Lead">
-  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:14px 14px 0 0;background:#0b1a2e">
-      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/brigman_ronn_1762370844.png" alt="Photo of Ronn Brigman" loading="lazy"
-           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
-           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+
+  <!-- Sub-section: Ronn Brigman — RMS / JMS / QMS -->
+  <div class="impl-subsection">
+    <div class="impl-sub-header" style="--sub-color:#2e7fd4">
+      <div class="impl-sub-label">RMS · JMS · QMS Operations</div>
+      <div class="impl-sub-supervisor">Supervisor: Ronn Brigman</div>
     </div>
-  <div style="padding:1.35rem 1.5rem 1.75rem">
-    <div style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ss-blue);margin-bottom:5px">Supervisor</div>
-    <div style="font-family:var(--fhead);font-weight:900;font-size:22px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.05">Ronn Brigman</div>
-    <div style="font-size:14px;color:var(--muted);margin-top:5px;line-height:1.3">Training Team Lead</div>
-    <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:3px">With us since 2004</div>
-    <a href="mailto:rbrigman@southernsoftware.com" style="color:var(--bluel);font-size:13px;word-break:break-all;display:block;margin-top:4px">rbrigman@southernsoftware.com</a>
-    <a href="https://www.southernsoftware.com/ps-sales-ronnbrigman.html" target="_blank" rel="noopener" style="color:var(--ss-green);font-size:13px;display:block;margin-top:8px">First Responder Background →</a>
-  </div>
-</article>
-<article class="staff-card fu" data-team="ps-training" aria-label="Jeanie West, Trainer">
+    <div class="staff-grid tf-grid">
+      
+      <article class="staff-card fu" data-team="ps-training" aria-label="Jeanie West, Trainer">
   <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
       <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/west_jeanie_1762369926.png" alt="Photo of Jeanie West" loading="lazy"
            style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
@@ -1645,20 +1656,6 @@ body.light-mode .team-search{background:#fff;border-color:rgba(0,0,0,.15);color:
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2005</div>
     <a href="mailto:jwest@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Jeanie West">jwest@southernsoftware.com</a>
     <a href="https://www.southernsoftware.com/ps-training-bio-jeaniewest.html" target="_blank" rel="noopener" style="color:var(--ss-green);font-size:12px;display:block;margin-top:6px">First Responder Background →</a>
-  </div>
-</article>
-<article class="staff-card fu" data-team="ps-training" aria-label="Amanda McKenzie, Trainer">
-  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
-      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/mckenzie_amanda_1762297428.png" alt="Photo of Amanda McKenzie" loading="lazy"
-           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
-           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
-    </div>
-  <div style="padding:1.1rem 1.25rem 1.4rem">
-    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Amanda McKenzie</div>
-    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Trainer</div>
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2005</div>
-    <a href="mailto:amckenzie@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Amanda McKenzie">amckenzie@southernsoftware.com</a>
-    <a href="https://www.southernsoftware.com/ps-training-bio-amandamckenzie.html" target="_blank" rel="noopener" style="color:var(--ss-green);font-size:12px;display:block;margin-top:6px">First Responder Background →</a>
   </div>
 </article>
 <article class="staff-card fu" data-team="ps-training" aria-label="Debbie Stevens, Trainer">
@@ -1701,6 +1698,20 @@ body.light-mode .team-search{background:#fff;border-color:rgba(0,0,0,.15);color:
     
   </div>
 </article>
+<article class="staff-card fu" data-team="ps-training" aria-label="Amanda McKenzie, Trainer">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/mckenzie_amanda_1762297428.png" alt="Photo of Amanda McKenzie" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Amanda McKenzie</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Trainer</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2005</div>
+    <a href="mailto:amckenzie@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Amanda McKenzie">amckenzie@southernsoftware.com</a>
+    <a href="https://www.southernsoftware.com/ps-training-bio-amandamckenzie.html" target="_blank" rel="noopener" style="color:var(--ss-green);font-size:12px;display:block;margin-top:6px">First Responder Background →</a>
+  </div>
+</article>
 <article class="staff-card fu" data-team="ps-training" aria-label="Jonathan Bledsoe, Trainer">
   <div style="width:100%;aspect-ratio:1;border-radius:12px 12px 0 0;background:#1b4a8a;display:flex;align-items:center;justify-content:center">
       <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2.5rem,6vw,4rem);color:#5ba3f5;letter-spacing:-.02em">JB</span>
@@ -1713,22 +1724,18 @@ body.light-mode .team-search{background:#fff;border-color:rgba(0,0,0,.15);color:
     
   </div>
 </article>
-<article class="staff-card" data-team="ps-training" supervisor-card fu" aria-label="Travis Pruitt, CAD Training Lead">
-  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:14px 14px 0 0;background:#0b1a2e">
-      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/pruitt_travis_1762372420.png" alt="Photo of Travis Pruitt" loading="lazy"
-           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
-           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
     </div>
-  <div style="padding:1.35rem 1.5rem 1.75rem">
-    <div style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ss-blue);margin-bottom:5px">Supervisor</div>
-    <div style="font-family:var(--fhead);font-weight:900;font-size:22px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.05">Travis Pruitt</div>
-    <div style="font-size:14px;color:var(--muted);margin-top:5px;line-height:1.3">CAD Training Lead</div>
-    <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:3px">With us since 2015</div>
-    <a href="mailto:tpruitt@southernsoftware.com" style="color:var(--bluel);font-size:13px;word-break:break-all;display:block;margin-top:4px">tpruitt@southernsoftware.com</a>
-    <a href="https://www.southernsoftware.com/ps-training-bio-travispruitt.html" target="_blank" rel="noopener" style="color:var(--ss-green);font-size:13px;display:block;margin-top:8px">First Responder Background →</a>
   </div>
-</article>
-<article class="staff-card fu" data-team="ps-training" aria-label="Zach Perkins, CAD Trainer">
+
+  <!-- Sub-section: Travis Pruitt — CAD / MDS -->
+  <div class="impl-subsection">
+    <div class="impl-sub-header" style="--sub-color:#3ab54a">
+      <div class="impl-sub-label">CAD · MDS Operations</div>
+      <div class="impl-sub-supervisor">Director: Travis Pruitt</div>
+    </div>
+    <div class="staff-grid tf-grid">
+      
+      <article class="staff-card fu" data-team="ps-training" aria-label="Zach Perkins, CAD Trainer">
   <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
       <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/perkins_zach_1762370337.png" alt="Photo of Zach Perkins" loading="lazy"
            style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
@@ -1782,9 +1789,9 @@ body.light-mode .team-search{background:#fff;border-color:rgba(0,0,0,.15);color:
     
   </div>
 </article>
+    </div>
   </div>
 </div>
-
 <div class="team-section" id="team-project-mgmt" data-section="project-mgmt">
   <div class="team-banner" style="--team-color:#7a5cf0">
     <div class="team-banner-inner">
