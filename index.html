@@ -831,14 +831,27 @@ body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;bo
           <div class="ci"><div class="ci-icon" aria-hidden="true">✉️</div><div><div class="ci-lbl">FMS Support Email</div><div class="ci-val"><a href="mailto:fmssupport@southernsoftware.com">fmssupport@southernsoftware.com</a></div></div></div>
         </div>
       </div>
-      <form class="cf fu" data-d="2" id="contact-form" novalidate aria-label="Contact form">
+      <form class="cf fu" data-d="2" action="https://formspree.io/f/xjgaedap" method="POST" aria-label="Contact form">
+        <!-- Formspree hidden helpers -->
+        <input type="hidden" name="_subject" value="New Message — Southern Software, Inc. Website">
+        <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
         <div class="cf-row">
-          <div class="cf-grp"><label class="cf-lbl" for="cf-name">Your Name</label><input id="cf-name" type="text" class="cf-in" placeholder="First and last name" required aria-required="true"></div>
-          <div class="cf-grp"><label class="cf-lbl" for="cf-email">Email Address</label><input id="cf-email" type="email" class="cf-in" placeholder="you@agency.gov" required aria-required="true"></div>
+          <div class="cf-grp">
+            <label class="cf-lbl" for="cf-name">Your Name</label>
+            <input id="cf-name" type="text" name="name" class="cf-in" placeholder="First and last name" required aria-required="true">
+          </div>
+          <div class="cf-grp">
+            <label class="cf-lbl" for="cf-email">Email Address</label>
+            <input id="cf-email" type="email" name="email" class="cf-in" placeholder="you@agency.gov" required aria-required="true">
+          </div>
         </div>
-        <div class="cf-grp"><label class="cf-lbl" for="cf-phone">Phone Number</label><input id="cf-phone" type="tel" class="cf-in" placeholder="(555) 000-0000"></div>
-        <div class="cf-grp"><label class="cf-lbl" for="cf-subject">Subject</label>
-          <select id="cf-subject" class="cf-sel" aria-required="true">
+        <div class="cf-grp">
+          <label class="cf-lbl" for="cf-phone">Phone Number</label>
+          <input id="cf-phone" type="tel" name="phone" class="cf-in" placeholder="(555) 000-0000">
+        </div>
+        <div class="cf-grp">
+          <label class="cf-lbl" for="cf-subject">Subject</label>
+          <select id="cf-subject" name="subject" class="cf-sel" aria-required="true">
             <option value="">Select a topic…</option>
             <option>Sales / Demo Request</option>
             <option>Public Safety Support</option>
@@ -847,8 +860,11 @@ body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;bo
             <option>Other</option>
           </select>
         </div>
-        <div class="cf-grp"><label class="cf-lbl" for="cf-message">Message</label><textarea id="cf-message" class="cf-ta" placeholder="Tell us how we can help…" aria-required="true"></textarea></div>
-        <button type="submit" class="btn btn-p btn-lg" id="form-btn">Send Message &rarr;</button>
+        <div class="cf-grp">
+          <label class="cf-lbl" for="cf-message">Message</label>
+          <textarea id="cf-message" name="message" class="cf-ta" placeholder="Tell us how we can help…" aria-required="true"></textarea>
+        </div>
+        <button type="submit" class="btn btn-p btn-lg">Send Message ↗</button>
       </form>
     </div>
   </div>
@@ -942,21 +958,23 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
   });
 });
 
-// ── EmailJS Contact Form ──────────────────────────────────────────────────
-// SETUP: Replace the three values below with your EmailJS credentials
-// 1. Go to emailjs.com → sign up free
-// 2. Add a service (Gmail/Outlook) → copy the Service ID
-// 3. Create a template → copy the Template ID
-// 4. Account → API Keys → copy your Public Key
-const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';   // ← paste here
-const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID';   // ← paste here
-const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';  // ← paste here
-
-// Load EmailJS SDK
-(function(){
-  var s=document.createElement('script');
-  s.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
-  s.onload=function(){ emailjs.init({publicKey: EMAILJS_PUBLIC_KEY}); };
+// Contact form — Formspree handles submission
+// Sync email to _replyto so replies go directly to the sender
+const emailField = document.getElementById('cf-email');
+if (emailField) {
+  emailField.addEventListener('input', function() {
+    const rt = document.querySelector('input[name="_replyto"]');
+    if (rt) rt.value = this.value;
+  });
+}
+// Show sending state on submit
+const cfForm = document.querySelector('form[action*="formspree"]');
+if (cfForm) {
+  cfForm.addEventListener('submit', function() {
+    const btn = this.querySelector('button[type="submit"]');
+    if (btn) { btn.textContent = 'Sending…'; btn.disabled = true; }
+  });
+} };
   document.head.appendChild(s);
 })();
 
