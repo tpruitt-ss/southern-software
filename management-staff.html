@@ -50,6 +50,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .btn-g{background:var(--ss-green);color:#fff;border-color:var(--ss-green)}
 .btn-g:hover{background:#2a9a3a;transform:translateY(-2px)}
 .btn-lg{padding:.9rem 2.4rem;font-size:16px;border-radius:10px}
+.btn-nucleus{background:linear-gradient(135deg,#1b6fe8,#3ab54a);color:#fff;border-color:transparent;font-weight:700}
+.btn-nucleus:hover{opacity:.88;transform:translateY(-2px);box-shadow:0 6px 20px rgba(27,111,232,.4)}
 
 /* TOPBAR */
 .topbar{background:rgba(0,0,0,.55);border-bottom:1px solid var(--border);padding:.5rem 0;font-size:12px;color:var(--muted)}
@@ -324,6 +326,7 @@ body.mob-open .dd-menu{visibility:visible;opacity:1;pointer-events:auto;position
       </div>
     </nav>
     <div class="nav-actions">
+      <a href="https://nucleuspsp.com/Nucleus/" target="_blank" rel="noopener" class="btn btn-nucleus" aria-label="Nucleus Platform (opens in new tab)">Nucleus ↗</a>
       <a href="https://portal.southernsoftware.com/index.php" target="_blank" rel="noopener" class="btn btn-o nh" aria-label="Customer Portal (opens in new tab)">Customer Portal</a>
       <a href="index.html#contact" class="btn btn-p">Request Demo</a>
     </div>
@@ -349,21 +352,77 @@ body.mob-open .dd-menu{visibility:visible;opacity:1;pointer-events:auto;position
 </div>
 <main id="main-content">
 <section class="section"><div class="container">
-<div class="card-grid-2" style="margin-bottom:3rem">
-  <div class="mod-card mod-card-accent fu" style="padding:2.25rem">
-    <h3 style="font-size:1rem;margin-bottom:.75rem">About This Team</h3>
-    <p style="font-size:15px;color:var(--muted);line-height:1.75">Our management team oversees day-to-day operations across all departments — from software development and support to training and implementation. They are the bridge between our executive vision and the frontline staff who serve our clients daily.</p>
+<style>
+.staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.1rem;margin-bottom:3.5rem}
+.staff-card{background:var(--bgcard);border:1px solid var(--border);border-radius:12px;padding:1.5rem;transition:border-color var(--tr),background var(--tr)}
+.staff-card:hover{border-color:var(--border2);background:rgba(255,255,255,.07)}
+</style>
+<div class="staff-grid">
+<article class="staff-card fu" aria-label="Thomas Murray, Director of Field Operations">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/murray_thomas_1762360286.jpg" alt="Photo of Thomas Murray" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Thomas Murray</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">Director of Field Operations</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 1998</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:9106388875" style="color:var(--muted)" aria-label="Call Thomas Murray at 910-638-8875">910-638-8875</a></div>
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:tmurray@southernsoftware.com" aria-label="Email Thomas Murray">tmurray@southernsoftware.com</a></div>
+      
+    </div>
   </div>
-  <div class="mod-card mod-card-accent g fu" data-d="1" style="padding:2.25rem;text-align:center">
-    <div style="font-size:2.5rem;margin-bottom:.75rem" aria-hidden="true">👥</div>
-    <h3 style="font-size:1rem;margin-bottom:.75rem">View Full Directory</h3>
-    <p style="font-size:14px;color:var(--muted);margin-bottom:1.25rem;line-height:1.65">Staff photos, direct contacts, and bios are available in our full team directory.</p>
-    <a href="https://www.southernsoftware.com/management-staff.php" target="_blank" rel="noopener" class="btn btn-p" aria-label="View full team directory on Southern Software website (opens in new tab)">View Team Directory →</a>
+</article><article class="staff-card fu" aria-label="Patrick Pusser, Director of FMS Product Development &amp; Operations">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/pusser_patrick_1762360222.png" alt="Photo of Patrick Pusser" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Patrick Pusser</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">Director of FMS Product Development &amp; Operations</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2003</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:9106385427" style="color:var(--muted)" aria-label="Call Patrick Pusser at 910-638-5427">910-638-5427</a></div>
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:ppusser@southernsoftware.com" aria-label="Email Patrick Pusser">ppusser@southernsoftware.com</a></div>
+      
+    </div>
   </div>
+</article><article class="staff-card fu" aria-label="Mike Dixon, Director of Technology Strategy">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/dixon_mike_1773272717.png" alt="Photo of Mike Dixon" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Mike Dixon</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">Director of Technology Strategy</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2008</div>
+      
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:mdixon@southernsoftware.com" aria-label="Email Mike Dixon">mdixon@southernsoftware.com</a></div>
+      
+    </div>
+  </div>
+</article><article class="staff-card fu" aria-label="Brian Sharpe, Director of Mobile Services">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/sharpe_brian_1762360365.jpg" alt="Photo of Brian Sharpe" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Brian Sharpe</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">Director of Mobile Services</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2010</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:3367560809" style="color:var(--muted)" aria-label="Call Brian Sharpe at 336-756-0809">336-756-0809</a></div>
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:bsharpe@southernsoftware.com" aria-label="Email Brian Sharpe">bsharpe@southernsoftware.com</a></div>
+      
+    </div>
+  </div>
+</article><article class="staff-card fu" aria-label="Tony Marks, Public Safety Support Manager">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/marks_tony_1762360157.png" alt="Photo of Tony Marks" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Tony Marks</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">Public Safety Support Manager</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2011</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:8008428190" style="color:var(--muted)" aria-label="Call Tony Marks at 800-842-8190">800-842-8190</a></div>
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:tmarks@southernsoftware.com" aria-label="Email Tony Marks">tmarks@southernsoftware.com</a></div>
+      
+    </div>
+  </div>
+</article>
 </div>
 <div class="cta-box fu" data-d="2">
   <h3>Need to Reach Our Team?</h3>
-  <p>Our staff is always available to help. Call us at (800) 842-8190 or reach out by email.</p>
+  <p>Our staff is always available — call us at (800) 842-8190 or send a message anytime.</p>
   <div class="cta-box-btns">
     <a href="tel:8008428190" class="btn btn-p btn-lg" aria-label="Call (800) 842-8190">Call (800) 842-8190</a>
     <a href="index.html#contact" class="btn btn-o btn-lg">Send a Message</a>

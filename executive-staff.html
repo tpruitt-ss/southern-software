@@ -50,6 +50,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .btn-g{background:var(--ss-green);color:#fff;border-color:var(--ss-green)}
 .btn-g:hover{background:#2a9a3a;transform:translateY(-2px)}
 .btn-lg{padding:.9rem 2.4rem;font-size:16px;border-radius:10px}
+.btn-nucleus{background:linear-gradient(135deg,#1b6fe8,#3ab54a);color:#fff;border-color:transparent;font-weight:700}
+.btn-nucleus:hover{opacity:.88;transform:translateY(-2px);box-shadow:0 6px 20px rgba(27,111,232,.4)}
 
 /* TOPBAR */
 .topbar{background:rgba(0,0,0,.55);border-bottom:1px solid var(--border);padding:.5rem 0;font-size:12px;color:var(--muted)}
@@ -324,6 +326,7 @@ body.mob-open .dd-menu{visibility:visible;opacity:1;pointer-events:auto;position
       </div>
     </nav>
     <div class="nav-actions">
+      <a href="https://nucleuspsp.com/Nucleus/" target="_blank" rel="noopener" class="btn btn-nucleus" aria-label="Nucleus Platform (opens in new tab)">Nucleus ↗</a>
       <a href="https://portal.southernsoftware.com/index.php" target="_blank" rel="noopener" class="btn btn-o nh" aria-label="Customer Portal (opens in new tab)">Customer Portal</a>
       <a href="index.html#contact" class="btn btn-p">Request Demo</a>
     </div>
@@ -344,26 +347,46 @@ body.mob-open .dd-menu{visibility:visible;opacity:1;pointer-events:auto;position
     </nav>
     <span class="eyebrow fu">Meet Our Team</span>
     <h1 class="page-title fu" data-d="1">Executive<br>Team</h1>
-    <p class="page-lead fu" data-d="2">The leaders who guide Southern Software's vision, strategy, and unwavering commitment to our clients every day.</p>
+    <p class="page-lead fu" data-d="2">The leaders who guide Southern Software's vision, strategy, and commitment to our clients every day.</p>
   </div>
 </div>
 <main id="main-content">
 <section class="section"><div class="container">
-<div class="card-grid-2" style="margin-bottom:3rem">
-  <div class="mod-card mod-card-accent fu" style="padding:2.25rem">
-    <h3 style="font-size:1rem;margin-bottom:.75rem">About This Team</h3>
-    <p style="font-size:15px;color:var(--muted);line-height:1.75">Our executive team brings decades of experience in public safety technology, government finance software, and client success. They set the direction for Southern Software and ensure we stay true to our mission of faith, integrity, and service.</p>
+<style>
+.staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.1rem;margin-bottom:3.5rem}
+.staff-card{background:var(--bgcard);border:1px solid var(--border);border-radius:12px;padding:1.5rem;transition:border-color var(--tr),background var(--tr)}
+.staff-card:hover{border-color:var(--border2);background:rgba(255,255,255,.07)}
+</style>
+<div class="staff-grid">
+<article class="staff-card fu" aria-label="Jennifer Meggs, CEO">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/meggs_jennifer_1762353384.png" alt="Photo of Jennifer Meggs" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Jennifer Meggs</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">CEO</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 1993</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:9106388804" style="color:var(--muted)" aria-label="Call Jennifer Meggs at 910-638-8804">910-638-8804</a></div>
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:jmeggs@southernsoftware.com" aria-label="Email Jennifer Meggs">jmeggs@southernsoftware.com</a></div>
+      
+    </div>
   </div>
-  <div class="mod-card mod-card-accent g fu" data-d="1" style="padding:2.25rem;text-align:center">
-    <div style="font-size:2.5rem;margin-bottom:.75rem" aria-hidden="true">👥</div>
-    <h3 style="font-size:1rem;margin-bottom:.75rem">View Full Directory</h3>
-    <p style="font-size:14px;color:var(--muted);margin-bottom:1.25rem;line-height:1.65">Staff photos, direct contacts, and bios are available in our full team directory.</p>
-    <a href="https://www.southernsoftware.com/executive-staff.php" target="_blank" rel="noopener" class="btn btn-p" aria-label="View full team directory on Southern Software website (opens in new tab)">View Team Directory →</a>
+</article><article class="staff-card fu" aria-label="John Roscoe, President / CFO">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/roscoe_john_1762353417.png" alt="Photo of John Roscoe" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">John Roscoe</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">President / CFO</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 1990</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:9106388799" style="color:var(--muted)" aria-label="Call John Roscoe at 910-638-8799">910-638-8799</a></div>
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:jroscoe@southernsoftware.com" aria-label="Email John Roscoe">jroscoe@southernsoftware.com</a></div>
+      
+    </div>
   </div>
+</article>
 </div>
 <div class="cta-box fu" data-d="2">
   <h3>Need to Reach Our Team?</h3>
-  <p>Our staff is always available to help. Call us at (800) 842-8190 or reach out by email.</p>
+  <p>Our staff is always available — call us at (800) 842-8190 or send a message anytime.</p>
   <div class="cta-box-btns">
     <a href="tel:8008428190" class="btn btn-p btn-lg" aria-label="Call (800) 842-8190">Call (800) 842-8190</a>
     <a href="index.html#contact" class="btn btn-o btn-lg">Send a Message</a>

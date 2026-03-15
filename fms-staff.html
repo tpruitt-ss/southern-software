@@ -50,6 +50,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .btn-g{background:var(--ss-green);color:#fff;border-color:var(--ss-green)}
 .btn-g:hover{background:#2a9a3a;transform:translateY(-2px)}
 .btn-lg{padding:.9rem 2.4rem;font-size:16px;border-radius:10px}
+.btn-nucleus{background:linear-gradient(135deg,#1b6fe8,#3ab54a);color:#fff;border-color:transparent;font-weight:700}
+.btn-nucleus:hover{opacity:.88;transform:translateY(-2px);box-shadow:0 6px 20px rgba(27,111,232,.4)}
 
 /* TOPBAR */
 .topbar{background:rgba(0,0,0,.55);border-bottom:1px solid var(--border);padding:.5rem 0;font-size:12px;color:var(--muted)}
@@ -324,6 +326,7 @@ body.mob-open .dd-menu{visibility:visible;opacity:1;pointer-events:auto;position
       </div>
     </nav>
     <div class="nav-actions">
+      <a href="https://nucleuspsp.com/Nucleus/" target="_blank" rel="noopener" class="btn btn-nucleus" aria-label="Nucleus Platform (opens in new tab)">Nucleus ↗</a>
       <a href="https://portal.southernsoftware.com/index.php" target="_blank" rel="noopener" class="btn btn-o nh" aria-label="Customer Portal (opens in new tab)">Customer Portal</a>
       <a href="index.html#contact" class="btn btn-p">Request Demo</a>
     </div>
@@ -349,21 +352,65 @@ body.mob-open .dd-menu{visibility:visible;opacity:1;pointer-events:auto;position
 </div>
 <main id="main-content">
 <section class="section"><div class="container">
-<div class="card-grid-2" style="margin-bottom:3rem">
-  <div class="mod-card mod-card-accent fu" style="padding:2.25rem">
-    <h3 style="font-size:1rem;margin-bottom:.75rem">About This Team</h3>
-    <p style="font-size:15px;color:var(--muted);line-height:1.75">Our FMS Support team is composed of specialists with hands-on knowledge of every Financial Management module we offer. Whether it's payroll, general ledger, utility billing, or any other module, our team has the expertise to help you quickly and effectively.</p>
+<style>
+.staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.1rem;margin-bottom:3.5rem}
+.staff-card{background:var(--bgcard);border:1px solid var(--border);border-radius:12px;padding:1.5rem;transition:border-color var(--tr),background var(--tr)}
+.staff-card:hover{border-color:var(--border2);background:rgba(255,255,255,.07)}
+</style>
+<div class="staff-grid">
+<article class="staff-card fu" aria-label="Kellie Murray, FMS Support Manager">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <div style="width:72px;height:72px;border-radius:50%;background:rgba(58,181,74,.15);display:flex;align-items:center;justify-content:center;font-family:var(--fhead);font-weight:900;font-size:22px;color:#5dca6a;flex-shrink:0">KM</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Kellie Murray</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">FMS Support Manager</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 1998</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:8008428190" style="color:var(--muted)" aria-label="Call Kellie Murray at 800-842-8190">800-842-8190</a></div>
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:fmssupport@southernsoftware.com" aria-label="Email Kellie Murray">fmssupport@southernsoftware.com</a></div>
+      
+    </div>
   </div>
-  <div class="mod-card mod-card-accent g fu" data-d="1" style="padding:2.25rem;text-align:center">
-    <div style="font-size:2.5rem;margin-bottom:.75rem" aria-hidden="true">👥</div>
-    <h3 style="font-size:1rem;margin-bottom:.75rem">View Full Directory</h3>
-    <p style="font-size:14px;color:var(--muted);margin-bottom:1.25rem;line-height:1.65">Staff photos, direct contacts, and bios are available in our full team directory.</p>
-    <a href="https://www.southernsoftware.com/fms-staff.php" target="_blank" rel="noopener" class="btn btn-p" aria-label="View full team directory on Southern Software website (opens in new tab)">View Team Directory →</a>
+</article><article class="staff-card fu" aria-label="Kathy Starnes, Senior FMS Support Tech">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <div style="width:72px;height:72px;border-radius:50%;background:rgba(58,181,74,.15);display:flex;align-items:center;justify-content:center;font-family:var(--fhead);font-weight:900;font-size:22px;color:#5dca6a;flex-shrink:0">KS</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Kathy Starnes</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">Senior FMS Support Tech</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2004</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:8008428190" style="color:var(--muted)" aria-label="Call Kathy Starnes at 800-842-8190">800-842-8190</a></div>
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:fmssupport@southernsoftware.com" aria-label="Email Kathy Starnes">fmssupport@southernsoftware.com</a></div>
+      
+    </div>
   </div>
+</article><article class="staff-card fu" aria-label="Jennifer Holloman, FMS Support Tech">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <div style="width:72px;height:72px;border-radius:50%;background:rgba(58,181,74,.15);display:flex;align-items:center;justify-content:center;font-family:var(--fhead);font-weight:900;font-size:22px;color:#5dca6a;flex-shrink:0">JH</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Jennifer Holloman</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">FMS Support Tech</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2010</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:8008428190" style="color:var(--muted)" aria-label="Call Jennifer Holloman at 800-842-8190">800-842-8190</a></div>
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:fmssupport@southernsoftware.com" aria-label="Email Jennifer Holloman">fmssupport@southernsoftware.com</a></div>
+      
+    </div>
+  </div>
+</article><article class="staff-card fu" aria-label="Amy Prevatte, FMS Support Tech">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <div style="width:72px;height:72px;border-radius:50%;background:rgba(58,181,74,.15);display:flex;align-items:center;justify-content:center;font-family:var(--fhead);font-weight:900;font-size:22px;color:#5dca6a;flex-shrink:0">AP</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Amy Prevatte</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">FMS Support Tech</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2014</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:8008428190" style="color:var(--muted)" aria-label="Call Amy Prevatte at 800-842-8190">800-842-8190</a></div>
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:fmssupport@southernsoftware.com" aria-label="Email Amy Prevatte">fmssupport@southernsoftware.com</a></div>
+      
+    </div>
+  </div>
+</article>
 </div>
 <div class="cta-box fu" data-d="2">
   <h3>Need to Reach Our Team?</h3>
-  <p>Our staff is always available to help. Call us at (800) 842-8190 or reach out by email.</p>
+  <p>Our staff is always available — call us at (800) 842-8190 or send a message anytime.</p>
   <div class="cta-box-btns">
     <a href="tel:8008428190" class="btn btn-p btn-lg" aria-label="Call (800) 842-8190">Call (800) 842-8190</a>
     <a href="index.html#contact" class="btn btn-o btn-lg">Send a Message</a>

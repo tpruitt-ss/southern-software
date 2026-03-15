@@ -50,6 +50,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .btn-g{background:var(--ss-green);color:#fff;border-color:var(--ss-green)}
 .btn-g:hover{background:#2a9a3a;transform:translateY(-2px)}
 .btn-lg{padding:.9rem 2.4rem;font-size:16px;border-radius:10px}
+.btn-nucleus{background:linear-gradient(135deg,#1b6fe8,#3ab54a);color:#fff;border-color:transparent;font-weight:700}
+.btn-nucleus:hover{opacity:.88;transform:translateY(-2px);box-shadow:0 6px 20px rgba(27,111,232,.4)}
 
 /* TOPBAR */
 .topbar{background:rgba(0,0,0,.55);border-bottom:1px solid var(--border);padding:.5rem 0;font-size:12px;color:var(--muted)}
@@ -324,6 +326,7 @@ body.mob-open .dd-menu{visibility:visible;opacity:1;pointer-events:auto;position
       </div>
     </nav>
     <div class="nav-actions">
+      <a href="https://nucleuspsp.com/Nucleus/" target="_blank" rel="noopener" class="btn btn-nucleus" aria-label="Nucleus Platform (opens in new tab)">Nucleus ↗</a>
       <a href="https://portal.southernsoftware.com/index.php" target="_blank" rel="noopener" class="btn btn-o nh" aria-label="Customer Portal (opens in new tab)">Customer Portal</a>
       <a href="index.html#contact" class="btn btn-p">Request Demo</a>
     </div>
@@ -344,26 +347,118 @@ body.mob-open .dd-menu{visibility:visible;opacity:1;pointer-events:auto;position
     </nav>
     <span class="eyebrow fu">Meet Our Team</span>
     <h1 class="page-title fu" data-d="1">Sales<br>Team</h1>
-    <p class="page-lead fu" data-d="2">Our sales team helps agencies find the right solution fit — no pressure, just honest guidance.</p>
+    <p class="page-lead fu" data-d="2">Our sales team helps agencies find the right solution — no pressure, just honest guidance.</p>
   </div>
 </div>
 <main id="main-content">
 <section class="section"><div class="container">
-<div class="card-grid-2" style="margin-bottom:3rem">
-  <div class="mod-card mod-card-accent fu" style="padding:2.25rem">
-    <h3 style="font-size:1rem;margin-bottom:.75rem">About This Team</h3>
-    <p style="font-size:15px;color:var(--muted);line-height:1.75">Our Sales team's goal isn't just to close a deal — it's to find the right fit for your agency. They take the time to understand your specific needs, walk you through our products honestly, and help you make the best decision for your community. Many of our sales relationships turn into long-term partnerships.</p>
+<style>
+.staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.1rem;margin-bottom:3.5rem}
+.staff-card{background:var(--bgcard);border:1px solid var(--border);border-radius:12px;padding:1.5rem;transition:border-color var(--tr),background var(--tr)}
+.staff-card:hover{border-color:var(--border2);background:rgba(255,255,255,.07)}
+</style>
+<div class="staff-grid">
+<article class="staff-card fu" aria-label="Boomer Davis, Public Relations">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/davis_boomer_1762372506.png" alt="Photo of Boomer Davis" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Boomer Davis</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">Public Relations</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2004</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:9107835734" style="color:var(--muted)" aria-label="Call Boomer Davis at 910-783-5734">910-783-5734</a></div>
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:rdavis@southernsoftware.com" aria-label="Email Boomer Davis">rdavis@southernsoftware.com</a></div>
+      
+    </div>
   </div>
-  <div class="mod-card mod-card-accent g fu" data-d="1" style="padding:2.25rem;text-align:center">
-    <div style="font-size:2.5rem;margin-bottom:.75rem" aria-hidden="true">👥</div>
-    <h3 style="font-size:1rem;margin-bottom:.75rem">View Full Directory</h3>
-    <p style="font-size:14px;color:var(--muted);margin-bottom:1.25rem;line-height:1.65">Staff photos, direct contacts, and bios are available in our full team directory.</p>
-    <a href="https://www.southernsoftware.com/sales-staff.php" target="_blank" rel="noopener" class="btn btn-p" aria-label="View full team directory on Southern Software website (opens in new tab)">View Team Directory →</a>
+</article><article class="staff-card fu" aria-label="Ronn Brigman, Sales Coordinator">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/brigman_ronn_1762370844.png" alt="Photo of Ronn Brigman" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Ronn Brigman</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">Sales Coordinator</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2004</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:9103317555" style="color:var(--muted)" aria-label="Call Ronn Brigman at 910-331-7555">910-331-7555</a></div>
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:rbrigman@southernsoftware.com" aria-label="Email Ronn Brigman">rbrigman@southernsoftware.com</a></div>
+      <div style="margin-top:.5rem"><a href="https://www.southernsoftware.com/ps-sales-ronnbrigman.html" target="_blank" rel="noopener" class="mod-link" style="font-size:12px" aria-label="First responder background for Ronn Brigman (opens in new tab)">First Responder Background →</a></div>
+    </div>
   </div>
+</article><article class="staff-card fu" aria-label="Debbie Cockman, FMS Technical Marketing Manager">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/cockman_debbie_1762370947.jpg" alt="Photo of Debbie Cockman" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Debbie Cockman</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">FMS Technical Marketing Manager</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2007</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:8008428190" style="color:var(--muted)" aria-label="Call Debbie Cockman at 800-842-8190">800-842-8190</a></div>
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:dcockman@southernsoftware.com" aria-label="Email Debbie Cockman">dcockman@southernsoftware.com</a></div>
+      
+    </div>
+  </div>
+</article><article class="staff-card fu" aria-label="Steve Libera, Senior Account Manager — NC &amp; SC">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/libera_steve_1762372001.png" alt="Photo of Steve Libera" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Steve Libera</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">Senior Account Manager — NC &amp; SC</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2008</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:8282919147" style="color:var(--muted)" aria-label="Call Steve Libera at 828-291-9147">828-291-9147</a></div>
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:slibera@southernsoftware.com" aria-label="Email Steve Libera">slibera@southernsoftware.com</a></div>
+      
+    </div>
+  </div>
+</article><article class="staff-card fu" aria-label="Danny McKinley, Public Relations">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/mckinley_danny_1773358565.png" alt="Photo of Danny McKinley" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Danny McKinley</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">Public Relations</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2011</div>
+      
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:dmckinley@southernsoftware.com" aria-label="Email Danny McKinley">dmckinley@southernsoftware.com</a></div>
+      
+    </div>
+  </div>
+</article><article class="staff-card fu" aria-label="Scott Wright, Technical Marketing Manager">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/wright_scott_1762372329.png" alt="Photo of Scott Wright" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Scott Wright</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">Technical Marketing Manager</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2014</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:8324531527" style="color:var(--muted)" aria-label="Call Scott Wright at 832-453-1527">832-453-1527</a></div>
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:swright@southernsoftware.com" aria-label="Email Scott Wright">swright@southernsoftware.com</a></div>
+      <div style="margin-top:.5rem"><a href="https://www.southernsoftware.com/ps-sales-scottwright.html" target="_blank" rel="noopener" class="mod-link" style="font-size:12px" aria-label="First responder background for Scott Wright (opens in new tab)">First Responder Background →</a></div>
+    </div>
+  </div>
+</article><article class="staff-card fu" aria-label="Travis Pruitt, Technical Marketing Manager">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/pruitt_travis_1762372420.png" alt="Photo of Travis Pruitt" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Travis Pruitt</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">Technical Marketing Manager</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2015</div>
+      
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:tpruitt@southernsoftware.com" aria-label="Email Travis Pruitt">tpruitt@southernsoftware.com</a></div>
+      <div style="margin-top:.5rem"><a href="https://www.southernsoftware.com/ps-training-bio-travispruitt.html" target="_blank" rel="noopener" class="mod-link" style="font-size:12px" aria-label="First responder background for Travis Pruitt (opens in new tab)">First Responder Background →</a></div>
+    </div>
+  </div>
+</article><article class="staff-card fu" aria-label="Matt Byrd, Account Manager">
+  <div style="display:flex;gap:1rem;align-items:flex-start">
+    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/byrd_matt_1762372144.png" alt="Photo of Matt Byrd" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Matt Byrd</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:2px">Account Manager</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2018</div>
+      
+      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:mbyrd@southernsoftware.com" aria-label="Email Matt Byrd">mbyrd@southernsoftware.com</a></div>
+      
+    </div>
+  </div>
+</article>
 </div>
 <div class="cta-box fu" data-d="2">
   <h3>Need to Reach Our Team?</h3>
-  <p>Our staff is always available to help. Call us at (800) 842-8190 or reach out by email.</p>
+  <p>Our staff is always available — call us at (800) 842-8190 or send a message anytime.</p>
   <div class="cta-box-btns">
     <a href="tel:8008428190" class="btn btn-p btn-lg" aria-label="Call (800) 842-8190">Call (800) 842-8190</a>
     <a href="index.html#contact" class="btn btn-o btn-lg">Send a Message</a>
