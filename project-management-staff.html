@@ -9,7 +9,7 @@
 
 <style>
 .skip-nav{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;z-index:9999}
-.skip-nav:focus{position:fixed;top:0;left:0;width:auto;height:auto;padding:.75rem 1.5rem;background:#2e7fd4;color:#fff;font-size:14px;font-weight:600;border-radius:0 0 8px 0;z-index:9999;outline:3px solid #fff}
+.skip-nav:focus{position:fixed;top:0;left:0;width:auto;height:auto;padding:.75rem 1.5rem;background:#2e7fd4;color:#fff;font-size:14px;font-weight:600;border-radius:0 0 8px 0;z-index:10000;outline:3px solid #fff}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
 :root{
@@ -344,7 +344,7 @@ body.light-mode .staff-title{color:#3d5c7a}
 
 /* Toggle button */
 .theme-toggle{
-  position:fixed;top:1.5rem;left:1.5rem;width:46px;height:46px;border-radius:50%;
+  position:fixed;top:1rem;right:1rem;width:46px;height:46px;border-radius:50%;
   border:1.5px solid var(--border2);
   background:var(--bg2);
   cursor:pointer;
@@ -352,7 +352,7 @@ body.light-mode .staff-title{color:#3d5c7a}
   font-size:20px;
   box-shadow:0 4px 16px rgba(0,0,0,.3);
   transition:transform .2s ease,box-shadow .2s ease,background var(--tr),border-color var(--tr);
-  z-index:9999;
+  z-index:10000;
   outline:none;
 }
 .theme-toggle:hover{transform:scale(1.12);box-shadow:0 6px 24px rgba(0,0,0,.4)}
@@ -688,17 +688,17 @@ document.querySelectorAll('.dd-sub').forEach(sub=>{
 
 // Dark / Light mode toggle
 (function(){
-  const btn = document.getElementById('theme-toggle');
   const PREF_KEY = 'ss-theme';
-  // Apply saved preference immediately
-  const saved = localStorage.getItem(PREF_KEY);
-  if(saved === 'light') document.body.classList.add('light-mode');
-  if(btn){
-    btn.addEventListener('click', function(){
-      const isLight = document.body.classList.toggle('light-mode');
-      localStorage.setItem(PREF_KEY, isLight ? 'light' : 'dark');
-    });
-  }
+  if(localStorage.getItem(PREF_KEY) === 'light') document.body.classList.add('light-mode');
+  document.addEventListener('DOMContentLoaded', function(){
+    const btn = document.getElementById('theme-toggle');
+    if(btn){
+      btn.addEventListener('click', function(){
+        const isLight = document.body.classList.toggle('light-mode');
+        localStorage.setItem(PREF_KEY, isLight ? 'light' : 'dark');
+      });
+    }
+  });
 })();
 
 </script>
