@@ -353,12 +353,96 @@ body.mob-open .dd-menu{visibility:visible;opacity:1;pointer-events:auto;position
 <main id="main-content">
 <section class="section"><div class="container">
 <style>
-.staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.1rem;margin-bottom:3.5rem}
-.staff-card{background:var(--bgcard);border:1px solid var(--border);border-radius:12px;padding:1.5rem;transition:border-color var(--tr),background var(--tr)}
-.staff-card:hover{border-color:var(--border2);background:rgba(255,255,255,.07)}
+.staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.25rem;margin-bottom:3.5rem}
+.staff-card{background:var(--bgcard);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color var(--tr),transform var(--tr),box-shadow var(--tr)}
+.staff-card:hover{border-color:var(--border2);transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.45)}
 </style>
 <div class="staff-grid">
-
+<article class="staff-card fu" aria-label="Janet Benson, Sales Administrative Assistant">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/benson_janet_1762354919.png" alt="Photo of Janet Benson" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Janet Benson</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Sales Administrative Assistant</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2001</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Janet Benson">800-842-8190</a>
+    <a href="mailto:jbenson@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Janet Benson">jbenson@southernsoftware.com</a>
+    
+  </div>
+</article><article class="staff-card fu" aria-label="Dee Dillon, Customer Relations &amp; Regional Training Coordinator">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/dillon_dee_1762356800.jpg" alt="Photo of Dee Dillon" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Dee Dillon</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Customer Relations &amp; Regional Training Coordinator</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2005</div>
+    <a href="tel:3362551864" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Dee Dillon">336-255-1864</a>
+    <a href="mailto:ddillon@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Dee Dillon">ddillon@southernsoftware.com</a>
+    
+  </div>
+</article><article class="staff-card fu" aria-label="Melissa Reynolds, Marketing">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/reynolds_melissa_1762354984.jpg" alt="Photo of Melissa Reynolds" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Melissa Reynolds</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Marketing</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2010</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Melissa Reynolds">800-842-8190</a>
+    <a href="mailto:mreynolds@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Melissa Reynolds">mreynolds@southernsoftware.com</a>
+    
+  </div>
+</article><article class="staff-card fu" aria-label="Bobbi McNeil, Events Operations Manager">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/mcneil_bobbi_1762356578.jpg" alt="Photo of Bobbi McNeil" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Bobbi McNeil</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Events Operations Manager</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2014</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Bobbi McNeil">800-842-8190</a>
+    <a href="mailto:bmcneil@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Bobbi McNeil">bmcneil@southernsoftware.com</a>
+    
+  </div>
+</article><article class="staff-card fu" aria-label="Tonya Garrison, Financial Administrative Assistant">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/garrison_tonya_1762355164.jpg" alt="Photo of Tonya Garrison" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Tonya Garrison</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Financial Administrative Assistant</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2018</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Tonya Garrison">800-842-8190</a>
+    <a href="mailto:tgarrison@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Tonya Garrison">tgarrison@southernsoftware.com</a>
+    
+  </div>
+</article><article class="staff-card fu" aria-label="Lara Blue, Administrative Assistant">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/blue_lara_1762354610.png" alt="Photo of Lara Blue" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Lara Blue</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Administrative Assistant</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2020</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Lara Blue">800-842-8190</a>
+    <a href="mailto:lblue@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Lara Blue">lblue@southernsoftware.com</a>
+    
+  </div>
+</article>
 </div>
 <div class="cta-box fu" data-d="2">
   <h3>Need to Reach Our Team?</h3>

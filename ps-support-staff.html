@@ -353,106 +353,120 @@ body.mob-open .dd-menu{visibility:visible;opacity:1;pointer-events:auto;position
 <main id="main-content">
 <section class="section"><div class="container">
 <style>
-.staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.1rem;margin-bottom:3.5rem}
-.staff-card{background:var(--bgcard);border:1px solid var(--border);border-radius:12px;padding:1.5rem;transition:border-color var(--tr),background var(--tr)}
-.staff-card:hover{border-color:var(--border2);background:rgba(255,255,255,.07)}
+.staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.25rem;margin-bottom:3.5rem}
+.staff-card{background:var(--bgcard);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color var(--tr),transform var(--tr),box-shadow var(--tr)}
+.staff-card:hover{border-color:var(--border2);transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.45)}
 </style>
 <div class="staff-grid">
 <article class="staff-card fu" aria-label="Melissa Lee, Support Communications Administrator">
-  <div style="display:flex;gap:1rem;align-items:flex-start">
-    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/lee_melissa_1762361014.png" alt="Photo of Melissa Lee" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
-    <div style="flex:1;min-width:0">
-      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Melissa Lee</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:2px">Support Communications Administrator</div>
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2003</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:8008428190" style="color:var(--muted)" aria-label="Call Melissa Lee at 800-842-8190">800-842-8190</a></div>
-      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:pssupport@southernsoftware.com" aria-label="Email Melissa Lee">pssupport@southernsoftware.com</a></div>
-      
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/lee_melissa_1762361014.png" alt="Photo of Melissa Lee" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
     </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Melissa Lee</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Support Communications Administrator</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2003</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Melissa Lee">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Melissa Lee">pssupport@southernsoftware.com</a>
+    
   </div>
 </article><article class="staff-card fu" aria-label="Stephanie Terry, Senior Support Tech">
-  <div style="display:flex;gap:1rem;align-items:flex-start">
-    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/terry_stephanie_1762361061.png" alt="Photo of Stephanie Terry" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
-    <div style="flex:1;min-width:0">
-      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Stephanie Terry</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:2px">Senior Support Tech</div>
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2010</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:8008428190" style="color:var(--muted)" aria-label="Call Stephanie Terry at 800-842-8190">800-842-8190</a></div>
-      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:pssupport@southernsoftware.com" aria-label="Email Stephanie Terry">pssupport@southernsoftware.com</a></div>
-      
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/terry_stephanie_1762361061.png" alt="Photo of Stephanie Terry" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
     </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Stephanie Terry</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Senior Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2010</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Stephanie Terry">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Stephanie Terry">pssupport@southernsoftware.com</a>
+    
   </div>
 </article><article class="staff-card fu" aria-label="Barbi Smith, Senior Support Tech">
-  <div style="display:flex;gap:1rem;align-items:flex-start">
-    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/smith_barbi_1762297498.png" alt="Photo of Barbi Smith" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
-    <div style="flex:1;min-width:0">
-      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Barbi Smith</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:2px">Senior Support Tech</div>
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2014</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:8008428190" style="color:var(--muted)" aria-label="Call Barbi Smith at 800-842-8190">800-842-8190</a></div>
-      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:pssupport@southernsoftware.com" aria-label="Email Barbi Smith">pssupport@southernsoftware.com</a></div>
-      
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/smith_barbi_1762297498.png" alt="Photo of Barbi Smith" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
     </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Barbi Smith</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Senior Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2014</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Barbi Smith">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Barbi Smith">pssupport@southernsoftware.com</a>
+    
   </div>
 </article><article class="staff-card fu" aria-label="Jason Love, Senior Support Tech">
-  <div style="display:flex;gap:1rem;align-items:flex-start">
-    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/love_jason_1762361131.png" alt="Photo of Jason Love" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
-    <div style="flex:1;min-width:0">
-      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Jason Love</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:2px">Senior Support Tech</div>
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2014</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:8008428190" style="color:var(--muted)" aria-label="Call Jason Love at 800-842-8190">800-842-8190</a></div>
-      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:pssupport@southernsoftware.com" aria-label="Email Jason Love">pssupport@southernsoftware.com</a></div>
-      <div style="margin-top:.5rem"><a href="https://www.southernsoftware.com/ps-support-bio-jasonlove.html" target="_blank" rel="noopener" class="mod-link" style="font-size:12px" aria-label="First responder background for Jason Love (opens in new tab)">First Responder Background →</a></div>
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/love_jason_1762361131.png" alt="Photo of Jason Love" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
     </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Jason Love</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Senior Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2014</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Jason Love">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Jason Love">pssupport@southernsoftware.com</a>
+    <a href="https://www.southernsoftware.com/ps-support-bio-jasonlove.html" target="_blank" rel="noopener" style="color:var(--ss-green);font-size:12px;display:block;margin-top:6px" aria-label="First responder background for Jason Love">First Responder Background →</a>
   </div>
 </article><article class="staff-card fu" aria-label="Patrick Garrison, Support Tech">
-  <div style="display:flex;gap:1rem;align-items:flex-start">
-    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/garrison_patrick_1762361254.png" alt="Photo of Patrick Garrison" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
-    <div style="flex:1;min-width:0">
-      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Patrick Garrison</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:2px">Support Tech</div>
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2018</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:8008428190" style="color:var(--muted)" aria-label="Call Patrick Garrison at 800-842-8190">800-842-8190</a></div>
-      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:pssupport@southernsoftware.com" aria-label="Email Patrick Garrison">pssupport@southernsoftware.com</a></div>
-      
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/garrison_patrick_1762361254.png" alt="Photo of Patrick Garrison" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
     </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Patrick Garrison</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2018</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Patrick Garrison">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Patrick Garrison">pssupport@southernsoftware.com</a>
+    
   </div>
 </article><article class="staff-card fu" aria-label="Rodney Dozier, Support Tech">
-  <div style="display:flex;gap:1rem;align-items:flex-start">
-    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/dozier_rodney_1762361303.png" alt="Photo of Rodney Dozier" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
-    <div style="flex:1;min-width:0">
-      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Rodney Dozier</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:2px">Support Tech</div>
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2024</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:8008428190" style="color:var(--muted)" aria-label="Call Rodney Dozier at 800-842-8190">800-842-8190</a></div>
-      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:pssupport@southernsoftware.com" aria-label="Email Rodney Dozier">pssupport@southernsoftware.com</a></div>
-      
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/dozier_rodney_1762361303.png" alt="Photo of Rodney Dozier" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
     </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Rodney Dozier</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2024</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Rodney Dozier">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Rodney Dozier">pssupport@southernsoftware.com</a>
+    
   </div>
 </article><article class="staff-card fu" aria-label="Ashley Warren, Support Tech">
-  <div style="display:flex;gap:1rem;align-items:flex-start">
-    <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/warren_ashley_1762297472.png" alt="Photo of Ashley Warren" loading="lazy" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
-    <div style="flex:1;min-width:0">
-      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Ashley Warren</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:2px">Support Tech</div>
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2024</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:8008428190" style="color:var(--muted)" aria-label="Call Ashley Warren at 800-842-8190">800-842-8190</a></div>
-      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:pssupport@southernsoftware.com" aria-label="Email Ashley Warren">pssupport@southernsoftware.com</a></div>
-      
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/warren_ashley_1762297472.png" alt="Photo of Ashley Warren" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
     </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Ashley Warren</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2024</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Ashley Warren">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Ashley Warren">pssupport@southernsoftware.com</a>
+    
   </div>
 </article><article class="staff-card fu" aria-label="Matt Hussey, Support Tech">
-  <div style="display:flex;gap:1rem;align-items:flex-start">
-    <div style="width:72px;height:72px;border-radius:50%;background:rgba(46,127,212,.2);display:flex;align-items:center;justify-content:center;font-family:var(--fhead);font-weight:900;font-size:22px;color:var(--bluel);flex-shrink:0">MH</div>
-    <div style="flex:1;min-width:0">
-      <div style="font-family:var(--fhead);font-weight:700;font-size:17px;text-transform:uppercase;color:var(--white);letter-spacing:.02em">Matt Hussey</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:2px">Support Tech</div>
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2024</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:3px"><a href="tel:8008428190" style="color:var(--muted)" aria-label="Call Matt Hussey at 800-842-8190">800-842-8190</a></div>
-      <div style="font-size:13px;color:var(--bluel);margin-top:3px"><a href="mailto:pssupport@southernsoftware.com" aria-label="Email Matt Hussey">pssupport@southernsoftware.com</a></div>
-      
+  <div style="width:100%;aspect-ratio:1;border-radius:12px 12px 0 0;background:#1b4a8a;display:flex;align-items:center;justify-content:center">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2.5rem,6vw,4rem);color:#5ba3f5;letter-spacing:-.02em">MH</span>
     </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Matt Hussey</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2024</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Matt Hussey">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Matt Hussey">pssupport@southernsoftware.com</a>
+    
   </div>
 </article>
 </div>

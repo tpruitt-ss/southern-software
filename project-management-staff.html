@@ -347,18 +347,74 @@ body.mob-open .dd-menu{visibility:visible;opacity:1;pointer-events:auto;position
     </nav>
     <span class="eyebrow fu">Meet Our Team</span>
     <h1 class="page-title fu" data-d="1">Project Management<br>Team</h1>
-    <p class="page-lead fu" data-d="2">Our project managers ensure every implementation is delivered on time and to your satisfaction.</p>
+    <p class="page-lead fu" data-d="2">Our project managers coordinate every new implementation for a smooth, on-schedule go-live.</p>
   </div>
 </div>
 <main id="main-content">
 <section class="section"><div class="container">
 <style>
-.staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.1rem;margin-bottom:3.5rem}
-.staff-card{background:var(--bgcard);border:1px solid var(--border);border-radius:12px;padding:1.5rem;transition:border-color var(--tr),background var(--tr)}
-.staff-card:hover{border-color:var(--border2);background:rgba(255,255,255,.07)}
+.staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.25rem;margin-bottom:3.5rem}
+.staff-card{background:var(--bgcard);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color var(--tr),transform var(--tr),box-shadow var(--tr)}
+.staff-card:hover{border-color:var(--border2);transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.45)}
 </style>
 <div class="staff-grid">
-
+<article class="staff-card fu" aria-label="Joe Garrison, Financial Management Project Manager">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/garrison_joe_1762369400.png" alt="Photo of Joe Garrison" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Joe Garrison</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Financial Management Project Manager</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2012</div>
+    <a href="tel:9106904511" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Joe Garrison">910-690-4511</a>
+    <a href="mailto:jgarrison@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Joe Garrison">jgarrison@southernsoftware.com</a>
+    
+  </div>
+</article><article class="staff-card fu" aria-label="Brent Boykin, Senior Project Manager">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/boykin_brent_1762299103.png" alt="Photo of Brent Boykin" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Brent Boykin</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Senior Project Manager</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2015</div>
+    <a href="tel:9192184901" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Brent Boykin">919-218-4901</a>
+    <a href="mailto:bboykin@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Brent Boykin">bboykin@southernsoftware.com</a>
+    
+  </div>
+</article><article class="staff-card fu" aria-label="Dan Barcus, Public Safety Project Manager">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/barcus_dan_1762369449.jpg" alt="Photo of Dan Barcus" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Dan Barcus</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Public Safety Project Manager</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2022</div>
+    <a href="tel:7329048266" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Dan Barcus">732-904-8266</a>
+    <a href="mailto:dbarcus@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Dan Barcus">dbarcus@southernsoftware.com</a>
+    
+  </div>
+</article><article class="staff-card fu" aria-label="Nick Madray, Public Safety Project Manager">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/madray_nick_1762369497.png" alt="Photo of Nick Madray" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Nick Madray</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Public Safety Project Manager</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2024</div>
+    <a href="tel:8432595002" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Nick Madray">843-259-5002</a>
+    <a href="mailto:nmadray@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Nick Madray">nmadray@southernsoftware.com</a>
+    
+  </div>
+</article>
 </div>
 <div class="cta-box fu" data-d="2">
   <h3>Need to Reach Our Team?</h3>
