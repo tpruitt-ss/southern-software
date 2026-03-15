@@ -1,0 +1,2070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="description" content="Southern Software — Purpose-built software and industry-leading support for public safety and financial management since 1988."/>
+<title>Southern Software, Inc. — Public Safety &amp; Financial Management Solutions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+
+/* ── Skip Nav (ADA) ── */
+.skip-nav{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;z-index:9999}
+.skip-nav:focus{position:fixed;top:0;left:0;width:auto;height:auto;padding:.75rem 1.5rem;background:#1b6fe8;color:#fff;font-size:14px;font-weight:600;border-radius:0 0 8px 0;z-index:10000;outline:3px solid #fff}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+
+:root{
+  /* SS Brand Colors */
+  --ss-blue:   #2e7fd4;
+  --ss-green:  #3ab54a;
+  --ss-red:    #e03030;
+  /* Site palette */
+  --bg:        #06101f;
+  --bg2:       #0b1a2e;
+  --bg3:       #0f2240;
+  --bgcard:    rgba(255,255,255,0.05);
+  --border:    rgba(255,255,255,0.09);
+  --border2:   rgba(255,255,255,0.18);
+  --blue:      #2e7fd4;
+  --bluel:     #5ba3f5;
+  --teal:      #00c4a0;
+  --white:     #ffffff;
+  --text:      #d4e2f4;
+  --muted:     #7a9bbe;
+  --dim:       #3d5470;
+  --fhead:     'Barlow Condensed',sans-serif;
+  --fbody:     'Inter',sans-serif;
+  --tr:        .22s ease;
+}
+
+body{font-family:var(--fbody);background:var(--bg);color:var(--text);font-size:16px;line-height:1.65;overflow-x:hidden}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+ul{list-style:none}
+button{cursor:pointer;font-family:inherit;border:none;outline:none;background:transparent}
+
+/* ADA focus styles — visible on all interactive elements */
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:3px solid var(--bluel);outline-offset:3px;border-radius:4px
+}
+
+/* Full-width layout — no max-width cap */
+.container{width:100%;padding:0 3rem}
+.section{padding:6rem 0}
+.section-alt{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+
+.eyebrow{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ss-green);margin-bottom:.75rem}
+.section-title{font-family:var(--fhead);font-weight:900;font-size:clamp(2.6rem,4vw,3.8rem);line-height:1;letter-spacing:.01em;text-transform:uppercase;color:var(--white);margin-bottom:1rem}
+.section-sub{font-size:17px;font-weight:300;color:var(--muted);max-width:700px;line-height:1.75;margin-bottom:3rem}
+
+/* Fade animation */
+.fu{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.fu.vis{opacity:1;transform:translateY(0)}
+.fu[data-d="1"]{transition-delay:.1s}.fu[data-d="2"]{transition-delay:.2s}.fu[data-d="3"]{transition-delay:.3s}.fu[data-d="4"]{transition-delay:.4s}
+
+/* Buttons — WCAG AA contrast */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:.75rem 1.75rem;font-family:var(--fbody);font-size:15px;font-weight:600;border-radius:8px;transition:var(--tr);cursor:pointer;white-space:nowrap;text-decoration:none;border:2px solid transparent}
+.btn-p{background:var(--ss-green);color:#fff;border:2px solid var(--ss-green);font-weight:600}
+.btn-p:hover{background:#2a9a3a;border-color:#2a9a3a;transform:translateY(-2px);box-shadow:0 6px 20px rgba(58,181,74,.4)}
+.btn-o{background:var(--ss-red);color:#fff;border:2px solid var(--ss-red);font-weight:600}
+.btn-o:hover{background:#c02020;border-color:#c02020;transform:translateY(-2px);box-shadow:0 6px 20px rgba(224,48,48,.4)}
+.btn-lg{padding:.9rem 2.4rem;font-size:16px;border-radius:10px}
+.nav-btn{padding:.52rem 1.1rem;font-size:13px;border-radius:8px;font-weight:600;letter-spacing:.01em}
+.btn-nucleus{background:var(--ss-blue);color:#fff;border:2px solid var(--ss-blue);font-weight:600}
+.btn-nucleus:hover{background:#1f6abf;border-color:#1f6abf;transform:translateY(-2px);box-shadow:0 6px 20px rgba(27,111,232,.4)}
+
+/* ── TOPBAR ── */
+.topbar{background:rgba(0,0,0,.55);border-bottom:1px solid var(--border);padding:.5rem 0;font-size:12px;color:var(--muted)}
+.topbar .container{display:flex;justify-content:center;align-items:center;gap:2rem;flex-wrap:wrap}
+.topbar a{color:var(--muted);transition:color var(--tr);padding:.2rem 0}
+.topbar a:hover{color:var(--white)}
+
+/* ── NAV ── */
+.nav{position:sticky;top:0;z-index:200;height:70px;display:flex;align-items:center;background:rgba(6,16,31,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);transition:background var(--tr)}
+.nav.scrolled{background:rgba(6,16,31,.99)}
+.nav .container{display:flex;align-items:center;justify-content:space-between;width:100%}
+
+/* Logo — transparent PNG now, no box */
+.nav-logo{display:flex;align-items:center;gap:12px;flex-shrink:0;text-decoration:none}
+.nav-logo img{height:42px;width:auto}
+.nav-logo-text{line-height:1.15}
+.nav-logo-name{font-family:var(--fhead);font-weight:700;font-size:18px;color:var(--white);letter-spacing:.02em}
+.nav-logo-sub{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+/* SS brand color accent line under logo text */
+.nav-logo-accent{height:2px;width:100%;margin-top:3px;background:linear-gradient(90deg,var(--ss-blue),var(--ss-green),var(--ss-red));border-radius:2px}
+
+.nav-links{display:flex;align-items:center;gap:.25rem}
+.nav-links>a,.nav-dd>a{display:block;padding:.45rem .9rem;font-size:14px;color:var(--muted);border-radius:6px;transition:color var(--tr),background var(--tr);cursor:pointer;font-weight:400}
+.nav-links>a:hover,.nav-dd>a:hover{color:var(--white);background:rgba(255,255,255,.07)}
+.nav-dd{position:relative}
+.nav-dd>a::after{content:" ▾";font-size:10px}
+/* Invisible bridge keeps menu open as mouse travels down */
+.nav-dd::after{content:'';position:absolute;top:100%;left:0;right:0;height:14px;display:none}
+.nav-dd:hover::after{display:block}
+.dd-menu{
+  display:none;position:absolute;top:calc(100% + 6px);left:0;
+  min-width:220px;background:var(--bg2);
+  border:1px solid var(--border2);border-radius:12px;
+  padding:.5rem;box-shadow:0 12px 40px rgba(0,0,0,.5);z-index:300;
+  /* Slight delay on hide so mouse can travel to flyout */
+  transition:opacity .15s ease;opacity:1;
+}
+.nav-dd:hover .dd-menu,
+.nav-dd:focus-within .dd-menu{display:block}
+/* Keep menu open with pointer-events bridge */
+.dd-menu::before{content:'';position:absolute;top:-10px;left:0;right:0;height:10px}
+.dd-menu a{display:block;padding:.55rem .9rem;font-size:13px;color:var(--muted);border-radius:6px;transition:color var(--tr),background var(--tr)}
+.dd-menu a:hover{color:var(--white);background:rgba(255,255,255,.07)}
+.dd-menu hr{border:none;border-top:1px solid var(--border);margin:.4rem .9rem}
+/* JS-controlled open class for stickier behaviour */
+.nav-dd.open .dd-menu{display:block}
+.dd-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:.6rem .9rem .2rem}
+.nav-actions{display:flex;align-items:center;gap:.75rem}
+.nav-toggle{display:none;flex-direction:column;gap:5px;padding:6px;border-radius:6px}
+.nav-toggle span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:var(--tr)}
+
+/* ── HERO ── */
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:5rem 0;overflow:hidden}
+.hero-grid{position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(46,127,212,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(46,127,212,.07) 1px,transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse 80% 85% at 50% 40%,black 35%,transparent 100%);
+  -webkit-mask-image:radial-gradient(ellipse 80% 85% at 50% 40%,black 35%,transparent 100%)}
+.hero-glow1{position:absolute;top:-200px;left:50%;transform:translateX(-55%);width:900px;height:700px;background:radial-gradient(ellipse at center,rgba(46,127,212,.18) 0%,transparent 65%);pointer-events:none}
+.hero-glow2{position:absolute;bottom:-100px;right:-50px;width:600px;height:500px;background:radial-gradient(ellipse at center,rgba(58,181,74,.10) 0%,transparent 65%);pointer-events:none}
+
+/* SS brand gradient bar across top of hero */
+.hero-bar{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ss-blue) 0%,var(--ss-green) 50%,var(--ss-red) 100%)}
+
+.hero .container{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+
+.hero-logo{margin-bottom:.75rem}
+.hero-logo img{height:80px;width:auto}
+.hero-esop-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:linear-gradient(90deg,rgba(46,127,212,.15),rgba(58,181,74,.12),rgba(224,48,48,.12));border:1px solid rgba(255,255,255,.15);border-radius:100px;font-size:12px;font-weight:600;color:var(--white);letter-spacing:.05em;margin-bottom:1.25rem}
+.hero-esop-badge svg{flex-shrink:0}
+.hero-checks{display:flex;flex-direction:column;gap:.6rem;margin-bottom:2rem}
+.hero-check{display:flex;align-items:center;gap:.85rem;font-family:var(--fhead);font-weight:700;font-size:1.7rem;text-transform:uppercase;letter-spacing:.04em;color:var(--white)}
+.hero-check svg{flex-shrink:0}
+.hero-tagline{font-family:var(--fhead);font-weight:900;font-size:clamp(1.1rem,2vw,1.4rem);text-transform:uppercase;letter-spacing:.05em;color:var(--ss-red);margin-bottom:2rem;line-height:1.3}
+.hero-tagline em{font-style:normal;color:var(--white)}
+
+.hero-tag{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(46,127,212,.14);border:1px solid rgba(46,127,212,.32);border-radius:100px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--bluel);margin-bottom:1.5rem}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ss-green);animation:blink 2.2s ease-in-out infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
+
+.hero-h1{font-family:var(--fhead);font-weight:900;font-size:clamp(3.8rem,6.5vw,6.5rem);line-height:.92;letter-spacing:.005em;text-transform:uppercase;color:var(--white);margin-bottom:1.5rem}
+.hero-h1 em{font-style:normal;color:var(--ss-blue)}
+
+.hero-lead{font-size:18px;font-weight:300;color:var(--muted);line-height:1.75;max-width:560px;margin-bottom:2.5rem}
+.hero-ctas{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:3rem}
+.hero-divider{border:none;border-top:1px solid var(--border);margin-bottom:2rem}
+.hero-stats{display:flex;gap:3rem;flex-wrap:wrap}
+.hero-stat-num{font-family:var(--fhead);font-weight:900;font-size:2.4rem;line-height:1;color:var(--white)}
+.hero-stat-lbl{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-top:4px}
+
+/* Hero cards */
+.hero-cards{display:flex;flex-direction:column;gap:1.1rem}
+.hero-card{background:var(--bgcard);border:1px solid var(--border);border-radius:12px;padding:1.35rem 1.6rem;transition:border-color var(--tr),background var(--tr),transform var(--tr)}
+.hero-card:hover{border-color:var(--border2);background:rgba(255,255,255,.07);transform:translateX(-5px)}
+.hc-top{display:flex;align-items:center;gap:12px;margin-bottom:.6rem}
+.hc-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.hc-title{font-family:var(--fhead);font-weight:700;font-size:15px;letter-spacing:.05em;text-transform:uppercase;color:var(--white);flex:1}
+.badge{padding:3px 10px;border-radius:100px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.badge-b{background:rgba(46,127,212,.2);color:var(--bluel)}
+.badge-g{background:rgba(58,181,74,.15);color:#5dca6a}
+.badge-a{background:rgba(224,48,48,.15);color:#f07070}
+.hero-card p{font-size:14px;color:var(--muted);line-height:1.6}
+
+/* SS accent strip on hero cards */
+.hero-card.ps  {border-left:3px solid var(--ss-blue)}
+.hero-card.fms {border-left:3px solid var(--ss-green)}
+.hero-card.nuc {border-left:3px solid var(--ss-red)}
+
+/* ── WHO WE ARE ── */
+.who-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+.who-body p{font-size:17px;color:var(--muted);line-height:1.85;margin-bottom:1.15rem}
+.tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:2rem}
+.tag{padding:6px 16px;border:1px solid var(--border2);border-radius:100px;font-size:12px;color:var(--muted);transition:border-color var(--tr),color var(--tr)}
+.tag:hover{border-color:var(--ss-blue);color:var(--white)}
+
+.who-facts{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.wf{background:var(--bg2);padding:2.25rem;transition:background var(--tr);position:relative;overflow:hidden}
+.wf::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
+.wf:nth-child(1)::after{background:var(--ss-blue)}
+.wf:nth-child(2)::after{background:var(--ss-green)}
+.wf:nth-child(3)::after{background:var(--ss-red)}
+.wf:nth-child(4)::after{background:linear-gradient(90deg,var(--ss-blue),var(--ss-green))}
+.wf:hover{background:var(--bg3)}
+.wf-num{font-family:var(--fhead);font-weight:900;font-size:3rem;line-height:1;color:var(--white);margin-bottom:6px}
+.wf-lbl{font-size:13px;color:var(--muted);line-height:1.45}
+
+/* ── PRODUCTS ── */
+.prod-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.75rem;margin-top:3.5rem}
+.prod-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2.75rem;position:relative;overflow:hidden;transition:border-color var(--tr),transform var(--tr),box-shadow var(--tr)}
+.prod-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.prod-card.ps::before {background:linear-gradient(90deg,var(--ss-blue),var(--bluel))}
+.prod-card.fms::before{background:linear-gradient(90deg,#2a9a3a,var(--ss-green))}
+.prod-card:hover{border-color:var(--border2);transform:translateY(-5px);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.prod-icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:1.5rem}
+.prod-icon.ps {background:rgba(46,127,212,.14)}
+.prod-icon.fms{background:rgba(58,181,74,.12)}
+.prod-tag{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:.4rem}
+.prod-card h3{font-family:var(--fhead);font-weight:900;font-size:2.2rem;text-transform:uppercase;color:var(--white);margin-bottom:.85rem}
+.prod-card>p{font-size:15px;color:var(--muted);line-height:1.75;margin-bottom:1.75rem}
+.prod-feats{display:flex;flex-direction:column;gap:.6rem;margin-bottom:2rem}
+.prod-feats li{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--muted)}
+.prod-feats li::before{content:"›";font-size:18px;font-weight:700;flex-shrink:0;line-height:1.2}
+.prod-card.ps  .prod-feats li::before{color:var(--ss-blue)}
+.prod-card.fms .prod-feats li::before{color:var(--ss-green)}
+.prod-link{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;transition:gap var(--tr)}
+.prod-card.ps  .prod-link{color:var(--bluel)}
+.prod-card.fms .prod-link{color:#5dca6a}
+.prod-link:hover{gap:12px}
+
+.nucleus-box{margin-top:2rem;padding:4rem;background:linear-gradient(135deg,rgba(46,127,212,.12),rgba(58,181,74,.08));border:1px solid rgba(46,127,212,.25);border-radius:24px;text-align:center;position:relative;overflow:hidden}
+.nucleus-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ss-blue),var(--ss-green),var(--ss-red))}
+.nucleus-box h3{font-family:var(--fhead);font-weight:900;font-size:2.4rem;text-transform:uppercase;color:var(--white);margin-bottom:.75rem}
+.nucleus-box p{font-size:17px;color:var(--muted);max-width:560px;margin:0 auto 2rem;line-height:1.75}
+
+/* ── SUPPORT ── */
+.supp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;margin-top:3rem}
+.supp-card{background:var(--bgcard);border:1px solid var(--border);border-radius:12px;padding:2rem;text-decoration:none;display:block;transition:border-color var(--tr),background var(--tr),transform var(--tr)}
+.supp-card:hover{border-color:var(--border2);background:rgba(255,255,255,.07);transform:translateY(-3px)}
+.supp-icon{font-size:28px;margin-bottom:1rem}
+.supp-card h4{font-family:var(--fhead);font-weight:700;font-size:16px;text-transform:uppercase;letter-spacing:.05em;color:var(--white);margin-bottom:.5rem}
+.supp-card p{font-size:13px;color:var(--dim);line-height:1.6}
+
+/* SS color accent on support cards */
+.supp-card:nth-child(1){border-top:3px solid var(--ss-blue)}
+.supp-card:nth-child(2){border-top:3px solid var(--ss-green)}
+.supp-card:nth-child(3){border-top:3px solid var(--ss-red)}
+.supp-card:nth-child(4){border-top:3px solid var(--ss-blue)}
+.supp-card:nth-child(5){border-top:3px solid var(--ss-green)}
+.supp-card:nth-child(6){border-top:3px solid var(--ss-red)}
+
+/* ── TRAINING ── */
+.train-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:5rem;align-items:start}
+.train-links{display:flex;flex-direction:column;gap:.75rem;margin-top:2rem}
+.train-links .btn{font-size:14px}
+.ev-label{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:1rem}
+.ev-list{display:flex;flex-direction:column;gap:.65rem}
+.ev-item{display:flex;align-items:center;gap:1.1rem;padding:1rem 1.35rem;background:var(--bgcard);border:1px solid var(--border);border-radius:10px;text-decoration:none;transition:border-color var(--tr),background var(--tr)}
+.ev-item:hover{border-color:var(--border2);background:rgba(255,255,255,.06)}
+.ev-date{flex-shrink:0;width:52px;text-align:center}
+.ev-mo{display:block;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ss-blue)}
+.ev-dy{display:block;font-family:var(--fhead);font-size:26px;font-weight:900;line-height:1;color:var(--white)}
+.ev-info{flex:1}
+.ev-title{font-size:14px;font-weight:500;color:var(--white);margin-bottom:2px}
+.ev-when{font-size:12px;color:var(--dim)}
+.ev-arr{font-size:22px;color:var(--dim)}
+.virt-box{margin-top:1.75rem}
+.pill-row{display:flex;flex-wrap:wrap;gap:.5rem}
+.pill{padding:6px 14px;background:rgba(46,127,212,.10);border:1px solid rgba(46,127,212,.25);border-radius:100px;font-size:12px;color:var(--bluel);text-decoration:none;transition:background var(--tr),border-color var(--tr)}
+.pill:hover{background:rgba(46,127,212,.22);border-color:rgba(46,127,212,.45)}
+
+/* ── PARTNERS ── */
+.partners{padding:4rem 0;border-top:1px solid var(--border)}
+.part-lbl{text-align:center;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:2rem}
+.part-row{display:flex;flex-wrap:wrap;gap:.85rem;justify-content:center}
+.part-chip{
+  display:flex;align-items:center;justify-content:center;
+  padding:20px 24px;
+  background:#fff;
+  border:2px solid rgba(255,255,255,.08);border-radius:16px;
+  text-decoration:none;
+  width:100%;aspect-ratio:2/1;
+  transition:transform var(--tr),box-shadow var(--tr);
+}
+.part-chip:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(0,0,0,.5)}
+
+/* ── CONTACT ── */
+.contact-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:5rem;align-items:start}
+.ci-list{display:flex;flex-direction:column;gap:1.6rem;margin-top:2rem}
+.ci{display:flex;gap:1.1rem;align-items:flex-start}
+.ci-icon{width:44px;height:44px;background:rgba(46,127,212,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ci-lbl{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.ci-val{font-size:15px;color:var(--white)}
+.ci-val a{color:var(--white);transition:color var(--tr)}.ci-val a:hover{color:var(--bluel)}
+.cf{display:flex;flex-direction:column;gap:1.1rem}
+.cf-row{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
+.cf-grp{display:flex;flex-direction:column;gap:7px}
+.cf-lbl{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.cf-in,.cf-sel,.cf-ta{background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;padding:.8rem 1.1rem;font-family:var(--fbody);font-size:15px;color:var(--white);outline:none;transition:border-color var(--tr);width:100%}
+.cf-in::placeholder,.cf-ta::placeholder{color:var(--dim)}
+.cf-in:focus,.cf-sel:focus,.cf-ta:focus{border-color:var(--ss-blue)}
+.cf-sel option{background:var(--bg2);color:var(--white)}
+.cf-ta{resize:vertical;min-height:130px}
+
+/* ── FOOTER ── */
+.footer{background:rgba(0,0,0,.4);border-top:1px solid var(--border);padding:4.5rem 0 2rem}
+/* SS gradient bar at very top of footer */
+.footer::before{content:'';display:block;height:3px;background:linear-gradient(90deg,var(--ss-blue),var(--ss-green),var(--ss-red));margin-bottom:4.5rem}
+.foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;margin-bottom:3rem}
+.foot-brand p{font-size:14px;color:var(--dim);line-height:1.75;margin-top:1rem;max-width:300px}
+.foot-brand img{height:56px;width:auto}
+.foot-esop{display:inline-flex;align-items:center;gap:8px;margin-top:1.25rem;padding:6px 14px;border:1px solid var(--border);border-radius:100px;font-size:12px;color:var(--dim)}
+.foot-col h5{font-family:var(--fhead);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1rem}
+.foot-col ul{display:flex;flex-direction:column;gap:.6rem}
+.foot-col ul li a{font-size:13px;color:var(--dim);transition:color var(--tr)}
+.foot-col ul li a:hover{color:var(--white)}
+.foot-bottom{border-top:1px solid var(--border);padding-top:1.75rem;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--dim);flex-wrap:wrap;gap:1rem}
+.foot-links{display:flex;gap:1.5rem}
+.foot-links a{color:var(--dim);transition:color var(--tr)}.foot-links a:hover{color:var(--white)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px){
+  .container{padding:0 2rem}
+  .hero .container,.who-grid,.contact-grid,.train-grid{grid-template-columns:1fr}
+  .hero-right{display:none}
+  .prod-grid{grid-template-columns:1fr}
+  .foot-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:768px){
+  .supp-grid{grid-template-columns:1fr 1fr}
+  .nav-links,.btn-o.nh{display:none}
+  .nav-toggle{display:flex}
+  .hero{padding:4rem 0}
+  .nucleus-box{padding:2.5rem 1.5rem}
+  .cf-row{grid-template-columns:1fr}
+}
+@media(max-width:500px){
+  .container{padding:0 1.25rem}
+  .supp-grid,.foot-grid{grid-template-columns:1fr}
+  .hero-stats{gap:1.75rem}
+}
+
+/* Mobile nav */
+body.mob-open .nav-links{display:flex;flex-direction:column;position:fixed;top:70px;left:0;right:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:1.25rem 1.5rem 2rem;gap:.25rem;z-index:199}
+body.mob-open .nav-links>a,body.mob-open .nav-dd>a{font-size:17px;padding:.65rem .9rem}
+body.mob-open .dd-menu{position:static;box-shadow:none;background:transparent;border:none;padding-left:1rem}
+
+/* ── EVENTS ROLLING BANNER ── */
+.events-banner{
+  display:flex;align-items:center;
+  background:linear-gradient(90deg,rgba(6,16,31,1) 0%,rgba(11,26,46,.98) 40%,rgba(11,26,46,.98) 60%,rgba(6,16,31,1) 100%);
+  border-top:2px solid var(--ss-blue);
+  border-bottom:1px solid rgba(27,111,232,.3);
+  height:46px;overflow:hidden;position:relative;
+}
+.events-banner::before,.events-banner::after{
+  content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;pointer-events:none;
+}
+.events-banner::before{left:0;background:linear-gradient(90deg,rgba(6,16,31,1),transparent)}
+.events-banner::after{right:80px;background:linear-gradient(90deg,transparent,rgba(6,16,31,1))}
+
+.events-banner-label{
+  display:flex;align-items:center;gap:7px;
+  flex-shrink:0;padding:0 1.25rem 0 1.5rem;
+  font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ss-blue);white-space:nowrap;border-right:1px solid var(--border);
+  height:100%;z-index:3;background:var(--bg);
+}
+.events-ticker-wrap{flex:1;overflow:hidden;height:100%;display:flex;align-items:center}
+.events-ticker{
+  display:flex;align-items:center;gap:0;
+  white-space:nowrap;
+  animation:ticker-scroll 28s linear infinite;
+  will-change:transform;
+}
+.events-ticker:hover{animation-play-state:paused}
+@keyframes ticker-scroll{
+  0%{transform:translateX(0)}
+  100%{transform:translateX(-50%)}
+}
+.ticker-event{
+  display:inline-flex;align-items:center;gap:.6rem;
+  padding:.5rem 1.5rem;text-decoration:none;
+  transition:background var(--tr);border-radius:4px;
+  flex-shrink:0;
+}
+.ticker-event:hover{background:rgba(27,111,232,.12)}
+.ticker-event:focus-visible{outline:2px solid var(--bluel);outline-offset:2px}
+.ticker-date{
+  font-family:var(--fhead);font-weight:700;font-size:13px;
+  color:var(--ss-blue);letter-spacing:.04em;white-space:nowrap;
+}
+.ticker-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap}
+.ticker-event--featured .ticker-date{color:var(--ss-green)}
+.ticker-event--featured .ticker-name{color:var(--white);font-weight:600}
+.ticker-sep{color:var(--dim);padding:0 .75rem;font-size:8px;flex-shrink:0}
+.events-banner-cta{
+  flex-shrink:0;padding:0 1.5rem;height:100%;
+  display:flex;align-items:center;
+  font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ss-green);border-left:1px solid var(--border);
+  white-space:nowrap;transition:color var(--tr),background var(--tr);
+  z-index:3;background:var(--bg);text-decoration:none;
+}
+.events-banner-cta:hover{color:var(--white);background:rgba(58,181,74,.1)}
+@media(max-width:600px){
+  .events-banner-label span{display:none}
+  .ticker-date{font-size:12px}
+  .ticker-name{font-size:12px}
+}
+
+/* ══════════════════════════════════════════════
+   MOBILE IMPROVEMENTS
+   ══════════════════════════════════════════════ */
+
+/* Topbar — hide text labels on small screens, show icons only */
+@media(max-width:860px){
+  .topbar .container{gap:.6rem}
+  .topbar a span span{display:none}          /* hide text, keep icon */
+  .topbar a span{gap:0}
+}
+@media(max-width:600px){
+  .topbar{display:none}                      /* hide entirely on phone — nav has the links */
+}
+
+/* Nav action buttons — shrink on tablet, stack on phone */
+@media(max-width:900px){
+  .nav-actions{gap:.4rem}
+  .nav-btn{padding:.42rem .7rem;font-size:11px}
+}
+@media(max-width:680px){
+  .nav-actions .nh{display:none}             /* hide Customer Portal — saves space */
+  .nav-btn{padding:.4rem .65rem;font-size:11px}
+}
+
+/* Hero checks — slightly smaller on phone */
+@media(max-width:480px){
+  .hero-check{font-size:1.4rem;gap:.65rem}
+  .hero-tagline{font-size:1rem}
+  .hero-esop-badge{font-size:11px}
+}
+
+/* Partner grid — 2 cols on tablet, 2 cols on phone */
+@media(max-width:900px){
+  .part-row{grid-template-columns:repeat(3,1fr) !important}
+}
+@media(max-width:560px){
+  .part-row{grid-template-columns:repeat(2,1fr) !important}
+  .part-chip{min-height:64px;padding:12px 14px}
+}
+
+/* Support grid — 2 col on tablet already, 1 col on phone */
+@media(max-width:480px){
+  .supp-grid{grid-template-columns:1fr}
+}
+
+/* Footer — single col on phone */
+@media(max-width:600px){
+  .foot-grid{grid-template-columns:1fr;gap:2rem}
+}
+
+/* ESOP banner strip — wrap on mobile */
+@media(max-width:700px){
+  .events-banner-cta{display:none}          /* remove View All on tiny screens */
+}
+@media(max-width:500px){
+  .hero-ctas{flex-direction:column}
+  .hero-ctas .btn{text-align:center}
+}
+
+/* Contact form full-width on mobile */
+@media(max-width:480px){
+  .cf-in,.cf-sel,.cf-ta{font-size:16px}     /* prevent iOS zoom on focus */
+}
+
+/* Nucleus callout on ps-overview — stack on mobile */
+@media(max-width:600px){
+  .nucleus-box{padding:2rem 1.25rem}
+}
+
+/* ── Flyout sub-menus ── */
+.dd-sub{position:relative}
+.dd-sub>a{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.dd-sub>a::after{content:"›";font-size:14px;margin-left:auto;opacity:.6}
+.dd-flyout{
+  display:none;position:absolute;
+  top:-6px;left:calc(100% + 6px);
+  min-width:260px;
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:12px;padding:.5rem;
+  box-shadow:0 12px 40px rgba(0,0,0,.55);
+  z-index:400;
+}
+.dd-sub:hover .dd-flyout,.dd-sub:focus-within .dd-flyout,.dd-sub.open .dd-flyout{display:block}
+.dd-flyout a{display:flex;align-items:center;gap:.65rem;padding:.55rem .9rem;font-size:13px;color:var(--muted);border-radius:6px;transition:color var(--tr),background var(--tr);text-decoration:none;white-space:nowrap}
+.dd-flyout a:hover{color:var(--white);background:rgba(255,255,255,.07)}
+.dd-flyout-date{font-family:var(--fhead);font-weight:700;font-size:12px;color:var(--ss-blue);min-width:56px;flex-shrink:0}
+.dd-flyout-date.g{color:var(--ss-green)}
+.dd-flyout-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:.4rem .9rem .2rem;display:block}
+.dd-flyout hr{border:none;border-top:1px solid var(--border);margin:.35rem .6rem}
+/* Mobile — flatten flyouts */
+body.mob-open .dd-flyout{position:static;box-shadow:none;background:transparent;border:none;padding-left:1.5rem;display:none}
+body.mob-open .dd-sub:hover .dd-flyout,
+body.mob-open .dd-sub:focus-within .dd-flyout{display:block}
+
+/* ══ LIGHT MODE ══════════════════════════════════════════════════════════ */
+body.light-mode{
+  --bg:        #f0f4f9;
+  --bg2:       #e2eaf4;
+  --bg3:       #d4e0ef;
+  --bgcard:    rgba(0,0,0,0.04);
+  --border:    rgba(0,0,0,0.10);
+  --border2:   rgba(0,0,0,0.20);
+  --white:     #0d1b2e;
+  --text:      #1a2e45;
+  --muted:     #3d5c7a;
+  --dim:       #8aa0b8;
+  --bluel:     #1a60b0;
+}
+body.light-mode .nav,
+body.light-mode header.nav{background:rgba(240,244,249,.96);border-bottom-color:rgba(0,0,0,.1)}
+body.light-mode .nav.scrolled{background:rgba(240,244,249,.98);box-shadow:0 2px 20px rgba(0,0,0,.12)}
+body.light-mode .topbar{background:rgba(255,255,255,.9);border-bottom-color:rgba(0,0,0,.1)}
+body.light-mode .topbar a{color:#3d5c7a}
+body.light-mode .nav-logo-name{color:#0d1b2e}
+body.light-mode .nav-logo-sub{color:#3d5c7a}
+body.light-mode .dd-menu{background:#fff;border-color:rgba(0,0,0,.12);box-shadow:0 12px 40px rgba(0,0,0,.15)}
+body.light-mode .dd-flyout{background:#fff;border-color:rgba(0,0,0,.12);box-shadow:0 8px 28px rgba(0,0,0,.12)}
+body.light-mode .dd-menu a:hover,
+body.light-mode .dd-flyout a:hover{background:rgba(0,0,0,.05)}
+body.light-mode .hero{background:linear-gradient(135deg,#dde8f5 0%,#e8f0fb 50%,#d5e4f2 100%)}
+body.light-mode .hero-h1{color:#0d1b2e}
+body.light-mode .hero-h1 em{color:var(--ss-blue)}
+body.light-mode .section{background:transparent}
+body.light-mode .section:nth-child(even){background:rgba(0,0,0,.03)}
+body.light-mode .who-card,
+body.light-mode .supp-card,
+body.light-mode .mod-card,
+body.light-mode .hero-card{background:rgba(255,255,255,.8);border-color:rgba(0,0,0,.1);color:#1a2e45}
+body.light-mode .supp-card:hover,
+body.light-mode .mod-card:hover{background:#fff;border-color:var(--ss-blue)}
+body.light-mode .supp-card p,
+body.light-mode .mod-card p{color:#3d5c7a}
+body.light-mode .cf-in,
+body.light-mode .cf-sel,
+body.light-mode .cf-ta{background:#fff;border-color:rgba(0,0,0,.15);color:#0d1b2e}
+body.light-mode .cf-in::placeholder,
+body.light-mode .cf-ta::placeholder{color:#8aa0b8}
+body.light-mode .cf-lbl{color:#3d5c7a}
+body.light-mode footer,
+body.light-mode .footer{background:#1a2e45;color:#d4e2f4}
+body.light-mode .events-banner{background:linear-gradient(90deg,#dde8f5,#e8f0fb,#dde8f5);border-top-color:var(--ss-blue)}
+body.light-mode .events-banner::before{background:linear-gradient(90deg,#dde8f5,transparent)}
+body.light-mode .events-banner::after{background:linear-gradient(90deg,transparent,#dde8f5)}
+body.light-mode .events-banner-label,
+body.light-mode .events-banner-cta{background:#dde8f5}
+body.light-mode .ticker-name{color:#1a2e45}
+body.light-mode .hero-stat-num{color:var(--ss-blue)}
+body.light-mode .hero-stat-lbl{color:#3d5c7a}
+body.light-mode .section-title{color:#0d1b2e}
+body.light-mode .section-sub{color:#3d5c7a}
+body.light-mode .page-hero{background:linear-gradient(135deg,#dde8f5,#e8f0fb)}
+body.light-mode .page-title{color:#0d1b2e}
+body.light-mode .page-lead{color:#3d5c7a}
+body.light-mode .hero-esop-badge{background:rgba(46,127,212,.1);border-color:rgba(46,127,212,.25)}
+body.light-mode .part-chip{border-color:rgba(0,0,0,.12)}
+body.light-mode .stat-cell{border-color:rgba(0,0,0,.1)}
+body.light-mode .stat-num{color:var(--ss-blue)}
+body.light-mode .foot-esop{background:linear-gradient(90deg,rgba(46,127,212,.12),rgba(58,181,74,.1));border-color:rgba(0,0,0,.15);color:#0d1b2e}
+body.light-mode .who-facts span{background:rgba(0,0,0,.06);color:#1a2e45}
+body.light-mode .ev-item{background:rgba(255,255,255,.8);border-color:rgba(0,0,0,.1)}
+body.light-mode .ev-item:hover{background:#fff;border-color:var(--ss-blue)}
+body.light-mode .ev-date{background:rgba(46,127,212,.1)}
+body.light-mode .ev-mo{color:var(--ss-blue)}
+body.light-mode .ev-dy{color:#0d1b2e}
+body.light-mode .ev-title{color:#0d1b2e}
+body.light-mode .ev-when{color:#3d5c7a}
+body.light-mode .breadcrumb a{color:var(--ss-blue)}
+body.light-mode .tab-btn{background:rgba(0,0,0,.06);color:#3d5c7a}
+body.light-mode .tab-btn.active{background:var(--ss-blue);color:#fff}
+body.light-mode .staff-card{background:#fff;border-color:rgba(0,0,0,.1)}
+body.light-mode .staff-name{color:#0d1b2e}
+body.light-mode .staff-title{color:#3d5c7a}
+
+/* Toggle button */
+.theme-toggle{
+  position:fixed;top:1rem;right:1rem;width:46px;height:46px;border-radius:50%;
+  border:1.5px solid var(--border2);
+  background:var(--bg2);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  box-shadow:0 4px 16px rgba(0,0,0,.3);
+  transition:transform .2s ease,box-shadow .2s ease,background var(--tr),border-color var(--tr);
+  z-index:10000;
+  outline:none;
+}
+.theme-toggle:hover{transform:scale(1.12);box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.theme-toggle:focus-visible{outline:2px solid var(--ss-blue);outline-offset:3px}
+body.light-mode .theme-toggle{background:#fff;border-color:rgba(0,0,0,.15);box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.theme-toggle .icon-moon{display:block}
+.theme-toggle .icon-sun{display:none}
+body.light-mode .theme-toggle .icon-moon{display:none}
+body.light-mode .theme-toggle .icon-sun{display:block}
+
+
+/* ══ TEAM PAGE ══════════════════════════════════════════ */
+.team-filter-bar{
+  position:sticky;top:70px;z-index:100;
+  background:rgba(6,16,31,.96);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:.85rem 0;
+  margin-bottom:0;
+}
+.team-filter-bar .container{
+  display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;
+}
+.tf-btn{
+  padding:.45rem 1rem;border-radius:100px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);font-size:13px;font-weight:500;
+  cursor:pointer;transition:all .18s ease;white-space:nowrap;font-family:var(--fbody);
+}
+.tf-btn:hover{border-color:var(--border2);color:var(--text)}
+.tf-btn.active{background:var(--ss-blue);border-color:var(--ss-blue);color:#fff;font-weight:600}
+.tf-count{margin-left:auto;font-size:12px;color:var(--dim);white-space:nowrap;padding-right:.5rem}
+
+.team-section{margin-bottom:3.5rem}
+.team-section.hidden{display:none}
+
+.team-banner{
+  background:linear-gradient(90deg, color-mix(in srgb, var(--team-color) 18%, transparent), transparent);
+  border-left:4px solid var(--team-color);
+  border-radius:0 12px 12px 0;
+  padding:1.25rem 1.75rem;
+  margin-bottom:1.5rem;
+  display:flex;align-items:center;
+}
+.team-banner-inner{display:flex;align-items:center;gap:1rem}
+.team-banner-icon{font-size:2rem;line-height:1}
+.team-banner-title{
+  font-family:var(--fhead);font-weight:900;font-size:1.75rem;
+  text-transform:uppercase;letter-spacing:.04em;color:var(--white);
+  margin:0;line-height:1;
+}
+.team-banner-count{
+  font-size:13px;color:var(--muted);margin:.3rem 0 0;
+}
+.tf-grid{margin-bottom:0}
+
+/* Search bar */
+.team-search-wrap{
+  display:flex;align-items:center;gap:.75rem;margin-bottom:2rem;
+}
+.team-search{
+  flex:1;max-width:380px;padding:.65rem 1.1rem;
+  background:var(--bgcard);border:1px solid var(--border);border-radius:100px;
+  color:var(--white);font-size:14px;font-family:var(--fbody);
+  outline:none;transition:border-color .18s ease;
+}
+.team-search:focus{border-color:var(--ss-blue)}
+.team-search::placeholder{color:var(--dim)}
+body.light-mode .team-search{background:#fff;border-color:rgba(0,0,0,.15);color:#0d1b2e}
+
+/* No results */
+.team-no-results{
+  text-align:center;padding:3rem;color:var(--muted);
+  font-size:15px;display:none;
+}
+.team-no-results.show{display:block}
+
+@media(max-width:600px){
+  .team-filter-bar .container{gap:.35rem}
+  .tf-btn{font-size:12px;padding:.4rem .75rem}
+  .team-banner-title{font-size:1.35rem}
+}
+</style>
+</head>
+<body>
+<a href="#main" class="skip-nav">Skip to main content</a>
+<a href="#main" class="skip-nav">Skip to main content</a>
+
+<!-- TOPBAR -->
+<div class="topbar" role="complementary" aria-label="Contact information">
+  <div class="container">
+    <a href="tel:8008428190" aria-label="Call us at (800) 842-8190"><span style="display:inline-flex;align-items:center;gap:5px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="#8fa8cc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M5.5 1.5H3.5C2.4 1.5 1.5 2.4 1.5 3.5c0 6.1 4.9 11 11 11 1.1 0 2-.9 2-2v-2c0-.5-.3-.9-.7-1.1l-2.3-1c-.4-.2-.9-.1-1.2.2l-.9.9c-1.2-.7-2.3-1.7-3-3l.9-.9c.3-.3.4-.8.2-1.2l-1-2.3c-.2-.4-.6-.7-1.1-.7z"/></svg><span>(800) 842-8190</span></span></a>
+    <a href="mailto:pssupport@southernsoftware.com" aria-label="Email PS Support"><span style="display:inline-flex;align-items:center;gap:5px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="#8fa8cc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:middle;flex-shrink:0"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M1.5 4.5l6.5 4.5 6.5-4.5"/></svg><span>PS Support</span></span></a>
+    <a href="mailto:fmssupport@southernsoftware.com" aria-label="Email FMS Support"><span style="display:inline-flex;align-items:center;gap:5px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="#8fa8cc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:middle;flex-shrink:0"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><path d="M1.5 4.5l6.5 4.5 6.5-4.5"/></svg><span>FMS Support</span></span></a>
+    <a href="https://www.southernsoftware.com/downloads/southern_software_support_remote.exe" aria-label="Download TeamViewer remote support"><span style="display:inline-flex;align-items:center;gap:5px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14" width="20" height="14" aria-hidden="true" style="display:inline-block;vertical-align:middle;flex-shrink:0"><rect width="20" height="14" rx="2" fill="#0E8EE9"/><text x="2" y="10.5" font-family="Arial,sans-serif" font-weight="900" font-size="8.5" fill="white" letter-spacing="0">TV</text></svg><span>TeamViewer</span></span></a>
+    <a href="https://support.southernsoftware.com/" target="_blank" rel="noopener" aria-label="BeyondTrust Remote Support (opens in new tab)"><span style="display:inline-flex;align-items:center;gap:5px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 14" width="12" height="14" aria-hidden="true" style="display:inline-block;vertical-align:middle;flex-shrink:0"><path d="M6 0.5 L11.5 2.5 L11.5 7 C11.5 10.5 9.2 13 6 13.5 C2.8 13 0.5 10.5 0.5 7 L0.5 2.5 Z" fill="#E3001B" stroke="#c00016" stroke-width=".5"/><path d="M6 3 L9 4.2 L9 7 C9 9 7.8 10.5 6 11 C4.2 10.5 3 9 3 7 L3 4.2 Z" fill="white" opacity="0.25"/><path d="M4.5 6.8 L5.5 7.8 L7.8 5.2" fill="none" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg><span>BeyondTrust Remote Support</span></span></a>
+  </div>
+</div>
+
+</div>
+
+<!-- NAV -->
+<header class="nav" id="nav" role="banner">
+  <div class="container">
+    <a href="#top" class="nav-logo" aria-label="Southern Software, Inc. — Home">
+      <img src="logo-mark-trans.png" alt="Southern Software, Inc. logo mark" width="42" height="42">
+      <div class="nav-logo-text">
+        <div class="nav-logo-name">Southern Software, Inc.</div>
+        <div class="nav-logo-sub">Est. 1988 &middot; An Employee-Owned Company</div>
+        <div class="nav-logo-accent" aria-hidden="true"></div>
+      </div>
+    </a>
+
+    <nav class="nav-links" aria-label="Main navigation" id="main-nav">
+      <div class="nav-dd">
+        <a href="#about" aria-haspopup="true">About</a>
+        <div class="dd-menu" role="menu" aria-label="About submenu">
+          <a href="mission.html" role="menuitem">Our Mission</a>
+          <a href="testimonials.html" role="menuitem">Client Testimonials</a>
+          <a href="involvement.html" role="menuitem">Community Involvement</a>
+          <hr aria-hidden="true"><div class="dd-label" aria-hidden="true">We Believe</div>
+          <a href="faith.html" role="menuitem">Our Faith</a>
+          <a href="prayer-list.html" role="menuitem">Prayer List</a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <a href="#products" aria-haspopup="true">Products</a>
+        <div class="dd-menu" role="menu" aria-label="Products submenu">
+          <a href="ps-overview.html" role="menuitem">Public Safety Suite</a>
+          <a href="fms-overview.html" role="menuitem">Financial Management Suite</a>
+          <hr aria-hidden="true">
+          <a href="https://nucleuspsp.com/Nucleus/" target="_blank" rel="noopener" role="menuitem">Nucleus Platform ↗</a>
+          <a href="#contact" role="menuitem">Request a Demo</a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <a href="#support" aria-haspopup="true">Support</a>
+        <div class="dd-menu" role="menu" aria-label="Support submenu">
+          <div class="dd-label" aria-hidden="true">Documentation</div>
+          <a href="downloads.html" role="menuitem">PS Docs &amp; Downloads</a>
+          <a href="downloads.html#fms" role="menuitem">FMS Docs &amp; Updates</a>
+          <hr aria-hidden="true">
+          <a href="https://support.southernsoftware.com/" target="_blank" rel="noopener" role="menuitem">BeyondTrust Remote Support</a>
+          <a href="https://www.southernsoftware.com/downloads/southern_software_support_remote.exe" role="menuitem">TeamViewer</a>
+          <a href="https://portal.southernsoftware.com/" target="_blank" rel="noopener" role="menuitem">Customer Portal</a>
+          <hr aria-hidden="true"><div class="dd-label" aria-hidden="true">Support Teams</div>
+          <a href="ps-support-staff.html" role="menuitem">PS Support Team</a>
+          <a href="fms-staff.html" role="menuitem">FMS Support Team</a>
+          <a href="ps-updates-staff.html" role="menuitem">Product Update Team</a>
+          <a href="install-staff.html" role="menuitem">Implementation &amp; IT Team</a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <a href="#training" aria-haspopup="true">Training</a>
+        <div class="dd-menu" role="menu" aria-label="Training submenu">
+          <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=232" target="_blank" rel="noopener" role="menuitem">⭐ 2026 PS Users' Conference</a>
+          <hr>
+          <div class="dd-sub" role="none">
+            <a href="regionaltrainings.html" role="menuitem">Regional Trainings</a>
+            <div class="dd-flyout" role="menu" aria-label="Regional Trainings">
+              <span class="dd-flyout-label">2026 Schedule</span>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=VA" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">Apr 14–16</span>Virginia Regional</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TN" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">May 5–7</span>Tennessee Regional</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TX-Kaufaman_and_Surrounding_Areas" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">May 19–21</span>Texas Regional</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=NC-Western" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">Jun 9–11</span>NC Regional (West)</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=TX-Victoria_and_Surrounding_Areas" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">Jun 23–25</span>Texas Regional (Victoria)</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=AR" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">Jul 28–30</span>Arkansas Regional</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/TrainingSessions/route.php?state=NC-Eastern" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date">Aug 18–20</span>NC Regional (East)</a>
+              <hr>
+              <a href="regionaltrainings.html" role="menuitem" style="color:var(--bluel);font-weight:600">View All Trainings →</a>
+            </div>
+          </div>
+          <div class="dd-sub" role="none">
+            <a href="https://portal.southernsoftware.com/new/Training_New/Public/virtual_classroom.php" target="_blank" rel="noopener" role="menuitem">Virtual Classes</a>
+            <div class="dd-flyout" role="menu" aria-label="Virtual Classes">
+              <span class="dd-flyout-label">Upcoming Classes</span>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=238" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">Apr 7</span>CAD Searches &amp; Reports</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=234" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">Apr 13</span>Clery Compliance Overview</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=235" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">May 4</span>Analytics Overview</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=239" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">May 12</span>CAD Workspace Customization</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=236" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">Jun 1</span>Citizen Connect Overview</a>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/register.php?id=240" target="_blank" rel="noopener" role="menuitem"><span class="dd-flyout-date g">Jun 2</span>CAD Response Plans</a>
+              <hr>
+              <a href="https://portal.southernsoftware.com/new/Training_New/Public/virtual_classroom.php" target="_blank" rel="noopener" role="menuitem" style="color:var(--ss-green);font-weight:600">View All Classes →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <a href="#team" aria-haspopup="true">Team</a>
+        <div class="dd-menu" role="menu" aria-label="Team submenu">
+          <a href="team.html" role="menuitem" style="color:var(--white);font-weight:600">👥 Meet Our Full Team</a>
+          <hr>
+          <a href="team.html#team-executive" role="menuitem">Executive Team</a>
+          <a href="team.html#team-management" role="menuitem">Management Team</a>
+          <a href="team.html#team-administrative" role="menuitem">Administrative Team</a>
+          <a href="team.html#team-sales" role="menuitem">Sales Team</a>
+          <a href="team.html#team-ps-support" role="menuitem">PS Support Team</a>
+          <a href="team.html#team-fms-support" role="menuitem">FMS Support Team</a>
+          <a href="team.html#team-install" role="menuitem">Implementation &amp; IT Team</a>
+          <a href="team.html#team-ps-training" role="menuitem">PS Training Team</a>
+          <a href="team.html#team-project-mgmt" role="menuitem">Project Management</a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <a aria-haspopup="true">Newsletters</a>
+        <div class="dd-menu" role="menu" aria-label="Newsletters submenu">
+          <a href="https://lp.constantcontactpages.com/sl/O7CLOtV/southernsoftware" target="_blank" rel="noopener" role="menuitem">PS Newsletter Sign-up</a>
+          <a href="https://www.southernsoftware.com/downloads/FMS/The%20Ledger.pdf" target="_blank" rel="noopener" role="menuitem">FMS — The Ledger</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="nav-actions">
+      <a href="https://nucleuspsp.com/Nucleus/" target="_blank" rel="noopener" class="btn btn-nucleus nav-btn" aria-label="Nucleus Platform (opens in new tab)">Nucleus ↗</a>
+      <a href="https://portal.southernsoftware.com/index.php" target="_blank" rel="noopener" class="btn btn-o nav-btn nh" aria-label="Customer Portal (opens in new tab)">Customer Portal ↗</a>
+      <a href="#contact" class="btn btn-p nav-btn">Request Demo ↗</a>
+    </div>
+    <button class="nav-toggle" id="nav-tog" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="main-nav">
+      <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+    </button>
+  </div>
+</header>
+
+<div class="page-hero" aria-label="Page header">
+  <div class="hero-bar" aria-hidden="true"></div>
+  <div class="page-hero-grid" aria-hidden="true"></div>
+  <div class="page-hero-glow" aria-hidden="true"></div>
+  <div class="container">
+    <nav class="breadcrumb fu" aria-label="Breadcrumb">
+      <a href="index.html">Home</a>
+      <span aria-hidden="true">›</span>
+      <span aria-current="page">Our Team</span>
+    </nav>
+    <span class="eyebrow fu">Meet the People Behind the Software</span>
+    <h1 class="page-title fu" data-d="1">Our Team</h1>
+    <p class="page-lead fu" data-d="2">58 employee-owners dedicated to building, supporting, and improving the software that serves your community — every one of them in-house, no outsourcing.</p>
+  </div>
+</div>
+
+<div class="team-filter-bar" role="navigation" aria-label="Filter by team">
+  <div class="container">
+    <button class="tf-btn active" data-filter="all">All Teams</button>
+<button class="tf-btn" data-filter="executive">👔 Executive</button>
+<button class="tf-btn" data-filter="management">📋 Management</button>
+<button class="tf-btn" data-filter="administrative">🗂️ Administrative</button>
+<button class="tf-btn" data-filter="sales">🤝 Sales</button>
+<button class="tf-btn" data-filter="ps-support">🚔 PS Support</button>
+<button class="tf-btn" data-filter="fms-support">📊 FMS Support</button>
+<button class="tf-btn" data-filter="ps-updates">🔄 PS Updates</button>
+<button class="tf-btn" data-filter="triage">🎯 Support Triage</button>
+<button class="tf-btn" data-filter="install">⚙️ Implementation & IT</button>
+<button class="tf-btn" data-filter="ps-training">🎓 PS Training</button>
+<button class="tf-btn" data-filter="project-mgmt">📁 Project Management</button>
+
+    <span class="tf-count" id="tf-count" aria-live="polite">58 members</span>
+  </div>
+</div>
+
+<main id="main-content">
+<section class="section"><div class="container">
+
+  <div class="team-search-wrap">
+    <input type="search" class="team-search" id="team-search" placeholder="Search by name or title…" aria-label="Search team members">
+  </div>
+
+  <div class="team-no-results" id="team-no-results" role="status">No team members found matching your search.</div>
+
+
+<div class="team-section" id="team-executive" data-section="executive">
+  <div class="team-banner" style="--team-color:#2e7fd4">
+    <div class="team-banner-inner">
+      <span class="team-banner-icon" aria-hidden="true">👔</span>
+      <div>
+        <h2 class="team-banner-title">Executive Team</h2>
+        <p class="team-banner-count">2 team members</p>
+      </div>
+    </div>
+  </div>
+  <div class="staff-grid tf-grid">
+<article class="staff-card" data-team="executive" fu" aria-label="Jennifer Meggs, CEO">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/meggs_jennifer_1762353384.png" alt="Photo of Jennifer Meggs" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Jennifer Meggs</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">CEO</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 1993</div>
+    <a href="tel:9106388804" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Jennifer Meggs">910-638-8804</a>
+    <a href="mailto:jmeggs@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Jennifer Meggs">jmeggs@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="executive" fu" aria-label="John Roscoe, President / CFO">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/roscoe_john_1762353417.png" alt="Photo of John Roscoe" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">John Roscoe</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">President / CFO</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 1990</div>
+    <a href="tel:9106388799" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call John Roscoe">910-638-8799</a>
+    <a href="mailto:jroscoe@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email John Roscoe">jroscoe@southernsoftware.com</a>
+    
+  </div>
+</article>
+  </div>
+</div>
+
+<div class="team-section" id="team-management" data-section="management">
+  <div class="team-banner" style="--team-color:#2e7fd4">
+    <div class="team-banner-inner">
+      <span class="team-banner-icon" aria-hidden="true">📋</span>
+      <div>
+        <h2 class="team-banner-title">Management Team</h2>
+        <p class="team-banner-count">5 team members</p>
+      </div>
+    </div>
+  </div>
+  <div class="staff-grid tf-grid">
+<article class="staff-card" data-team="management" fu" aria-label="Thomas Murray, Director of Field Operations">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/murray_thomas_1762360286.jpg" alt="Photo of Thomas Murray" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Thomas Murray</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Director of Field Operations</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 1998</div>
+    <a href="tel:9106388875" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Thomas Murray">910-638-8875</a>
+    <a href="mailto:tmurray@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Thomas Murray">tmurray@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="management" fu" aria-label="Patrick Pusser, Director of FMS Product Development &amp; Operations">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/pusser_patrick_1762360222.png" alt="Photo of Patrick Pusser" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Patrick Pusser</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Director of FMS Product Development &amp; Operations</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2003</div>
+    <a href="tel:9106385427" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Patrick Pusser">910-638-5427</a>
+    <a href="mailto:ppusser@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Patrick Pusser">ppusser@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="management" fu" aria-label="Mike Dixon, Director of Technology Strategy">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/dixon_mike_1773272717.png" alt="Photo of Mike Dixon" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Mike Dixon</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Director of Technology Strategy</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2008</div>
+    
+    <a href="mailto:mdixon@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Mike Dixon">mdixon@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="management" fu" aria-label="Brian Sharpe, Director of Mobile Services">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/sharpe_brian_1762360365.jpg" alt="Photo of Brian Sharpe" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Brian Sharpe</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Director of Mobile Services</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2010</div>
+    <a href="tel:3367560809" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Brian Sharpe">336-756-0809</a>
+    <a href="mailto:bsharpe@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Brian Sharpe">bsharpe@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="management" fu" aria-label="Tony Marks, Public Safety Support Manager">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/marks_tony_1762360157.png" alt="Photo of Tony Marks" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Tony Marks</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Public Safety Support Manager</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2011</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Tony Marks">800-842-8190</a>
+    <a href="mailto:tmarks@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Tony Marks">tmarks@southernsoftware.com</a>
+    
+  </div>
+</article>
+  </div>
+</div>
+
+<div class="team-section" id="team-administrative" data-section="administrative">
+  <div class="team-banner" style="--team-color:#7a5cf0">
+    <div class="team-banner-inner">
+      <span class="team-banner-icon" aria-hidden="true">🗂️</span>
+      <div>
+        <h2 class="team-banner-title">Administrative Team</h2>
+        <p class="team-banner-count">6 team members</p>
+      </div>
+    </div>
+  </div>
+  <div class="staff-grid tf-grid">
+<article class="staff-card" data-team="administrative" fu" aria-label="Janet Benson, Sales Administrative Assistant">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/benson_janet_1762354919.png" alt="Photo of Janet Benson" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Janet Benson</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Sales Administrative Assistant</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2001</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Janet Benson">800-842-8190</a>
+    <a href="mailto:jbenson@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Janet Benson">jbenson@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="administrative" fu" aria-label="Dee Dillon, Customer Relations &amp; Regional Training Coordinator">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/dillon_dee_1762356800.jpg" alt="Photo of Dee Dillon" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Dee Dillon</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Customer Relations &amp; Regional Training Coordinator</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2005</div>
+    <a href="tel:3362551864" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Dee Dillon">336-255-1864</a>
+    <a href="mailto:ddillon@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Dee Dillon">ddillon@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="administrative" fu" aria-label="Melissa Reynolds, Marketing">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/reynolds_melissa_1762354984.jpg" alt="Photo of Melissa Reynolds" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Melissa Reynolds</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Marketing</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2010</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Melissa Reynolds">800-842-8190</a>
+    <a href="mailto:mreynolds@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Melissa Reynolds">mreynolds@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="administrative" fu" aria-label="Bobbi McNeil, Events Operations Manager">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/mcneil_bobbi_1762356578.jpg" alt="Photo of Bobbi McNeil" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Bobbi McNeil</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Events Operations Manager</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2014</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Bobbi McNeil">800-842-8190</a>
+    <a href="mailto:bmcneil@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Bobbi McNeil">bmcneil@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="administrative" fu" aria-label="Tonya Garrison, Financial Administrative Assistant">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/garrison_tonya_1762355164.jpg" alt="Photo of Tonya Garrison" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Tonya Garrison</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Financial Administrative Assistant</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2018</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Tonya Garrison">800-842-8190</a>
+    <a href="mailto:tgarrison@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Tonya Garrison">tgarrison@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="administrative" fu" aria-label="Lara Blue, Administrative Assistant">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/blue_lara_1762354610.png" alt="Photo of Lara Blue" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Lara Blue</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Administrative Assistant</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2020</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Lara Blue">800-842-8190</a>
+    <a href="mailto:lblue@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Lara Blue">lblue@southernsoftware.com</a>
+    
+  </div>
+</article>
+  </div>
+</div>
+
+<div class="team-section" id="team-sales" data-section="sales">
+  <div class="team-banner" style="--team-color:#3ab54a">
+    <div class="team-banner-inner">
+      <span class="team-banner-icon" aria-hidden="true">🤝</span>
+      <div>
+        <h2 class="team-banner-title">Sales Team</h2>
+        <p class="team-banner-count">8 team members</p>
+      </div>
+    </div>
+  </div>
+  <div class="staff-grid tf-grid">
+<article class="staff-card" data-team="sales" fu" aria-label="Boomer Davis, Public Relations">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/davis_boomer_1762372506.png" alt="Photo of Boomer Davis" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Boomer Davis</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Public Relations</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2004</div>
+    <a href="tel:9107835734" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Boomer Davis">910-783-5734</a>
+    <a href="mailto:rdavis@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Boomer Davis">rdavis@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="sales" fu" aria-label="Ronn Brigman, Sales Coordinator">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/brigman_ronn_1762370844.png" alt="Photo of Ronn Brigman" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Ronn Brigman</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Sales Coordinator</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2004</div>
+    <a href="tel:9103317555" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Ronn Brigman">910-331-7555</a>
+    <a href="mailto:rbrigman@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Ronn Brigman">rbrigman@southernsoftware.com</a>
+    <a href="https://www.southernsoftware.com/ps-sales-ronnbrigman.html" target="_blank" rel="noopener" style="color:var(--ss-green);font-size:12px;display:block;margin-top:6px" aria-label="First responder background for Ronn Brigman">First Responder Background →</a>
+  </div>
+</article>
+<article class="staff-card" data-team="sales" fu" aria-label="Debbie Cockman, FMS Technical Marketing Manager">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/cockman_debbie_1762370947.jpg" alt="Photo of Debbie Cockman" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Debbie Cockman</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">FMS Technical Marketing Manager</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2007</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Debbie Cockman">800-842-8190</a>
+    <a href="mailto:dcockman@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Debbie Cockman">dcockman@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="sales" fu" aria-label="Steve Libera, Senior Account Manager — NC &amp; SC">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/libera_steve_1762372001.png" alt="Photo of Steve Libera" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Steve Libera</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Senior Account Manager — NC &amp; SC</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2008</div>
+    <a href="tel:8282919147" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Steve Libera">828-291-9147</a>
+    <a href="mailto:slibera@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Steve Libera">slibera@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="sales" fu" aria-label="Danny McKinley, Public Relations">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/mckinley_danny_1773358565.png" alt="Photo of Danny McKinley" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Danny McKinley</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Public Relations</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2011</div>
+    
+    <a href="mailto:dmckinley@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Danny McKinley">dmckinley@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="sales" fu" aria-label="Scott Wright, Technical Marketing Manager">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/wright_scott_1762372329.png" alt="Photo of Scott Wright" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Scott Wright</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Technical Marketing Manager</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2014</div>
+    <a href="tel:8324531527" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Scott Wright">832-453-1527</a>
+    <a href="mailto:swright@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Scott Wright">swright@southernsoftware.com</a>
+    <a href="https://www.southernsoftware.com/ps-sales-scottwright.html" target="_blank" rel="noopener" style="color:var(--ss-green);font-size:12px;display:block;margin-top:6px" aria-label="First responder background for Scott Wright">First Responder Background →</a>
+  </div>
+</article>
+<article class="staff-card" data-team="sales" fu" aria-label="Travis Pruitt, Technical Marketing Manager">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/pruitt_travis_1762372420.png" alt="Photo of Travis Pruitt" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Travis Pruitt</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Technical Marketing Manager</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2015</div>
+    
+    <a href="mailto:tpruitt@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Travis Pruitt">tpruitt@southernsoftware.com</a>
+    <a href="https://www.southernsoftware.com/ps-training-bio-travispruitt.html" target="_blank" rel="noopener" style="color:var(--ss-green);font-size:12px;display:block;margin-top:6px" aria-label="First responder background for Travis Pruitt">First Responder Background →</a>
+  </div>
+</article>
+<article class="staff-card" data-team="sales" fu" aria-label="Matt Byrd, Account Manager">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/byrd_matt_1762372144.png" alt="Photo of Matt Byrd" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Matt Byrd</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Account Manager</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2018</div>
+    
+    <a href="mailto:mbyrd@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Matt Byrd">mbyrd@southernsoftware.com</a>
+    
+  </div>
+</article>
+  </div>
+</div>
+
+<div class="team-section" id="team-ps-support" data-section="ps-support">
+  <div class="team-banner" style="--team-color:#2e7fd4">
+    <div class="team-banner-inner">
+      <span class="team-banner-icon" aria-hidden="true">🚔</span>
+      <div>
+        <h2 class="team-banner-title">PS Support Team</h2>
+        <p class="team-banner-count">8 team members</p>
+      </div>
+    </div>
+  </div>
+  <div class="staff-grid tf-grid">
+<article class="staff-card" data-team="ps-support" fu" aria-label="Melissa Lee, Support Communications Administrator">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/lee_melissa_1762361014.png" alt="Photo of Melissa Lee" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Melissa Lee</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Support Communications Administrator</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2003</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Melissa Lee">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Melissa Lee">pssupport@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="ps-support" fu" aria-label="Stephanie Terry, Senior Support Tech">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/terry_stephanie_1762361061.png" alt="Photo of Stephanie Terry" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Stephanie Terry</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Senior Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2010</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Stephanie Terry">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Stephanie Terry">pssupport@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="ps-support" fu" aria-label="Barbi Smith, Senior Support Tech">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/smith_barbi_1762297498.png" alt="Photo of Barbi Smith" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Barbi Smith</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Senior Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2014</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Barbi Smith">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Barbi Smith">pssupport@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="ps-support" fu" aria-label="Jason Love, Senior Support Tech">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/love_jason_1762361131.png" alt="Photo of Jason Love" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Jason Love</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Senior Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2014</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Jason Love">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Jason Love">pssupport@southernsoftware.com</a>
+    <a href="https://www.southernsoftware.com/ps-support-bio-jasonlove.html" target="_blank" rel="noopener" style="color:var(--ss-green);font-size:12px;display:block;margin-top:6px" aria-label="First responder background for Jason Love">First Responder Background →</a>
+  </div>
+</article>
+<article class="staff-card" data-team="ps-support" fu" aria-label="Patrick Garrison, Support Tech">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/garrison_patrick_1762361254.png" alt="Photo of Patrick Garrison" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Patrick Garrison</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2018</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Patrick Garrison">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Patrick Garrison">pssupport@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="ps-support" fu" aria-label="Rodney Dozier, Support Tech">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/dozier_rodney_1762361303.png" alt="Photo of Rodney Dozier" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Rodney Dozier</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2024</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Rodney Dozier">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Rodney Dozier">pssupport@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="ps-support" fu" aria-label="Ashley Warren, Support Tech">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/warren_ashley_1762297472.png" alt="Photo of Ashley Warren" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Ashley Warren</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2024</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Ashley Warren">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Ashley Warren">pssupport@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="ps-support" fu" aria-label="Matt Hussey, Support Tech">
+  <div style="width:100%;aspect-ratio:1;border-radius:12px 12px 0 0;background:#1b4a8a;display:flex;align-items:center;justify-content:center">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2.5rem,6vw,4rem);color:#5ba3f5;letter-spacing:-.02em">MH</span>
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Matt Hussey</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2024</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Matt Hussey">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Matt Hussey">pssupport@southernsoftware.com</a>
+    
+  </div>
+</article>
+  </div>
+</div>
+
+<div class="team-section" id="team-fms-support" data-section="fms-support">
+  <div class="team-banner" style="--team-color:#3ab54a">
+    <div class="team-banner-inner">
+      <span class="team-banner-icon" aria-hidden="true">📊</span>
+      <div>
+        <h2 class="team-banner-title">FMS Support Team</h2>
+        <p class="team-banner-count">4 team members</p>
+      </div>
+    </div>
+  </div>
+  <div class="staff-grid tf-grid">
+<article class="staff-card" data-team="fms-support" fu" aria-label="Kellie Murray, FMS Support Manager">
+  <div style="width:100%;aspect-ratio:1;border-radius:12px 12px 0 0;background:#0f4a25;display:flex;align-items:center;justify-content:center">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2.5rem,6vw,4rem);color:#5dca6a;letter-spacing:-.02em">KM</span>
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Kellie Murray</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">FMS Support Manager</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 1998</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Kellie Murray">800-842-8190</a>
+    <a href="mailto:fmssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Kellie Murray">fmssupport@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="fms-support" fu" aria-label="Kathy Starnes, Senior FMS Support Tech">
+  <div style="width:100%;aspect-ratio:1;border-radius:12px 12px 0 0;background:#0f4a25;display:flex;align-items:center;justify-content:center">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2.5rem,6vw,4rem);color:#5dca6a;letter-spacing:-.02em">KS</span>
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Kathy Starnes</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Senior FMS Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2004</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Kathy Starnes">800-842-8190</a>
+    <a href="mailto:fmssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Kathy Starnes">fmssupport@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="fms-support" fu" aria-label="Jennifer Holloman, FMS Support Tech">
+  <div style="width:100%;aspect-ratio:1;border-radius:12px 12px 0 0;background:#0f4a25;display:flex;align-items:center;justify-content:center">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2.5rem,6vw,4rem);color:#5dca6a;letter-spacing:-.02em">JH</span>
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Jennifer Holloman</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">FMS Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2010</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Jennifer Holloman">800-842-8190</a>
+    <a href="mailto:fmssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Jennifer Holloman">fmssupport@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="fms-support" fu" aria-label="Amy Prevatte, FMS Support Tech">
+  <div style="width:100%;aspect-ratio:1;border-radius:12px 12px 0 0;background:#0f4a25;display:flex;align-items:center;justify-content:center">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2.5rem,6vw,4rem);color:#5dca6a;letter-spacing:-.02em">AP</span>
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Amy Prevatte</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">FMS Support Tech</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2014</div>
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Amy Prevatte">800-842-8190</a>
+    <a href="mailto:fmssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Amy Prevatte">fmssupport@southernsoftware.com</a>
+    
+  </div>
+</article>
+  </div>
+</div>
+
+<div class="team-section" id="team-ps-updates" data-section="ps-updates">
+  <div class="team-banner" style="--team-color:#2e7fd4">
+    <div class="team-banner-inner">
+      <span class="team-banner-icon" aria-hidden="true">🔄</span>
+      <div>
+        <h2 class="team-banner-title">PS Updates Team</h2>
+        <p class="team-banner-count">1 team member</p>
+      </div>
+    </div>
+  </div>
+  <div class="staff-grid tf-grid">
+<article class="staff-card" data-team="ps-updates" fu" aria-label="Product Update Team, PS Development &amp; QA">
+  <div style="width:100%;aspect-ratio:1;border-radius:12px 12px 0 0;background:#1b4a8a;display:flex;align-items:center;justify-content:center">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2.5rem,6vw,4rem);color:#5ba3f5;letter-spacing:-.02em">PU</span>
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Product Update Team</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">PS Development &amp; QA</div>
+    
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Product Update Team">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Product Update Team">pssupport@southernsoftware.com</a>
+    
+  </div>
+</article>
+  </div>
+</div>
+
+<div class="team-section" id="team-triage" data-section="triage">
+  <div class="team-banner" style="--team-color:#e03030">
+    <div class="team-banner-inner">
+      <span class="team-banner-icon" aria-hidden="true">🎯</span>
+      <div>
+        <h2 class="team-banner-title">Support Triage Team</h2>
+        <p class="team-banner-count">1 team member</p>
+      </div>
+    </div>
+  </div>
+  <div class="staff-grid tf-grid">
+<article class="staff-card" data-team="triage" fu" aria-label="PS Triage Team, Support Triage Coordinators">
+  <div style="width:100%;aspect-ratio:1;border-radius:12px 12px 0 0;background:#1b4a8a;display:flex;align-items:center;justify-content:center">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2.5rem,6vw,4rem);color:#5ba3f5;letter-spacing:-.02em">PT</span>
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">PS Triage Team</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Support Triage Coordinators</div>
+    
+    <a href="tel:8008428190" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call PS Triage Team">800-842-8190</a>
+    <a href="mailto:pssupport@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email PS Triage Team">pssupport@southernsoftware.com</a>
+    
+  </div>
+</article>
+  </div>
+</div>
+
+<div class="team-section" id="team-install" data-section="install">
+  <div class="team-banner" style="--team-color:#f5a623">
+    <div class="team-banner-inner">
+      <span class="team-banner-icon" aria-hidden="true">⚙️</span>
+      <div>
+        <h2 class="team-banner-title">Implementation & IT Team</h2>
+        <p class="team-banner-count">7 team members</p>
+      </div>
+    </div>
+  </div>
+  <div class="staff-grid tf-grid">
+<article class="staff-card" data-team="install" fu" aria-label="DeAnn Barker, Senior IT Specialist">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/barker_deann_1762368724.png" alt="Photo of DeAnn Barker" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">DeAnn Barker</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Senior IT Specialist</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2002</div>
+    
+    <a href="mailto:dbarker@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email DeAnn Barker">dbarker@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="install" fu" aria-label="Joey Sharpe, IT / Mobile Specialist">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/sharpe_joey_1762368778.png" alt="Photo of Joey Sharpe" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Joey Sharpe</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">IT / Mobile Specialist</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2015</div>
+    
+    <a href="mailto:jsharpe@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Joey Sharpe">jsharpe@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="install" fu" aria-label="Travis Jones, IT / Mobile Specialist">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/jones_travis_1762368862.png" alt="Photo of Travis Jones" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Travis Jones</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">IT / Mobile Specialist</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2016</div>
+    
+    <a href="mailto:tjones@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Travis Jones">tjones@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="install" fu" aria-label="Brian Senecal, IT Specialist">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/senecal_brian_1762368910.png" alt="Photo of Brian Senecal" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Brian Senecal</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">IT Specialist</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2018</div>
+    
+    <a href="mailto:bsenecal@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Brian Senecal">bsenecal@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="install" fu" aria-label="Dale Ring, IT Specialist">
+  <div style="width:100%;aspect-ratio:1;border-radius:12px 12px 0 0;background:#1b4a8a;display:flex;align-items:center;justify-content:center">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2.5rem,6vw,4rem);color:#5ba3f5;letter-spacing:-.02em">DR</span>
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Dale Ring</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">IT Specialist</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2021</div>
+    
+    <a href="mailto:dring@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Dale Ring">dring@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="install" fu" aria-label="Tami Maldonado, IT Specialist">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/maldonado_tami_1772632318.png" alt="Photo of Tami Maldonado" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Tami Maldonado</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">IT Specialist</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2024</div>
+    
+    <a href="mailto:tmaldonado@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Tami Maldonado">tmaldonado@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="install" fu" aria-label="Fernando Ponce, IT Specialist">
+  <div style="width:100%;aspect-ratio:1;border-radius:12px 12px 0 0;background:#1b4a8a;display:flex;align-items:center;justify-content:center">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2.5rem,6vw,4rem);color:#5ba3f5;letter-spacing:-.02em">FP</span>
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Fernando Ponce</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">IT Specialist</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2024</div>
+    
+    <a href="mailto:fponce@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Fernando Ponce">fponce@southernsoftware.com</a>
+    
+  </div>
+</article>
+  </div>
+</div>
+
+<div class="team-section" id="team-ps-training" data-section="ps-training">
+  <div class="team-banner" style="--team-color:#3ab54a">
+    <div class="team-banner-inner">
+      <span class="team-banner-icon" aria-hidden="true">🎓</span>
+      <div>
+        <h2 class="team-banner-title">PS Training Team</h2>
+        <p class="team-banner-count">12 team members</p>
+      </div>
+    </div>
+  </div>
+  <div class="staff-grid tf-grid">
+<article class="staff-card" data-team="ps-training" supervisor-card fu" aria-label="Ronn Brigman, Training Team Lead">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:14px 14px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/brigman_ronn_1762370844.png" alt="Photo of Ronn Brigman" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.35rem 1.5rem 1.75rem">
+    <div style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ss-blue);margin-bottom:5px">Supervisor</div>
+    <div style="font-family:var(--fhead);font-weight:900;font-size:22px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.05">Ronn Brigman</div>
+    <div style="font-size:14px;color:var(--muted);margin-top:5px;line-height:1.3">Training Team Lead</div>
+    <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:3px">With us since 2004</div>
+    <a href="mailto:rbrigman@southernsoftware.com" style="color:var(--bluel);font-size:13px;word-break:break-all;display:block;margin-top:4px">rbrigman@southernsoftware.com</a>
+    <a href="https://www.southernsoftware.com/ps-sales-ronnbrigman.html" target="_blank" rel="noopener" style="color:var(--ss-green);font-size:13px;display:block;margin-top:8px">First Responder Background →</a>
+  </div>
+</article>
+<article class="staff-card" data-team="ps-training" fu" aria-label="Jeanie West, Trainer">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/west_jeanie_1762369926.png" alt="Photo of Jeanie West" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Jeanie West</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Trainer</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2005</div>
+    <a href="mailto:jwest@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Jeanie West">jwest@southernsoftware.com</a>
+    <a href="https://www.southernsoftware.com/ps-training-bio-jeaniewest.html" target="_blank" rel="noopener" style="color:var(--ss-green);font-size:12px;display:block;margin-top:6px">First Responder Background →</a>
+  </div>
+</article>
+<article class="staff-card" data-team="ps-training" fu" aria-label="Amanda McKenzie, Trainer">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/mckenzie_amanda_1762297428.png" alt="Photo of Amanda McKenzie" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Amanda McKenzie</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Trainer</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2005</div>
+    <a href="mailto:amckenzie@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Amanda McKenzie">amckenzie@southernsoftware.com</a>
+    <a href="https://www.southernsoftware.com/ps-training-bio-amandamckenzie.html" target="_blank" rel="noopener" style="color:var(--ss-green);font-size:12px;display:block;margin-top:6px">First Responder Background →</a>
+  </div>
+</article>
+<article class="staff-card" data-team="ps-training" fu" aria-label="Debbie Stevens, Trainer">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/stevens_debbie_1762370012.png" alt="Photo of Debbie Stevens" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Debbie Stevens</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Trainer</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2014</div>
+    <a href="mailto:dstevens@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Debbie Stevens">dstevens@southernsoftware.com</a>
+    <a href="https://www.southernsoftware.com/ps-training-bio-debbiestevens.html" target="_blank" rel="noopener" style="color:var(--ss-green);font-size:12px;display:block;margin-top:6px">First Responder Background →</a>
+  </div>
+</article>
+<article class="staff-card" data-team="ps-training" fu" aria-label="Dee Perez, Trainer">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/perez_dee_1762370068.jpg" alt="Photo of Dee Perez" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Dee Perez</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Trainer</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2019</div>
+    <a href="mailto:dperez@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Dee Perez">dperez@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="ps-training" fu" aria-label="Alan Morgan, PS Trainer">
+  <div style="width:100%;aspect-ratio:1;border-radius:12px 12px 0 0;background:#1b4a8a;display:flex;align-items:center;justify-content:center">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2.5rem,6vw,4rem);color:#5ba3f5;letter-spacing:-.02em">AM</span>
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Alan Morgan</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">PS Trainer</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2023</div>
+    <a href="mailto:amorgan@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Alan Morgan">amorgan@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="ps-training" fu" aria-label="Jonathan Bledsoe, Trainer">
+  <div style="width:100%;aspect-ratio:1;border-radius:12px 12px 0 0;background:#1b4a8a;display:flex;align-items:center;justify-content:center">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2.5rem,6vw,4rem);color:#5ba3f5;letter-spacing:-.02em">JB</span>
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Jonathan Bledsoe</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Trainer</div>
+    
+    
+    
+  </div>
+</article>
+<article class="staff-card" data-team="ps-training" supervisor-card fu" aria-label="Travis Pruitt, CAD Training Lead">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:14px 14px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/pruitt_travis_1762372420.png" alt="Photo of Travis Pruitt" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.35rem 1.5rem 1.75rem">
+    <div style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ss-blue);margin-bottom:5px">Supervisor</div>
+    <div style="font-family:var(--fhead);font-weight:900;font-size:22px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.05">Travis Pruitt</div>
+    <div style="font-size:14px;color:var(--muted);margin-top:5px;line-height:1.3">CAD Training Lead</div>
+    <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:3px">With us since 2015</div>
+    <a href="mailto:tpruitt@southernsoftware.com" style="color:var(--bluel);font-size:13px;word-break:break-all;display:block;margin-top:4px">tpruitt@southernsoftware.com</a>
+    <a href="https://www.southernsoftware.com/ps-training-bio-travispruitt.html" target="_blank" rel="noopener" style="color:var(--ss-green);font-size:13px;display:block;margin-top:8px">First Responder Background →</a>
+  </div>
+</article>
+<article class="staff-card" data-team="ps-training" fu" aria-label="Zach Perkins, CAD Trainer">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/perkins_zach_1762370337.png" alt="Photo of Zach Perkins" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Zach Perkins</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">CAD Trainer</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2023</div>
+    <a href="mailto:zperkins@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Zach Perkins">zperkins@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="ps-training" fu" aria-label="Hunter Phillips, CAD Trainer">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/phillips_hunter_1762370412.png" alt="Photo of Hunter Phillips" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Hunter Phillips</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">CAD Trainer</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2025</div>
+    <a href="mailto:hphillips@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Hunter Phillips">hphillips@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="ps-training" fu" aria-label="Melissa Parsons, CAD Trainer">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/parsons_melissa_1768316678.png" alt="Photo of Melissa Parsons" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Melissa Parsons</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">CAD Trainer</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2024</div>
+    
+    
+  </div>
+</article>
+<article class="staff-card" data-team="ps-training" fu" aria-label="Corey Port, CAD Trainer">
+  <div style="width:100%;aspect-ratio:1;border-radius:12px 12px 0 0;background:#1b4a8a;display:flex;align-items:center;justify-content:center">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2.5rem,6vw,4rem);color:#5ba3f5;letter-spacing:-.02em">CP</span>
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Corey Port</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">CAD Trainer</div>
+    
+    
+    
+  </div>
+</article>
+  </div>
+</div>
+
+<div class="team-section" id="team-project-mgmt" data-section="project-mgmt">
+  <div class="team-banner" style="--team-color:#7a5cf0">
+    <div class="team-banner-inner">
+      <span class="team-banner-icon" aria-hidden="true">📁</span>
+      <div>
+        <h2 class="team-banner-title">Project Management Team</h2>
+        <p class="team-banner-count">4 team members</p>
+      </div>
+    </div>
+  </div>
+  <div class="staff-grid tf-grid">
+<article class="staff-card" data-team="project-mgmt" fu" aria-label="Joe Garrison, Financial Management Project Manager">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/garrison_joe_1762369400.png" alt="Photo of Joe Garrison" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Joe Garrison</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Financial Management Project Manager</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2012</div>
+    <a href="tel:9106904511" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Joe Garrison">910-690-4511</a>
+    <a href="mailto:jgarrison@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Joe Garrison">jgarrison@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="project-mgmt" fu" aria-label="Brent Boykin, Senior Project Manager">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/boykin_brent_1762299103.png" alt="Photo of Brent Boykin" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Brent Boykin</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Senior Project Manager</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2015</div>
+    <a href="tel:9192184901" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Brent Boykin">919-218-4901</a>
+    <a href="mailto:bboykin@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Brent Boykin">bboykin@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="project-mgmt" fu" aria-label="Dan Barcus, Public Safety Project Manager">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/barcus_dan_1762369449.jpg" alt="Photo of Dan Barcus" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Dan Barcus</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Public Safety Project Manager</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2022</div>
+    <a href="tel:7329048266" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Dan Barcus">732-904-8266</a>
+    <a href="mailto:dbarcus@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Dan Barcus">dbarcus@southernsoftware.com</a>
+    
+  </div>
+</article>
+<article class="staff-card" data-team="project-mgmt" fu" aria-label="Nick Madray, Public Safety Project Manager">
+  <div style="width:100%;aspect-ratio:1;overflow:hidden;border-radius:12px 12px 0 0;background:#0b1a2e">
+      <img src="https://portal.southernsoftware.com/new/admin/uploads/employee_images/madray_nick_1762369497.png" alt="Photo of Nick Madray" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;transition:transform .3s ease"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+    </div>
+  <div style="padding:1.1rem 1.25rem 1.4rem">
+    <div style="font-family:var(--fhead);font-weight:700;font-size:18px;text-transform:uppercase;color:var(--white);letter-spacing:.02em;line-height:1.1">Nick Madray</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.3">Public Safety Project Manager</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-top:2px">With us since 2024</div>
+    <a href="tel:8432595002" style="color:var(--muted);font-size:13px;display:block;margin-top:3px" aria-label="Call Nick Madray">843-259-5002</a>
+    <a href="mailto:nmadray@southernsoftware.com" style="color:var(--bluel);font-size:12px;word-break:break-all;display:block;margin-top:3px" aria-label="Email Nick Madray">nmadray@southernsoftware.com</a>
+    
+  </div>
+</article>
+  </div>
+</div>
+
+
+</div></section>
+</main>
+
+<footer class="footer" role="contentinfo">
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#top" aria-label="Southern Software, Inc. — back to top">
+          <img src="logo-full-trans.png" alt="Southern Software, Inc." width="200" height="auto">
+        </a>
+        <p>Dedicated to building the best software solutions for public safety and government finance — backed by industry-leading support, always provided by our own staff.</p>
+        <div class="foot-esop" role="text">⭐ Employee-Owned Company (ESOP)</div>
+      </div>
+      <nav class="foot-col" aria-label="Products links">
+        <h5>Products</h5>
+        <ul>
+          <li><a href="ps-overview.html">Public Safety Suite</a></li>
+          <li><a href="fms-overview.html">Financial Management Suite</a></li>
+          <li><a href="https://nucleuspsp.com/Nucleus/" target="_blank" rel="noopener" aria-label="Nucleus Platform (opens in new tab)">Nucleus Platform ↗</a></li>
+          <li><a href="#contact">Request a Demo</a></li>
+        </ul>
+      </nav>
+      <nav class="foot-col" aria-label="Support links">
+        <h5>Support</h5>
+        <ul>
+          <li><a href="https://portal.southernsoftware.com/" target="_blank" rel="noopener" aria-label="Customer Portal (opens in new tab)">Customer Portal</a></li>
+          <li><a href="https://support.southernsoftware.com/" target="_blank" rel="noopener" aria-label="BeyondTrust Remote Support (opens in new tab)"><span style="display:inline-flex;align-items:center;gap:5px;vertical-align:middle">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 14" width="12" height="14" aria-hidden="true">
+    <path d="M6 0.5 L11.5 2.5 L11.5 7 C11.5 10.5 9.2 13 6 13.5 C2.8 13 0.5 10.5 0.5 7 L0.5 2.5 Z" fill="#E3001B" stroke="#c00016" stroke-width=".5"/>
+    <path d="M6 3 L9 4.2 L9 7 C9 9 7.8 10.5 6 11 C4.2 10.5 3 9 3 7 L3 4.2 Z" fill="white" opacity="0.25"/>
+    <path d="M4.5 6.8 L5.5 7.8 L7.8 5.2" fill="none" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <span>BeyondTrust Remote Support</span>
+</span></a></li>
+          <li><a href="downloads.html">PS Documentation</a></li>
+          <li><a href="downloads.html#fms">FMS Documentation</a></li>
+        </ul>
+      </nav>
+      <nav class="foot-col" aria-label="Company links">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="mission.html">Our Mission</a></li>
+          <li><a href="testimonials.html">Testimonials</a></li>
+          <li><a href="involvement.html">Community</a></li>
+          <li><a href="faith.html">Our Faith</a></li>
+          <li><a href="https://lp.constantcontactpages.com/sl/O7CLOtV/southernsoftware" target="_blank" rel="noopener" aria-label="PS Newsletter signup (opens in new tab)">PS Newsletter</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="foot-bottom">
+      <p>&copy; 2026 Southern Software, Inc. All Rights Reserved.</p>
+      <div class="foot-links">
+        <a href="https://www.southernsoftware.com/termsofservice.html" target="_blank" rel="noopener" aria-label="Terms of Service (opens in new tab)">Terms of Service</a>
+        <a href="https://www.southernsoftware.com/privacy.html" target="_blank" rel="noopener" aria-label="Privacy Policy (opens in new tab)">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Dark/Light mode toggle -->
+<button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
+  <span class="icon-moon" aria-hidden="true">🌙</span>
+  <span class="icon-sun"  aria-hidden="true">☀️</span>
+</button>
+
+<script>
+
+// Sticky nav
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>40),{passive:true});
+
+// Sticky nav dropdowns — add close delay so menu doesn't snap shut
+document.querySelectorAll('.nav-dd').forEach(dd=>{
+  let closeTimer;
+  dd.addEventListener('mouseenter',()=>{
+    clearTimeout(closeTimer);
+    dd.classList.add('open');
+  });
+  dd.addEventListener('mouseleave',()=>{
+    closeTimer=setTimeout(()=>dd.classList.remove('open'),180);
+  });
+});
+// Flyout submenus — same delay
+document.querySelectorAll('.dd-sub').forEach(sub=>{
+  let t;
+  sub.addEventListener('mouseenter',()=>{clearTimeout(t);sub.classList.add('open')});
+  sub.addEventListener('mouseleave',()=>{t=setTimeout(()=>sub.classList.remove('open'),180)});
+});
+
+// Mobile nav toggle
+const tog=document.getElementById('nav-tog');
+tog.addEventListener('click',()=>{
+  const open=document.body.classList.toggle('mob-open');
+  tog.setAttribute('aria-expanded',open?'true':'false');
+});
+document.querySelectorAll('#main-nav a').forEach(a=>a.addEventListener('click',()=>{
+  document.body.classList.remove('mob-open');
+  tog.setAttribute('aria-expanded','false');
+}));
+
+// Fade-up on scroll — fires immediately for items already in viewport
+const io=new IntersectionObserver(e=>e.forEach(x=>{
+  if(x.isIntersecting){x.target.classList.add('vis');io.unobserve(x.target);}
+}),{threshold:0.05,rootMargin:'0px 0px -20px 0px'});
+document.querySelectorAll('.fu').forEach(el=>io.observe(el));
+
+// Smooth scroll with nav offset
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const t=document.querySelector(a.getAttribute('href'));
+    if(!t)return;
+    e.preventDefault();
+    window.scrollTo({top:t.offsetTop-74,behavior:'smooth'});
+  });
+});
+
+// Formspree form — show sending state
+const cfForm=document.querySelector('form[action*="formspree"]');
+if(cfForm){
+  cfForm.addEventListener('submit',function(){
+    const btn=this.querySelector('button[type="submit"]');
+    if(btn){btn.textContent='Sending…';btn.disabled=true;}
+  });
+  // Sync email to _replyto
+  const emailFld=document.getElementById('cf-email');
+  if(emailFld){
+    emailFld.addEventListener('input',function(){
+      const rt=cfForm.querySelector('input[name="_replyto"]');
+      if(rt)rt.value=this.value;
+    });
+  }
+}
+
+// Dark / Light mode toggle
+(function(){
+  const PREF_KEY = 'ss-theme';
+  if(localStorage.getItem(PREF_KEY) === 'light') document.body.classList.add('light-mode');
+  document.addEventListener('DOMContentLoaded', function(){
+    const btn = document.getElementById('theme-toggle');
+    if(btn){
+      btn.addEventListener('click', function(){
+        const isLight = document.body.classList.toggle('light-mode');
+        localStorage.setItem(PREF_KEY, isLight ? 'light' : 'dark');
+      });
+    }
+  });
+})();
+
+
+
+// ── Team filter + search ──────────────────────────────────────────────────
+(function(){
+  const btns    = document.querySelectorAll('.tf-btn');
+  const sections = document.querySelectorAll('.team-section');
+  const cards   = document.querySelectorAll('.staff-card');
+  const search  = document.getElementById('team-search');
+  const counter = document.getElementById('tf-count');
+  const noRes   = document.getElementById('team-no-results');
+  let activeFilter = 'all';
+  let searchTerm   = '';
+
+  function updateCount(){
+    const visible = [...cards].filter(c=>!c.classList.contains('tf-hidden') && !c.closest('.team-section').classList.contains('tf-hidden-section')).length;
+    counter.textContent = visible + ' member' + (visible !== 1 ? 's' : '');
+    noRes.classList.toggle('show', visible === 0);
+  }
+
+  function applyFilter(){
+    sections.forEach(sec=>{
+      const match = activeFilter === 'all' || sec.dataset.section === activeFilter;
+      sec.classList.toggle('hidden', !match);
+    });
+    // Apply search within visible sections
+    cards.forEach(card=>{
+      if(searchTerm === ''){ card.classList.remove('tf-hidden'); return; }
+      const text = card.textContent.toLowerCase();
+      card.classList.toggle('tf-hidden', !text.includes(searchTerm));
+    });
+    // Hide section banners if all cards hidden
+    sections.forEach(sec=>{
+      if(!sec.classList.contains('hidden')){
+        const visible = [...sec.querySelectorAll('.staff-card')].filter(c=>!c.classList.contains('tf-hidden')).length;
+        sec.classList.toggle('tf-hidden-section', visible === 0);
+      }
+    });
+    updateCount();
+  }
+
+  btns.forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      btns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      applyFilter();
+      // Scroll to first visible section
+      const first = [...sections].find(s=>!s.classList.contains('hidden') && !s.classList.contains('tf-hidden-section'));
+      if(first) first.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+
+  search.addEventListener('input',()=>{
+    searchTerm = search.value.trim().toLowerCase();
+    // When searching, show all sections
+    if(searchTerm){
+      btns.forEach(b=>b.classList.remove('active'));
+      document.querySelector('[data-filter="all"]').classList.add('active');
+      activeFilter = 'all';
+      sections.forEach(s=>s.classList.remove('hidden'));
+    }
+    applyFilter();
+  });
+
+  updateCount();
+})();
+</script>
+</body>
+</html>
