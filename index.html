@@ -1782,8 +1782,7 @@ if(cfForm){
   fetch(url)
     .then(function(r){ return r.text(); })
     .then(function(text){
-      // Google wraps the JSON in /*O_o*/
-google.visualization.Query.setResponse(...)
+      // Google wraps the response: google.visualization.Query.setResponse(...)
       var json = JSON.parse(text.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, ''));
       var rows = json.table.rows;
       if(!rows || rows.length < 2) return; // row 0 is headers
