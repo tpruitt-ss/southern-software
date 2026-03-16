@@ -140,7 +140,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 /* SS brand gradient bar across top of hero */
 .hero-bar{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ss-blue) 0%,var(--ss-green) 50%,var(--ss-red) 100%)}
 
-.hero .container{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+.hero .container{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:stretch}
 
 .hero-logo{margin-bottom:.75rem}
 .hero-logo img{height:80px;width:auto}
@@ -167,17 +167,18 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .hero-stat-lbl{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-top:4px}
 
 /* Hero cards */
-.hero-cards{display:flex;flex-direction:column;gap:1.1rem}
-.hero-card{background:var(--bgcard);border:1px solid var(--border);border-radius:12px;padding:1.35rem 1.6rem;transition:border-color var(--tr),background var(--tr),transform var(--tr)}
+.hero-cards{display:flex;flex-direction:column;gap:1.25rem;height:100%}
+.hero-right{display:flex;flex-direction:column;justify-content:center}
+.hero-card{background:var(--bgcard);border:1px solid var(--border);border-radius:16px;padding:2rem 2.25rem;transition:border-color var(--tr),background var(--tr),transform var(--tr);flex:1;display:flex;flex-direction:column;justify-content:space-between}
 .hero-card:hover{border-color:var(--border2);background:rgba(255,255,255,.07);transform:translateX(-5px)}
 .hc-top{display:flex;align-items:center;gap:12px;margin-bottom:.6rem}
 .hc-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
-.hc-title{font-family:var(--fhead);font-weight:700;font-size:15px;letter-spacing:.05em;text-transform:uppercase;color:var(--white);flex:1}
+.hc-title{font-family:var(--fhead);font-weight:700;font-size:1.2rem;letter-spacing:.05em;text-transform:uppercase;color:var(--white);flex:1}
 .badge{padding:3px 10px;border-radius:100px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
 .badge-b{background:rgba(46,127,212,.2);color:var(--bluel)}
 .badge-g{background:rgba(58,181,74,.15);color:#5dca6a}
 .badge-a{background:rgba(224,48,48,.15);color:#f07070}
-.hero-card p{font-size:14px;color:var(--muted);line-height:1.6}
+.hero-card p{font-size:15px;color:var(--muted);line-height:1.7}
 
 /* SS accent strip on hero cards */
 .hero-card.ps  {border-left:3px solid var(--ss-blue)}
@@ -319,7 +320,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 @media(max-width:1024px){
   .container{padding:0 2rem}
   .hero .container,.who-grid,.contact-grid,.train-grid{grid-template-columns:1fr}
-  .hero-right{display:none}
+  .hero-right{display:none!important}
   .prod-grid{grid-template-columns:1fr}
   .foot-grid{grid-template-columns:1fr 1fr}
 }
@@ -714,6 +715,63 @@ html.fs-xlarge .mod-card p  { font-size:16px }
   .announce-inner { flex-wrap:wrap;gap:.75rem;padding:.75rem 1rem }
   .announce-dates { display:none }
 }
+
+/* ── Announcement Banner ── */
+.announce-bar {
+  position:relative;
+  background:linear-gradient(135deg,#1a3a6a 0%,#0d2247 50%,#1a3a6a 100%);
+  border-bottom:3px solid var(--announce-color, var(--ss-blue));
+  overflow:hidden;z-index:50;
+  transition:border-color .3s;
+}
+.announce-bar::before {
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(-45deg,transparent,transparent 20px,rgba(255,255,255,.015) 20px,rgba(255,255,255,.015) 40px);
+  pointer-events:none;
+}
+.announce-inner {
+  max-width:1400px;margin:0 auto;
+  display:flex;align-items:center;gap:1.5rem;
+  padding:.9rem 2rem;
+}
+.announce-badge {
+  flex-shrink:0;background:var(--announce-color, var(--ss-blue));
+  color:#fff;font-family:var(--fhead);font-weight:700;
+  font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  padding:4px 10px;border-radius:4px;white-space:nowrap;
+  transition:background .3s;
+}
+.announce-icon { font-size:1.8rem;flex-shrink:0;line-height:1 }
+.announce-content { flex:1;min-width:0 }
+.announce-title {
+  font-family:var(--fhead);font-weight:900;
+  font-size:clamp(1rem,2vw,1.3rem);letter-spacing:.02em;
+  text-transform:uppercase;color:#fff;line-height:1;margin-bottom:.25rem;
+}
+.announce-title em { color:var(--announce-color, var(--ss-blue));font-style:normal }
+.announce-sub { font-size:13px;color:rgba(255,255,255,.65);font-weight:400;line-height:1.4 }
+.announce-dates {
+  flex-shrink:0;text-align:center;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:8px;padding:.5rem .9rem;
+}
+.announce-dates-month { font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--announce-color,var(--ss-blue)) }
+.announce-dates-range { font-family:var(--fhead);font-weight:900;font-size:1.4rem;color:#fff;line-height:1 }
+.announce-dates-year { font-size:10px;color:rgba(255,255,255,.5);letter-spacing:.05em }
+.announce-close {
+  flex-shrink:0;background:none;border:none;
+  color:rgba(255,255,255,.4);cursor:pointer;
+  font-size:1.2rem;padding:4px;line-height:1;
+  transition:color .2s;border-radius:4px;
+}
+.announce-close:hover { color:#fff;background:rgba(255,255,255,.1) }
+.announce-bar.dismissed,.announce-bar.hidden { display:none }
+@media(max-width:600px){
+  .announce-inner { flex-wrap:wrap;gap:.75rem;padding:.75rem 1rem }
+  .announce-dates { display:none }
+}
+
 </style>
 </head>
 <body>
@@ -908,19 +966,19 @@ html.fs-xlarge .mod-card p  { font-size:16px }
   <a href="regionaltrainings.html" class="events-banner-cta" aria-label="View all training events">View All →</a>
 </div>
 
-<!-- ANNOUNCEMENT BANNER -->
-<div class="announce-bar" id="announce-bar" role="complementary" aria-label="Announcement">
+<!-- ANNOUNCEMENT BANNER — powered by Google Sheets -->
+<div class="announce-bar hidden" id="announce-bar" role="complementary" aria-label="Announcement">
   <div class="announce-inner">
-    <span class="announce-badge">📢 Announcement</span>
-    <span class="announce-icon" aria-hidden="true">📡</span>
+    <span class="announce-badge" id="announce-badge">📢 Announcement</span>
+    <span class="announce-icon" id="announce-icon" aria-hidden="true">📡</span>
     <div class="announce-content">
-      <div class="announce-title">National Public Safety <em>Telecommunicator Week</em></div>
-      <div class="announce-sub">Honoring the dedicated dispatchers and telecommunicators who are the first of the first responders — we salute your service.</div>
+      <div class="announce-title" id="announce-title">Loading…</div>
+      <div class="announce-sub" id="announce-sub"></div>
     </div>
-    <div class="announce-dates" aria-hidden="true">
-      <div class="announce-dates-month">April</div>
-      <div class="announce-dates-range">13–19</div>
-      <div class="announce-dates-year">2026</div>
+    <div class="announce-dates" id="announce-dates" aria-hidden="true">
+      <div class="announce-dates-month" id="announce-month"></div>
+      <div class="announce-dates-range" id="announce-range"></div>
+      <div class="announce-dates-year" id="announce-year"></div>
     </div>
     <button class="announce-close" id="announce-close" aria-label="Dismiss announcement" title="Dismiss">✕</button>
   </div>
@@ -990,7 +1048,7 @@ html.fs-xlarge .mod-card p  { font-size:16px }
         <div role="listitem"><div class="hero-stat-num">ESOP</div><div class="hero-stat-lbl">Employee Owned</div></div>
       </div>
     </div>
-    <div class="hero-right" aria-hidden="true">
+    <div class="hero-right">
       <div class="hero-cards">
         <div class="hero-card ps fu" data-d="2">
           <div class="hc-top"><div class="hc-icon" style="background:rgba(46,127,212,.15)">🚔</div><span class="hc-title">Public Safety Suite</span><span class="badge badge-b">CAD · RMS · JMS</span></div>
@@ -1425,20 +1483,100 @@ if(cfForm){
   });
 })();
 
-// Announcement banner dismiss
+// ── Announcement Banner — Google Sheets powered ──────────────────────────
 (function(){
-  const bar = document.getElementById('announce-bar');
-  const btn = document.getElementById('announce-close');
-  if(!bar || !btn) return;
-  // Check if dismissed
-  if(localStorage.getItem('announce-npstw-2026') === 'dismissed') {
-    bar.classList.add('dismissed');
-    return;
+  // ★ REPLACE THIS with your Google Sheet ID (from the URL)
+  var SHEET_ID = 'YOUR_SHEET_ID_HERE';
+
+  var bar    = document.getElementById('announce-bar');
+  var badge  = document.getElementById('announce-badge');
+  var icon   = document.getElementById('announce-icon');
+  var title  = document.getElementById('announce-title');
+  var sub    = document.getElementById('announce-sub');
+  var dates  = document.getElementById('announce-dates');
+  var month  = document.getElementById('announce-month');
+  var range  = document.getElementById('announce-range');
+  var year   = document.getElementById('announce-year');
+  var closeBtn = document.getElementById('announce-close');
+
+  if(!bar) return;
+
+  // Build the Google Sheets JSON URL (Sheet must be published to web)
+  var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&sheet=Sheet1';
+
+  function applyData(row) {
+    // row columns: Active, ID, Badge, Icon, Title, Subtitle, Color, DateMonth, DateRange, DateYear
+    var active   = (row[0] || '').toString().trim().toLowerCase();
+    var id       = (row[1] || '').toString().trim();
+    var badgeTxt = (row[2] || '📢 Announcement').toString().trim();
+    var iconTxt  = (row[3] || '📡').toString().trim();
+    var titleTxt = (row[4] || '').toString().trim();
+    var subTxt   = (row[5] || '').toString().trim();
+    var color    = (row[6] || '#2e7fd4').toString().trim();
+    var mo       = (row[7] || '').toString().trim();
+    var rng      = (row[8] || '').toString().trim();
+    var yr       = (row[9] || '').toString().trim();
+
+    // If not active, stay hidden
+    if(active !== 'yes') return;
+
+    // Check dismiss state using the unique ID
+    var dismissKey = 'announce-' + (id || 'default');
+    if(id && localStorage.getItem(dismissKey) === 'dismissed') return;
+
+    // Apply color
+    bar.style.setProperty('--announce-color', color);
+
+    // Fill content
+    badge.textContent = badgeTxt;
+    icon.textContent  = iconTxt;
+
+    // Title: wrap second half in <em> if pipe separator used e.g. "NPST|Telecommunicator Week"
+    if(titleTxt.includes('|')) {
+      var parts = titleTxt.split('|');
+      title.innerHTML = parts[0] + ' <em>' + parts[1] + '</em>';
+    } else {
+      title.textContent = titleTxt;
+    }
+
+    sub.textContent   = subTxt;
+    month.textContent = mo;
+    range.textContent = rng;
+    year.textContent  = yr;
+
+    // Show/hide date box
+    dates.style.display = (mo || rng) ? '' : 'none';
+
+    // Show banner
+    bar.classList.remove('hidden');
+
+    // Dismiss button
+    closeBtn.addEventListener('click', function(){
+      bar.classList.add('dismissed');
+      if(id) localStorage.setItem(dismissKey, 'dismissed');
+    });
   }
-  btn.addEventListener('click', function(){
-    bar.classList.add('dismissed');
-    localStorage.setItem('announce-npstw-2026', 'dismissed');
-  });
+
+  // Fetch from Google Sheets
+  fetch(url)
+    .then(function(r){ return r.text(); })
+    .then(function(text){
+      // Google wraps the JSON in /*O_o*/
+google.visualization.Query.setResponse(...)
+      var json = JSON.parse(text.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, ''));
+      var rows = json.table.rows;
+      if(!rows || rows.length < 2) return; // row 0 is headers
+      // Use first data row (row index 1)
+      var cells = rows[1].c.map(function(c){ return c ? (c.v !== null ? c.v : '') : ''; });
+      applyData(cells);
+    })
+    .catch(function(){
+      // If sheet fetch fails, fall back to hardcoded content
+      applyData(['yes','npstw-2026','📢 Announcement','📡',
+        'National Public Safety|Telecommunicator Week',
+        'Honoring the dedicated dispatchers and telecommunicators who are the first of the first responders — we salute your service.',
+        '#2e7fd4','April','13–19','2026']);
+    });
 })();
 
 </script>
