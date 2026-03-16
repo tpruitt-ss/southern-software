@@ -1874,6 +1874,12 @@ html.fs-xlarge .mod-card p  { font-size:16px }
     </div>
   </div>
 </footer>
+<!-- Font size toggle -->
+<div class="font-toggle" role="group" aria-label="Font size controls">
+  <button class="font-toggle-btn" data-size="normal" title="Normal text size">A</button>
+  <button class="font-toggle-btn" data-size="large" title="Large text size">A+</button>
+  <button class="font-toggle-btn" data-size="xlarge" title="Extra large text">A++</button>
+</div>
 <!-- Dark/Light mode toggle -->
 <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">
   <span class="icon-moon" aria-hidden="true">🌙</span>
@@ -1897,18 +1903,33 @@ document.querySelectorAll('#main-nav a').forEach(a=>a.addEventListener('click',(
   tog.setAttribute('aria-expanded','false');
 }));
 
-// Fade-up on scroll
-const io=new IntersectionObserver(e=>e.forEach(x=>{
-  if(x.isIntersecting){x.target.classList.add('vis');io.unobserve(x.target);}
-}),{threshold:0.02,rootMargin:'0px 0px -20px 0px'});
-document.querySelectorAll('.fu').forEach(el=>io.observe(el));
-// Immediately trigger any .fu elements already in viewport
-requestAnimationFrame(()=>{
-  const vH = window.innerHeight;
-  document.querySelectorAll('.fu:not(.vis)').forEach(el=>{
-    const r = el.getBoundingClientRect();
-    if(r.top < vH && r.bottom > 0) el.classList.add('vis');
+
+// Fade-up observer with scroll fallback
+(function(){
+  const fuEls = document.querySelectorAll('.fu');
+  
+  const show = (el) => { el.classList.add('vis'); };
+  
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting){ show(e.target); io.unobserve(e.target); } });
+  }, {threshold:0, rootMargin:'0px 0px 100px 0px'});
+  
+  fuEls.forEach(el => io.observe(el));
+  
+  // Immediately show anything already in or near viewport
+  requestAnimationFrame(() => {
+    const vH = window.innerHeight + 200;
+    fuEls.forEach(el => {
+      const r = el.getBoundingClientRect();
+      if(r.top < vH) show(el);
+    });
   });
+  
+  // Fallback: show everything after 2s regardless
+  setTimeout(() => fuEls.forEach(show), 2000);
+})();
+  });
+});
 });
 
 // Smooth scroll
