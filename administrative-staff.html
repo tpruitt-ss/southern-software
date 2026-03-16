@@ -369,7 +369,7 @@ html.fs-xlarge { font-size: 20px }
 
 /* Font size toggle button */
 .font-toggle {
-  position:fixed;top:1rem;right:3.5rem;
+  position:fixed;top:1rem;right:4rem;
   display:flex;align-items:center;gap:2px;
   background:var(--bg2);border:1.5px solid var(--border2);
   border-radius:100px;padding:4px 8px;
@@ -725,8 +725,16 @@ document.querySelectorAll('#main-nav a').forEach(a=>a.addEventListener('click',(
   document.body.classList.remove('mob-open');
   tog.setAttribute('aria-expanded','false');
 }));
-const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('vis');io.unobserve(x.target)}}),{threshold:.08,rootMargin:'0px 0px -40px 0px'});
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('vis');io.unobserve(x.target)}}),{threshold:0.02,rootMargin:'0px 0px 0px 0px'});
 document.querySelectorAll('.fu').forEach(el=>io.observe(el));
+// Immediately trigger any .fu elements already in viewport
+requestAnimationFrame(()=>{
+  const vH = window.innerHeight;
+  document.querySelectorAll('.fu:not(.vis)').forEach(el=>{
+    const r = el.getBoundingClientRect();
+    if(r.top < vH && r.bottom > 0) el.classList.add('vis');
+  });
+});
 document.querySelectorAll('a[href^="#"]').forEach(a=>{
   a.addEventListener('click',e=>{
     const t=document.querySelector(a.getAttribute('href'));
