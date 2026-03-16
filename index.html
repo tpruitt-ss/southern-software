@@ -639,6 +639,81 @@ html.fs-large  .supp-card p,
 html.fs-large  .mod-card p  { font-size:15px }
 html.fs-xlarge .supp-card p,
 html.fs-xlarge .mod-card p  { font-size:16px }
+
+/* ── Announcement Banner ── */
+.announce-bar {
+  position:relative;
+  background:linear-gradient(135deg, #1a3a6a 0%, #0d2247 50%, #1a3a6a 100%);
+  border-bottom:3px solid var(--ss-blue);
+  overflow:hidden;
+  z-index:50;
+}
+.announce-bar::before {
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    -45deg,
+    transparent,transparent 20px,
+    rgba(255,255,255,.015) 20px,rgba(255,255,255,.015) 40px
+  );
+  pointer-events:none;
+}
+.announce-inner {
+  max-width:1400px;margin:0 auto;
+  display:flex;align-items:center;gap:1.5rem;
+  padding:.9rem 2rem;
+}
+.announce-badge {
+  flex-shrink:0;
+  background:var(--ss-blue);
+  color:#fff;
+  font-family:var(--fhead);font-weight:700;
+  font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  padding:4px 10px;border-radius:4px;white-space:nowrap;
+}
+.announce-icon {
+  font-size:1.8rem;flex-shrink:0;line-height:1;
+}
+.announce-content { flex:1;min-width:0 }
+.announce-title {
+  font-family:var(--fhead);font-weight:900;
+  font-size:clamp(1rem,2vw,1.3rem);
+  letter-spacing:.02em;text-transform:uppercase;
+  color:#fff;line-height:1;margin-bottom:.25rem;
+}
+.announce-title em { color:var(--ss-blue);font-style:normal }
+.announce-sub {
+  font-size:13px;color:rgba(255,255,255,.65);
+  font-weight:400;line-height:1.4;
+}
+.announce-dates {
+  flex-shrink:0;text-align:center;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:8px;padding:.5rem .9rem;
+}
+.announce-dates-month {
+  font-size:10px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ss-blue);
+}
+.announce-dates-range {
+  font-family:var(--fhead);font-weight:900;
+  font-size:1.4rem;color:#fff;line-height:1;
+}
+.announce-dates-year {
+  font-size:10px;color:rgba(255,255,255,.5);letter-spacing:.05em;
+}
+.announce-close {
+  flex-shrink:0;background:none;border:none;
+  color:rgba(255,255,255,.4);cursor:pointer;
+  font-size:1.2rem;padding:4px;line-height:1;
+  transition:color .2s;border-radius:4px;
+}
+.announce-close:hover { color:#fff;background:rgba(255,255,255,.1) }
+.announce-bar.dismissed { display:none }
+@media(max-width:600px){
+  .announce-inner { flex-wrap:wrap;gap:.75rem;padding:.75rem 1rem }
+  .announce-dates { display:none }
+}
 </style>
 </head>
 <body>
@@ -831,6 +906,24 @@ html.fs-xlarge .mod-card p  { font-size:16px }
     </div>
   </div>
   <a href="regionaltrainings.html" class="events-banner-cta" aria-label="View all training events">View All →</a>
+</div>
+
+<!-- ANNOUNCEMENT BANNER -->
+<div class="announce-bar" id="announce-bar" role="complementary" aria-label="Announcement">
+  <div class="announce-inner">
+    <span class="announce-badge">📢 Announcement</span>
+    <span class="announce-icon" aria-hidden="true">📡</span>
+    <div class="announce-content">
+      <div class="announce-title">National Public Safety <em>Telecommunicator Week</em></div>
+      <div class="announce-sub">Honoring the dedicated dispatchers and telecommunicators who are the first of the first responders — we salute your service.</div>
+    </div>
+    <div class="announce-dates" aria-hidden="true">
+      <div class="announce-dates-month">April</div>
+      <div class="announce-dates-range">13–19</div>
+      <div class="announce-dates-year">2026</div>
+    </div>
+    <button class="announce-close" id="announce-close" aria-label="Dismiss announcement" title="Dismiss">✕</button>
+  </div>
 </div>
 
 <section class="hero" id="top" aria-label="Hero">
@@ -1331,6 +1424,23 @@ if(cfForm){
     });
   });
 })();
+
+// Announcement banner dismiss
+(function(){
+  const bar = document.getElementById('announce-bar');
+  const btn = document.getElementById('announce-close');
+  if(!bar || !btn) return;
+  // Check if dismissed
+  if(localStorage.getItem('announce-npstw-2026') === 'dismissed') {
+    bar.classList.add('dismissed');
+    return;
+  }
+  btn.addEventListener('click', function(){
+    bar.classList.add('dismissed');
+    localStorage.setItem('announce-npstw-2026', 'dismissed');
+  });
+})();
+
 </script>
 
 <!-- Font size toggle -->
