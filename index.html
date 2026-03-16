@@ -772,6 +772,97 @@ html.fs-xlarge .mod-card p  { font-size:16px }
   .announce-dates { display:none }
 }
 
+
+/* ── Severe Weather Banner ── */
+.severe-bar {
+  position:relative;
+  background:linear-gradient(135deg,#1a0a00 0%,#2d1200 50%,#1a0a00 100%);
+  border-bottom:3px solid #e03030;
+  overflow:hidden;z-index:60;
+  animation:severe-pulse 3s ease-in-out infinite;
+  display:none;
+}
+.severe-bar.active { display:block }
+@keyframes severe-pulse {
+  0%,100% { border-bottom-color:#e03030 }
+  50%      { border-bottom-color:#ff6b35 }
+}
+.severe-bar::before {
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(-45deg,transparent,transparent 20px,rgba(224,48,48,.06) 20px,rgba(224,48,48,.06) 40px);
+  pointer-events:none;
+}
+.severe-inner {
+  max-width:1400px;margin:0 auto;
+  display:flex;align-items:flex-start;gap:1.25rem;
+  padding:1rem 2rem;
+}
+.severe-alert-icon {
+  font-size:1.6rem;flex-shrink:0;line-height:1;
+  animation:severe-shake .5s ease-in-out infinite alternate;
+}
+@keyframes severe-shake {
+  0%  { transform:rotate(-5deg) }
+  100%{ transform:rotate(5deg) }
+}
+.severe-content { flex:1;min-width:0 }
+.severe-headline {
+  font-family:var(--fhead);font-weight:900;
+  font-size:clamp(.95rem,1.8vw,1.2rem);
+  letter-spacing:.04em;text-transform:uppercase;
+  color:#fff;line-height:1;margin-bottom:.4rem;
+}
+.severe-headline em { color:#ff6b35;font-style:normal }
+.severe-body {
+  font-size:13px;color:rgba(255,255,255,.75);
+  line-height:1.6;margin-bottom:.5rem;
+}
+.severe-alerts-list {
+  display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem;
+}
+.severe-alert-chip {
+  font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:3px 8px;border-radius:4px;
+  background:rgba(224,48,48,.25);border:1px solid rgba(224,48,48,.5);
+  color:#ff9999;white-space:nowrap;
+}
+.severe-alert-chip.warning { background:rgba(224,48,48,.3);border-color:#e03030;color:#ffb3b3 }
+.severe-alert-chip.watch   { background:rgba(255,140,0,.2);border-color:#ff8c00;color:#ffcc80 }
+.severe-alert-chip.advisory{ background:rgba(255,215,0,.15);border-color:#ffd700;color:#ffe680 }
+.severe-cta {
+  flex-shrink:0;display:flex;flex-direction:column;gap:.5rem;align-items:flex-end;
+}
+.severe-cta-btn {
+  display:inline-flex;align-items:center;gap:6px;
+  background:#e03030;color:#fff;
+  font-family:var(--fhead);font-weight:700;font-size:12px;
+  letter-spacing:.08em;text-transform:uppercase;
+  padding:8px 16px;border-radius:6px;border:none;cursor:pointer;
+  text-decoration:none;white-space:nowrap;
+  transition:background .2s;
+}
+.severe-cta-btn:hover { background:#c02020;color:#fff }
+.severe-cta-btn.secondary {
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  font-size:11px;padding:5px 12px;
+}
+.severe-cta-btn.secondary:hover { background:rgba(255,255,255,.2) }
+.severe-states {
+  font-size:11px;color:rgba(255,255,255,.4);
+  letter-spacing:.05em;
+}
+.severe-close {
+  flex-shrink:0;background:none;border:none;
+  color:rgba(255,255,255,.4);cursor:pointer;
+  font-size:1.2rem;padding:4px;line-height:1;
+  transition:color .2s;border-radius:4px;align-self:flex-start;
+}
+.severe-close:hover { color:#fff;background:rgba(255,255,255,.1) }
+@media(max-width:768px){
+  .severe-inner { flex-wrap:wrap;gap:.75rem;padding:.75rem 1rem }
+  .severe-cta { flex-direction:row;align-items:center;width:100% }
+}
+
 </style>
 </head>
 <body>
@@ -964,6 +1055,32 @@ html.fs-xlarge .mod-card p  { font-size:16px }
     </div>
   </div>
   <a href="regionaltrainings.html" class="events-banner-cta" aria-label="View all training events">View All →</a>
+</div>
+
+<!-- SEVERE WEATHER BANNER — auto-triggered by NWS API -->
+<div class="severe-bar" id="severe-bar" role="alert" aria-live="assertive" aria-label="Severe Weather Alert">
+  <div class="severe-inner">
+    <span class="severe-alert-icon" id="severe-icon" aria-hidden="true">⚠️</span>
+    <div class="severe-content">
+      <div class="severe-headline" id="severe-headline">
+        <em>Severe Weather Alert</em> — Active in Your Region
+      </div>
+      <div class="severe-body">
+        If you anticipate increased staffing, mutual aid, or EOC activation during severe weather and need temporary additional PS licenses, contact us now. Available for qualifying PS customers — <strong style="color:#fff">CAD · MDS · RMS · MDIS · PSAware</strong>.
+      </div>
+      <div class="severe-alerts-list" id="severe-alerts-list"></div>
+    </div>
+    <div class="severe-cta">
+      <a href="mailto:pssupport@southernsoftware.com?subject=Severe%20Weather%20Temporary%20License%20Request" class="severe-cta-btn">
+        📧 Request Emergency Licenses
+      </a>
+      <a href="tel:8008428190" class="severe-cta-btn secondary">
+        📞 (800) 842-8190
+      </a>
+      <div class="severe-states" id="severe-states"></div>
+    </div>
+    <button class="severe-close" id="severe-close" aria-label="Dismiss alert">✕</button>
+  </div>
 </div>
 
 <!-- ANNOUNCEMENT BANNER — powered by Google Sheets -->
@@ -1479,6 +1596,110 @@ if(cfForm){
         applySize(this.dataset.size);
         localStorage.setItem(SIZE_KEY, this.dataset.size);
       });
+    });
+  });
+})();
+
+
+// ── Severe Weather Banner — NWS API ──────────────────────────────────────
+(function(){
+  var STATES = ['NC','SC','VA','TN','GA','AL','TX','AR'];
+  var SEVERE_TYPES = [
+    'Tornado Warning','Tornado Watch',
+    'Severe Thunderstorm Warning','Severe Thunderstorm Watch',
+    'Winter Storm Warning','Winter Storm Watch','Winter Storm Advisory',
+    'Blizzard Warning','Ice Storm Warning','Winter Weather Advisory',
+    'Freezing Rain Advisory','Flood Warning','Flash Flood Warning',
+    'Flash Flood Watch','Hurricane Warning','Hurricane Watch',
+    'Tropical Storm Warning','Extreme Cold Warning',
+    'Wind Chill Warning','High Wind Warning','Severe Weather Statement'
+  ];
+  // Alert type → chip class
+  function chipClass(event) {
+    var e = (event||'').toLowerCase();
+    if(e.includes('warning')) return 'warning';
+    if(e.includes('watch'))   return 'watch';
+    return 'advisory';
+  }
+  // Icon based on dominant event type
+  function alertIcon(events) {
+    var joined = events.join(' ').toLowerCase();
+    if(joined.includes('tornado'))                return '🌪️';
+    if(joined.includes('hurricane')||joined.includes('tropical')) return '🌀';
+    if(joined.includes('flood'))                  return '🌊';
+    if(joined.includes('winter')||joined.includes('snow')||joined.includes('blizzard')||joined.includes('ice')) return '❄️';
+    if(joined.includes('thunderstorm'))           return '⛈️';
+    if(joined.includes('wind'))                   return '💨';
+    return '⚠️';
+  }
+
+  var bar       = document.getElementById('severe-bar');
+  var iconEl    = document.getElementById('severe-icon');
+  var headlineEl= document.getElementById('severe-headline');
+  var listEl    = document.getElementById('severe-alerts-list');
+  var statesEl  = document.getElementById('severe-states');
+  var closeBtn  = document.getElementById('severe-close');
+  if(!bar) return;
+
+  // Check if dismissed this session (use sessionStorage — resets on browser close)
+  if(sessionStorage.getItem('severe-dismissed') === '1') return;
+
+  // Fetch alerts for all core states in parallel
+  var promises = STATES.map(function(state){
+    return fetch('https://api.weather.gov/alerts/active?area=' + state, {
+      headers:{'User-Agent':'southernsoftware.com, pssupport@southernsoftware.com'}
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var alerts = (data.features||[]).filter(function(f){
+        var evt = (f.properties||{}).event || '';
+        return SEVERE_TYPES.some(function(t){ return evt.toLowerCase().includes(t.toLowerCase()); });
+      });
+      return { state:state, alerts:alerts };
+    })
+    .catch(function(){ return { state:state, alerts:[] }; });
+  });
+
+  Promise.all(promises).then(function(results){
+    // Collect all matching alerts
+    var allAlerts = [];
+    var affectedStates = [];
+    results.forEach(function(r){
+      if(r.alerts.length){
+        affectedStates.push(r.state);
+        r.alerts.forEach(function(a){ allAlerts.push(a.properties.event); });
+      }
+    });
+
+    if(!allAlerts.length) return; // No severe alerts — keep banner hidden
+
+    // Deduplicate event types
+    var unique = allAlerts.filter(function(v,i,a){ return a.indexOf(v)===i; });
+
+    // Update banner content
+    iconEl.textContent = alertIcon(unique);
+
+    // Headline: most severe event
+    var warnings = unique.filter(function(e){ return e.toLowerCase().includes('warning'); });
+    var topEvent = warnings.length ? warnings[0] : unique[0];
+    headlineEl.innerHTML = '<em>' + topEvent + '</em> — Active in ' +
+      (affectedStates.length === 1 ? affectedStates[0] : affectedStates.length + ' States');
+
+    // Alert chips
+    listEl.innerHTML = unique.slice(0,6).map(function(e){
+      return '<span class="severe-alert-chip ' + chipClass(e) + '">' + e + '</span>';
+    }).join('');
+
+    // States label
+    statesEl.textContent = 'Affected: ' + affectedStates.join(', ');
+
+    // Show the banner
+    bar.classList.add('active');
+
+    // Dismiss
+    closeBtn.addEventListener('click', function(){
+      bar.classList.remove('active');
+      sessionStorage.setItem('severe-dismissed','1');
     });
   });
 })();
