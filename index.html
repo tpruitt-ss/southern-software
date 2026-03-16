@@ -863,6 +863,53 @@ html.fs-xlarge .mod-card p  { font-size:16px }
   .severe-cta { flex-direction:row;align-items:center;width:100% }
 }
 
+
+/* Hero card enriched content */
+.hc-features {
+  list-style:none;padding:0;margin:.85rem 0 1rem;
+  display:grid;grid-template-columns:1fr 1fr;gap:.35rem .5rem;
+}
+.hc-features li {
+  display:flex;align-items:center;gap:6px;
+  font-size:13px;color:var(--muted);line-height:1.3;
+}
+.hc-features li::before {
+  content:'›';font-weight:700;font-size:15px;flex-shrink:0;
+}
+.hero-card.ps  .hc-features li::before { color:var(--ss-blue) }
+.hero-card.fms .hc-features li::before { color:var(--ss-green) }
+.hero-card.nuc .hc-features li::before { color:var(--ss-red) }
+.hc-divider {
+  border:none;border-top:1px solid var(--border);
+  margin:.85rem 0 .75rem;
+}
+.hc-footer {
+  display:flex;align-items:center;justify-content:space-between;
+  gap:.5rem;
+}
+.hc-link {
+  font-family:var(--fhead);font-weight:700;
+  font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+  text-decoration:none;display:flex;align-items:center;gap:5px;
+  transition:gap .2s;
+}
+.hc-link:hover { gap:9px }
+.hero-card.ps  .hc-link { color:var(--bluel) }
+.hero-card.fms .hc-link { color:#5dca6a }
+.hero-card.nuc .hc-link { color:#f08080 }
+.hc-stat {
+  font-size:11px;color:var(--dim);
+  letter-spacing:.05em;text-transform:uppercase;
+  text-align:right;
+}
+.hc-stat strong {
+  display:block;
+  font-family:var(--fhead);font-weight:900;
+  font-size:1.1rem;color:var(--white);line-height:1;
+}
+body.light-mode .hc-features li { color:#3d5c7a }
+body.light-mode .hc-stat { color:#6b8aaa }
+
 </style>
 </head>
 <body>
@@ -1167,18 +1214,80 @@ html.fs-xlarge .mod-card p  { font-size:16px }
     </div>
     <div class="hero-right">
       <div class="hero-cards">
+
+        <!-- PS Suite Card -->
         <div class="hero-card ps fu" data-d="2">
-          <div class="hc-top"><div class="hc-icon" style="background:rgba(46,127,212,.15)">🚔</div><span class="hc-title">Public Safety Suite</span><span class="badge badge-b">CAD · RMS · JMS</span></div>
-          <p>Computer-Aided Dispatch, Records Management, Jail Management, Mobile, Narcotics, Quarter Master, Analytics, and Citizen Connect — unified for agencies of all sizes.</p>
+          <div class="hc-top">
+            <div class="hc-icon" style="background:rgba(46,127,212,.15)">🚔</div>
+            <span class="hc-title">Public Safety Suite</span>
+            <span class="badge badge-b">CAD · RMS · JMS</span>
+          </div>
+          <p>A comprehensive, fully integrated platform built for law enforcement, corrections, and public safety agencies of all sizes — developed and supported entirely in-house.</p>
+          <ul class="hc-features" aria-label="PS Suite modules">
+            <li>Computer-Aided Dispatch</li>
+            <li>Records Management (RMS)</li>
+            <li>Jail Management (JMS)</li>
+            <li>Mobile &amp; Field Units (MDS)</li>
+            <li>Narcotics &amp; Quarter Master</li>
+            <li>Analytics &amp; Reporting</li>
+            <li>NCIC Integration</li>
+            <li>Citizen Connect Portal</li>
+          </ul>
+          <hr class="hc-divider">
+          <div class="hc-footer">
+            <a href="ps-overview.html" class="hc-link">Explore PS Suite →</a>
+            <div class="hc-stat"><strong>14+</strong>Integrated Modules</div>
+          </div>
         </div>
+
+        <!-- FMS Suite Card -->
         <div class="hero-card fms fu" data-d="3">
-          <div class="hc-top"><div class="hc-icon" style="background:rgba(58,181,74,.12)">📊</div><span class="hc-title">Financial Management Suite</span><span class="badge badge-g">10 Modules</span></div>
-          <p>10 user-friendly modules — from accounts payable to payroll — designed to integrate fully or operate standalone for any municipality or government agency.</p>
+          <div class="hc-top">
+            <div class="hc-icon" style="background:rgba(58,181,74,.12)">📊</div>
+            <span class="hc-title">Financial Management Suite</span>
+            <span class="badge badge-g">10 Modules</span>
+          </div>
+          <p>10 user-configurable modules that work individually or integrate together for a complete government Financial Management System — built for municipalities and county agencies.</p>
+          <ul class="hc-features" aria-label="FMS modules">
+            <li>General Ledger</li>
+            <li>Accounts Payable</li>
+            <li>Accounts Receivable</li>
+            <li>Payroll &amp; HR</li>
+            <li>Purchase Orders</li>
+            <li>Fixed Assets</li>
+            <li>Utility Billing (Citi-Pak)</li>
+            <li>Budget Management</li>
+          </ul>
+          <hr class="hc-divider">
+          <div class="hc-footer">
+            <a href="fms-overview.html" class="hc-link">Explore FMS Suite →</a>
+            <div class="hc-stat"><strong>100%</strong>User-Configurable</div>
+          </div>
         </div>
+
+        <!-- Nucleus Card -->
         <div class="hero-card nuc fu" data-d="4">
-          <div class="hc-top"><div class="hc-icon" style="background:rgba(224,48,48,.12)">🌐</div><span class="hc-title">Nucleus Platform</span><span class="badge badge-a">New</span></div>
-          <p>Our next-generation unified command platform — analytics, incident command, training, compliance, and intelligence in a single secure, cloud-native environment.</p>
+          <div class="hc-top">
+            <div class="hc-icon" style="background:rgba(224,48,48,.12)">🌐</div>
+            <span class="hc-title">Nucleus Platform</span>
+            <span class="badge badge-a">New</span>
+          </div>
+          <p>Next-generation unified command platform — built on top of your PS Suite data to deliver real-time intelligence, analytics, and compliance tools in a secure cloud environment.</p>
+          <ul class="hc-features" aria-label="Nucleus features">
+            <li>Real-Time Analytics</li>
+            <li>Incident Command</li>
+            <li>Training &amp; Compliance</li>
+            <li>Intelligence Dashboard</li>
+            <li>Cloud-Native &amp; Secure</li>
+            <li>Clery Act Reporting</li>
+          </ul>
+          <hr class="hc-divider">
+          <div class="hc-footer">
+            <a href="https://nucleuspsp.com/Nucleus/" target="_blank" rel="noopener" class="hc-link">Explore Nucleus ↗</a>
+            <div class="hc-stat"><strong>Cloud</strong>Native Platform</div>
+          </div>
         </div>
+
       </div>
     </div>
   </div>
