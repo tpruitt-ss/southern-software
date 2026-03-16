@@ -362,6 +362,46 @@ body.light-mode .theme-toggle{background:#fff;border-color:rgba(0,0,0,.15);box-s
 .theme-toggle .icon-sun{display:none}
 body.light-mode .theme-toggle .icon-moon{display:none}
 body.light-mode .theme-toggle .icon-sun{display:block}
+
+/* ── Font size control ── */
+html.fs-large  { font-size: 18px }
+html.fs-xlarge { font-size: 20px }
+
+/* Font size toggle button */
+.font-toggle {
+  position:fixed;top:1rem;right:3.5rem;
+  display:flex;align-items:center;gap:2px;
+  background:var(--bg2);border:1.5px solid var(--border2);
+  border-radius:100px;padding:4px 8px;
+  z-index:10000;box-shadow:0 4px 16px rgba(0,0,0,.3);
+}
+.font-toggle-btn {
+  background:none;border:none;cursor:pointer;
+  color:var(--muted);font-family:var(--fbody);
+  font-weight:700;border-radius:100px;
+  padding:3px 7px;font-size:11px;letter-spacing:.04em;
+  transition:all .15s ease;
+}
+.font-toggle-btn.active {
+  background:var(--ss-blue);color:#fff;
+}
+.font-toggle-btn:hover:not(.active) { color:var(--white) }
+body.light-mode .font-toggle { background:#fff;border-color:rgba(0,0,0,.15) }
+@media(max-width:600px) { .font-toggle { display:none } }
+
+/* ── Readability improvements ── */
+.supp-card p { font-size:14px; line-height:1.65 }
+.mod-card p  { font-size:14px; line-height:1.65 }
+.staff-title { font-size:14px }
+.dd-menu a   { font-size:14px }
+.dd-flyout a { font-size:13px }
+.topbar a    { font-size:12px }
+.foot-link, footer a { font-size:13px }
+/* Scale up on large font mode */
+html.fs-large  .supp-card p,
+html.fs-large  .mod-card p  { font-size:15px }
+html.fs-xlarge .supp-card p,
+html.fs-xlarge .mod-card p  { font-size:16px }
 </style>
 </head>
 <body>
@@ -732,6 +772,27 @@ document.querySelectorAll('.dd-sub').forEach(sub=>{
   });
 })();
 
+
+// Font size toggle
+(function(){
+  const SIZE_KEY = 'ss-fontsize';
+  const sizes = { normal: '', large: 'fs-large', xlarge: 'fs-xlarge' };
+  function applySize(size) {
+    const h = document.documentElement;
+    h.classList.remove('fs-large','fs-xlarge');
+    if(sizes[size]) h.classList.add(sizes[size]);
+    document.querySelectorAll('.font-toggle-btn').forEach(btn=>btn.classList.toggle('active', btn.dataset.size===size));
+  }
+  applySize(localStorage.getItem(SIZE_KEY) || 'normal');
+  document.addEventListener('DOMContentLoaded',function(){
+    document.querySelectorAll('.font-toggle-btn').forEach(btn=>{
+      btn.addEventListener('click',function(){
+        applySize(this.dataset.size);
+        localStorage.setItem(SIZE_KEY, this.dataset.size);
+      });
+    });
+  });
+})();
 </script>
 
 <!-- Dark/Light mode toggle -->

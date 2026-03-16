@@ -726,6 +726,46 @@ body.light-mode .team-search{background:#fff;border-color:rgba(0,0,0,.15);color:
   .tf-btn{font-size:12px;padding:.4rem .75rem}
   .team-banner-title{font-size:1.35rem}
 }
+
+/* ── Font size control ── */
+html.fs-large  { font-size: 18px }
+html.fs-xlarge { font-size: 20px }
+
+/* Font size toggle button */
+.font-toggle {
+  position:fixed;top:1rem;right:3.5rem;
+  display:flex;align-items:center;gap:2px;
+  background:var(--bg2);border:1.5px solid var(--border2);
+  border-radius:100px;padding:4px 8px;
+  z-index:10000;box-shadow:0 4px 16px rgba(0,0,0,.3);
+}
+.font-toggle-btn {
+  background:none;border:none;cursor:pointer;
+  color:var(--muted);font-family:var(--fbody);
+  font-weight:700;border-radius:100px;
+  padding:3px 7px;font-size:11px;letter-spacing:.04em;
+  transition:all .15s ease;
+}
+.font-toggle-btn.active {
+  background:var(--ss-blue);color:#fff;
+}
+.font-toggle-btn:hover:not(.active) { color:var(--white) }
+body.light-mode .font-toggle { background:#fff;border-color:rgba(0,0,0,.15) }
+@media(max-width:600px) { .font-toggle { display:none } }
+
+/* ── Readability improvements ── */
+.supp-card p { font-size:14px; line-height:1.65 }
+.mod-card p  { font-size:14px; line-height:1.65 }
+.staff-title { font-size:14px }
+.dd-menu a   { font-size:14px }
+.dd-flyout a { font-size:13px }
+.topbar a    { font-size:12px }
+.foot-link, footer a { font-size:13px }
+/* Scale up on large font mode */
+html.fs-large  .supp-card p,
+html.fs-large  .mod-card p  { font-size:15px }
+html.fs-xlarge .supp-card p,
+html.fs-xlarge .mod-card p  { font-size:16px }
 </style>
 </head>
 <body>
@@ -1357,6 +1397,37 @@ document.querySelectorAll('.dd-sub').forEach(sub=>{
       applyFilter();
     });
   }
+})();
+
+
+// Font size toggle
+(function(){
+  const SIZE_KEY = 'ss-fontsize';
+  const sizes = { normal: '', large: 'fs-large', xlarge: 'fs-xlarge' };
+
+  function applySize(size) {
+    const html = document.documentElement;
+    html.classList.remove('fs-large','fs-xlarge');
+    if(sizes[size]) html.classList.add(sizes[size]);
+    document.querySelectorAll('.font-toggle-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.size === size);
+    });
+  }
+
+  // Apply saved preference
+  const saved = localStorage.getItem(SIZE_KEY) || 'normal';
+  applySize(saved);
+
+  document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('.font-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', function(){
+        const size = this.dataset.size;
+        applySize(size);
+        localStorage.setItem(SIZE_KEY, size);
+      });
+    });
+    applySize(localStorage.getItem(SIZE_KEY) || 'normal');
+  });
 })();
 
 </script>
