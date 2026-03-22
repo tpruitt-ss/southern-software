@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<meta name="description" content="Financial Management Suite — Southern Software"/>
-<title>Financial Management Suite — Southern Software, Inc.</title>
+<meta name="description" content="Download Southern Software mobile apps — LEAware, PSAware, ICAware, JMS Mobile, and JMS Prebook — on the App Store and Google Play.">
+<title>Mobile Apps — Southern Software, Inc.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
@@ -440,6 +440,100 @@ body.light-mode .foot-social a { background:rgba(0,0,0,.05);border-color:rgba(0,
 .nav-social a.ig:hover { color:#e6683c }
 @media(max-width:768px){ .nav-social { display:none } }
 
+
+/* ── Mobile Apps Page ── */
+.apps-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
+  gap:2rem;
+  margin-top:2rem;
+}
+.app-card {
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-top:3px solid var(--app-color,var(--ss-blue));
+  border-radius:16px;
+  padding:2rem;
+  position:relative;
+  transition:border-color .2s,transform .2s,box-shadow .2s;
+}
+.app-card:hover {
+  border-color:var(--app-color,var(--ss-blue));
+  transform:translateY(-4px);
+  box-shadow:0 16px 40px rgba(0,0,0,.4);
+}
+.app-card-header {
+  display:flex;align-items:center;gap:1rem;margin-bottom:1rem;
+}
+.app-icon {
+  width:52px;height:52px;border-radius:12px;
+  background:rgba(255,255,255,.07);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;flex-shrink:0;
+  border:1px solid var(--border);
+}
+.app-card-title-block { flex:1 }
+.app-name {
+  font-family:var(--fhead);font-weight:900;
+  font-size:1.6rem;text-transform:uppercase;
+  letter-spacing:.04em;color:var(--white);
+  line-height:1;margin-bottom:.3rem;
+}
+.app-badge {
+  display:inline-block;
+  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 8px;border-radius:4px;
+  background:rgba(255,255,255,.08);
+  border:1px solid var(--border);
+  color:var(--muted);
+}
+.app-desc {
+  font-size:14px;color:var(--muted);line-height:1.65;
+  margin-bottom:1.5rem;
+}
+
+/* Store buttons — shown on mobile only */
+.app-store-btns {
+  display:none;
+  gap:.75rem;flex-wrap:wrap;align-items:center;
+  margin-bottom:1rem;
+}
+.store-btn { display:inline-flex;text-decoration:none;transition:opacity .2s,transform .15s }
+.store-btn:hover { opacity:.85;transform:translateY(-1px) }
+
+/* QR codes — shown on desktop only */
+.app-qr-wrap {
+  display:flex;gap:1.25rem;align-items:flex-start;
+}
+.app-qr-item { text-align:center }
+.app-qr-img {
+  width:140px;height:140px;border-radius:8px;
+  background:#fff;padding:6px;
+  display:block;
+}
+.app-qr-label {
+  font-size:11px;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted);
+  margin-top:.4rem;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+}
+.qr-platform-icon { font-size:13px }
+.app-qr-hint {
+  font-size:11px;color:var(--dim);
+  margin-top:.75rem;letter-spacing:.04em;
+  text-align:center;
+}
+
+/* Responsive: swap QR for buttons on mobile */
+@media(max-width:768px) {
+  .app-store-btns { display:flex }
+  .app-qr-wrap, .app-qr-hint { display:none }
+  .apps-grid { grid-template-columns:1fr }
+}
+body.light-mode .app-qr-img { background:#f5f5f5 }
+body.light-mode .app-card { background:rgba(255,255,255,.9);border-color:rgba(0,0,0,.1) }
+body.light-mode .app-icon { background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.1) }
+
 </style>
 </head>
 <body>
@@ -495,8 +589,6 @@ body.light-mode .foot-social a { background:rgba(0,0,0,.05);border-color:rgba(0,
           <hr aria-hidden="true">
           <a href="https://nucleuspsp.com/Nucleus/" target="_blank" rel="noopener" role="menuitem">Nucleus Platform ↗</a>
           <a href="index.html#contact" role="menuitem">Request a Demo</a>
-          <hr aria-hidden="true">
-          <a href="apps.html" role="menuitem" style="display:flex;align-items:center;gap:8px;font-weight:600;color:var(--bluel)">📱 Mobile Apps</a>
         </div>
       </div>
       <div class="nav-dd">
@@ -595,92 +687,315 @@ body.light-mode .foot-social a { background:rgba(0,0,0,.05);border-color:rgba(0,
     <nav class="breadcrumb fu" aria-label="Breadcrumb">
       <a href="index.html">Home</a>
       <span aria-hidden="true">›</span>
-      <span aria-current="page">Financial Management</span>
+      <span aria-current="page">Mobile Apps</span>
     </nav>
-    <span class="eyebrow fu">Products</span>
-    <h1 class="page-title fu" data-d="1">Powerful Financial<br>Management Tools</h1>
-    <p class="page-lead fu" data-d="2">10 user-configurable modules that work individually or integrate together for a complete government Financial Management System — designed to be configured by you, supported by us.</p>
+    <span class="eyebrow fu" style="color:var(--ss-blue)">PRODUCTS · MOBILE</span>
+    <h1 class="page-title fu" data-d="1">Mobile Apps</h1>
+    <p class="page-lead fu" data-d="2">Download our apps on iPhone or Android. On desktop, scan the QR codes with your phone camera.</p>
   </div>
 </div>
 <main id="main-content">
-<section class="section"><div class="container">
-<div class="stats-row fu" role="list" aria-label="FMS Suite statistics">
-  <div class="stat-cell" role="listitem"><div class="stat-num">10</div><div class="stat-lbl">Integrated Modules</div></div>
-  <div class="stat-cell" role="listitem"><div class="stat-num">35+</div><div class="stat-lbl">Years in Government Finance</div></div>
-  <div class="stat-cell" role="listitem"><div class="stat-num">100%</div><div class="stat-lbl">Configurable by Users</div></div>
-  <div class="stat-cell" role="listitem"><div class="stat-num">Azure</div><div class="stat-lbl">Cloud Hosting Available</div></div>
-</div>
-<div class="card-grid-3">
-  <article class="mod-card mod-card-accent g fms fu" aria-label="Accounts Payable module">
-    <div class="mod-card-top"><div class="mod-icon g">💳</div><h3>Accounts Payable</h3></div>
-    <ul><li>User-Defined Optional Vendor fields</li><li>History Drill-Down to GL entry level</li><li>Invoice image attachment</li><li>Recurring Invoices for monthly bills</li><li>Purchase Order processing with Encumbrances</li></ul>
-  </article>
-  <article class="mod-card mod-card-accent g fms fu" data-d="1" aria-label="Accounts Receivable module">
-    <div class="mod-card-top"><div class="mod-icon g">📥</div><h3>Accounts Receivable</h3></div>
-    <ul><li>Drill-Down Reports</li><li>Flat, Step or Multiplier Billing Categories</li><li>Calculate and Print Single or Mass Invoices</li><li>Collect Payments and Print Receipts</li><li>Interface with FMS General Ledger</li></ul>
-  </article>
-  <article class="mod-card mod-card-accent g fms fu" data-d="2" aria-label="Analytics module">
-    <div class="mod-card-top"><div class="mod-icon g">📈</div><h3>Analytics</h3></div>
-    <ul><li>Budgeting, reporting, planning &amp; analysis</li><li>Corporate dashboards for performance monitoring</li><li>Real-time data with powerful drill-down</li><li>Multiple levels of reporting</li><li>Intuitive interface for staff</li></ul>
-  </article>
-  <article class="mod-card mod-card-accent g fms fu" aria-label="Business License module">
-    <div class="mod-card-top"><div class="mod-icon g">🏢</div><h3>Business License</h3></div>
-    <ul><li>Track Account History</li><li>Flat, Step or Multiplier Billing</li><li>Print Business License Forms</li><li>Collect Payments and Print Receipts</li><li>Generate Applications and Renewal Letters</li></ul>
-  </article>
-  <article class="mod-card mod-card-accent g fms fu" data-d="1" aria-label="Cemetery module">
-    <div class="mod-card-top"><div class="mod-icon g">⚰️</div><h3>Cemetery</h3></div>
-    <ul><li>Customizable plot code structure</li><li>Define rate codes for all services</li><li>Infinite deed templates with merge fields</li><li>Integration with FMS General Ledger</li><li>Purchase Process wizard</li></ul>
-  </article>
-  <article class="mod-card mod-card-accent g fms fu" data-d="2" aria-label="Employee Portal module">
-    <div class="mod-card-top"><div class="mod-icon g">👤</div><h3>Employee Portal</h3></div>
-    <ul><li>Works with FMS Payroll Module</li><li>Hosted on Microsoft Azure</li><li>Access from any device — secure login</li><li>Leave balances, employee info, deductions</li><li>View and print paycheck history</li></ul>
-  </article>
-  <article class="mod-card mod-card-accent g fms fu" aria-label="Fixed Assets module">
-    <div class="mod-card-top"><div class="mod-icon g">🏗️</div><h3>Fixed Assets</h3></div>
-    <ul><li>Track and Depreciate Assets</li><li>Asset Disposal</li><li>Generate Item Check Lists</li><li>Generate Warranty Reports</li></ul>
-  </article>
-  <article class="mod-card mod-card-accent g fms fu" data-d="1" aria-label="General Ledger module">
-    <div class="mod-card-top"><div class="mod-icon g">📒</div><h3>General Ledger</h3></div>
-    <ul><li>Budget Preparation and Amendments</li><li>Rich reporting with drill-down</li><li>Bank Reconciliation</li><li>Recurring Journal Entries and Cash Receipts</li></ul>
-  </article>
-  <article class="mod-card mod-card-accent g fms fu" data-d="2" aria-label="Meals and Lodging module">
-    <div class="mod-card-top"><div class="mod-icon g">🍽️</div><h3>Meals &amp; Lodging</h3></div>
-    <ul><li>Tracks meals, lodging and hospitality taxes</li><li>Records payments and delinquent reports</li><li>User-defined penalty and interest rates</li><li>Export to PDF, Excel &amp; CSV</li></ul>
-  </article>
-  <article class="mod-card mod-card-accent g fms fu" aria-label="Payment Central module">
-    <div class="mod-card-top"><div class="mod-icon g">💰</div><h3>Payment Central</h3></div>
-    <ul><li>Collect payments for multiple modules centrally</li><li>Unlimited Miscellaneous Revenue Codes</li><li>Print Receipts</li><li>Assign Revenue Codes to Payment Groups</li></ul>
-  </article>
-  <article class="mod-card mod-card-accent g fms fu" data-d="1" aria-label="Payroll module">
-    <div class="mod-card-top"><div class="mod-icon g">💼</div><h3>Payroll</h3></div>
-    <ul><li>Accrue and Track Sick, Vacation &amp; Holiday Leave</li><li>Check History with GL drill-down</li><li>ACH compliant Direct Deposit</li><li>W-2 forms (electronic submission capable)</li><li>Process 941 Reports</li></ul>
-  </article>
-  <article class="mod-card mod-card-accent g fms fu" data-d="2" aria-label="Purchase Requisition module">
-    <div class="mod-card-top"><div class="mod-icon g">📝</div><h3>Purchase Requisition</h3></div>
-    <ul><li>Workflow with email notifications by permission level</li><li>Approved requisitions interface with AP module</li><li>Attach images and documents</li><li>Export to Excel, PDF, and CSV</li></ul>
-  </article>
-  <article class="mod-card mod-card-accent g fms fu" aria-label="Tax Billing module">
-    <div class="mod-card-top"><div class="mod-icon g">🏠</div><h3>Tax Billing</h3></div>
-    <ul><li>Track Personal and Real Estate Property History</li><li>Collect Payments and Print Receipts</li><li>Assess Penalties, Interest and Advertising Charges</li><li>Interface with FMS General Ledger</li></ul>
-  </article>
-  <article class="mod-card mod-card-accent g fms fu" data-d="1" aria-label="Utility Billing module">
-    <div class="mod-card-top"><div class="mod-icon g">🚰</div><h3>Utility Billing</h3></div>
-    <ul><li>Unlimited Work Order Templates</li><li>Track Customer, Location, Meter &amp; Billing Histories</li><li>Interface with Handheld Meter Reading devices</li><li>Multiple billing options including postcard or email</li></ul>
-  </article>
-  <article class="mod-card mod-card-accent g fms fu" data-d="2" aria-label="Cloud Hosting module">
-    <div class="mod-card-top"><div class="mod-icon g">☁️</div><h3>Cloud Hosting</h3></div>
-    <ul><li>Microsoft Azure platform stores the database</li><li>No onsite server or backup software needed</li><li>Automatic backups — latest SQL Server version</li><li>Work remotely without a VPN</li></ul>
-  </article>
-</div>
-<div class="cta-box fu" data-d="2">
-  <h3>Ready to Learn More?</h3>
-  <p>Contact our FMS team or request a personalized demo to see how the modules work for your agency.</p>
-  <div class="cta-box-btns">
-    <a href="index.html#contact" class="btn btn-p btn-lg">Request a Demo →</a>
-    <a href="mailto:fmssupport@southernsoftware.com" class="btn btn-g btn-lg">Contact FMS Support</a>
+<section class="section" aria-label="Mobile Apps">
+  <div class="container">
+    <div class="apps-grid">
+
+      <div class="app-card fu" id="leaware" style="--app-color:#2e7fd4">
+        <div class="app-card-header">
+          <div class="app-icon" aria-hidden="true">📊</div>
+          <div class="app-card-title-block">
+            <h2 class="app-name">LEAware</h2>
+            <span class="app-badge">Analytics</span>
+          </div>
+        </div>
+        <p class="app-desc">View recent agency data — incidents, arrests, and analytics — right from your phone. Requires administrator permissions and Southern Software Analytics.</p>
+
+        <!-- MOBILE: show direct store links -->
+        <div class="app-store-btns" aria-label="Download LEAware">
+          <a href="https://apps.apple.com/us/app/leaware/id6444663290" target="_blank" rel="noopener" class="store-btn ios" aria-label="Download LEAware on the App Store">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" width="120" height="40" aria-hidden="true">
+  <rect width="120" height="40" rx="8" fill="#000"/>
+  <path d="M24.769 20.3c-.032-3.246 2.649-4.816 2.769-4.888-1.509-2.202-3.855-2.503-4.682-2.529-1.977-.202-3.875 1.175-4.878 1.175-1.02 0-2.57-1.153-4.232-1.12-2.155.033-4.15 1.264-5.255 3.185-2.259 3.913-.577 9.693 1.607 12.861 1.08 1.549 2.348 3.282 4.012 3.221 1.62-.067 2.228-1.035 4.184-1.035 1.938 0 2.504 1.035 4.198 1 1.743-.028 2.841-1.568 3.898-3.127 1.246-1.784 1.752-3.527 1.774-3.617-.04-.015-3.366-1.285-3.395-5.126z" fill="#fff"/>
+  <path d="M21.594 11.22c.874-1.076 1.469-2.558 1.305-4.041-1.264.054-2.822.855-3.732 1.907-.806.94-1.522 2.468-1.336 3.913 1.415.107 2.868-.72 3.763-1.78z" fill="#fff"/>
+  <text x="36" y="16" font-family="Arial,sans-serif" font-size="8" fill="#aaa">Download on the</text>
+  <text x="36" y="29" font-family="Arial,sans-serif" font-size="14" font-weight="bold" fill="#fff">App Store</text>
+</svg>
+          </a>
+          <a href="https://play.google.com/store/apps/details?id=com.southernsoftware.ccadmin" target="_blank" rel="noopener" class="store-btn android" aria-label="Get LEAware on Google Play">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 135 40" width="135" height="40" aria-hidden="true">
+  <rect width="135" height="40" rx="8" fill="#000"/>
+  <path d="M7.7 7.4c-.3.3-.4.8-.4 1.4v22.4c0 .6.1 1.1.4 1.4l.1.1 12.6-12.6v-.3L7.8 7.3l-.1.1z" fill="url(#ga)"/>
+  <path d="M24.6 24.5l-4.2-4.2v-.3l4.2-4.2.1.1 5 2.8c1.4.8 1.4 2.1 0 2.9l-5 2.8-.1.1z" fill="url(#gb)"/>
+  <path d="M24.7 24.4L20.4 20 7.7 32.7c.5.5 1.2.5 2.1.1l14.9-8.4" fill="url(#gc)"/>
+  <path d="M24.7 15.6L9.8 7.2C8.9 6.8 8.2 6.8 7.7 7.4L20.4 20l4.3-4.4z" fill="url(#gd)"/>
+  <defs>
+    <linearGradient id="ga" x1="19.8" y1="8.7" x2="5.3" y2="23.2" gradientUnits="userSpaceOnUse"><stop stop-color="#00A0FF"/><stop offset="1" stop-color="#00F"/></linearGradient>
+    <linearGradient id="gb" x1="31" y1="20" x2="6.7" y2="20" gradientUnits="userSpaceOnUse"><stop stop-color="#FFD900"/><stop offset="1" stop-color="#FF9400"/></linearGradient>
+    <linearGradient id="gc" x1="22.3" y1="22.3" x2="1.6" y2="43" gradientUnits="userSpaceOnUse"><stop stop-color="#FF3A44"/><stop offset="1" stop-color="#C31162"/></linearGradient>
+    <linearGradient id="gd" x1="4.2" y1="0.7" x2="13.2" y2="9.8" gradientUnits="userSpaceOnUse"><stop stop-color="#32A071"/><stop offset="1" stop-color="#2DA771"/></linearGradient>
+  </defs>
+  <text x="40" y="16" font-family="Arial,sans-serif" font-size="8" fill="#aaa">Get it on</text>
+  <text x="40" y="29" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#fff">Google Play</text>
+</svg>
+          </a>
+        </div>
+
+        <!-- DESKTOP: show QR codes -->
+        <div class="app-qr-wrap" aria-hidden="true">
+          <div class="app-qr-item">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://apps.apple.com/us/app/leaware/id6444663290" alt="" width="140" height="140" loading="lazy" class="app-qr-img">
+            <div class="app-qr-label">
+              <span class="qr-platform-icon">🍎</span> App Store
+            </div>
+          </div>
+          <div class="app-qr-item">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://play.google.com/store/apps/details?id=com.southernsoftware.ccadmin" alt="" width="140" height="140" loading="lazy" class="app-qr-img">
+            <div class="app-qr-label">
+              <span class="qr-platform-icon">🤖</span> Google Play
+            </div>
+          </div>
+        </div>
+
+        <p class="app-qr-hint" aria-hidden="true">Scan with your phone camera to download</p>
+      </div>
+
+      <div class="app-card fu" id="psaware" style="--app-color:#2e7fd4">
+        <div class="app-card-header">
+          <div class="app-icon" aria-hidden="true">🚔</div>
+          <div class="app-card-title-block">
+            <h2 class="app-name">PSAware</h2>
+            <span class="app-badge">CAD · Field</span>
+          </div>
+        </div>
+        <p class="app-desc">Mobile situational awareness for CAD — real-time field connectivity designed to work seamlessly with the Southern Software Computer Aided Dispatch system.</p>
+
+        <!-- MOBILE: show direct store links -->
+        <div class="app-store-btns" aria-label="Download PSAware">
+          <a href="https://apps.apple.com/us/app/psaware/id1495838903" target="_blank" rel="noopener" class="store-btn ios" aria-label="Download PSAware on the App Store">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" width="120" height="40" aria-hidden="true">
+  <rect width="120" height="40" rx="8" fill="#000"/>
+  <path d="M24.769 20.3c-.032-3.246 2.649-4.816 2.769-4.888-1.509-2.202-3.855-2.503-4.682-2.529-1.977-.202-3.875 1.175-4.878 1.175-1.02 0-2.57-1.153-4.232-1.12-2.155.033-4.15 1.264-5.255 3.185-2.259 3.913-.577 9.693 1.607 12.861 1.08 1.549 2.348 3.282 4.012 3.221 1.62-.067 2.228-1.035 4.184-1.035 1.938 0 2.504 1.035 4.198 1 1.743-.028 2.841-1.568 3.898-3.127 1.246-1.784 1.752-3.527 1.774-3.617-.04-.015-3.366-1.285-3.395-5.126z" fill="#fff"/>
+  <path d="M21.594 11.22c.874-1.076 1.469-2.558 1.305-4.041-1.264.054-2.822.855-3.732 1.907-.806.94-1.522 2.468-1.336 3.913 1.415.107 2.868-.72 3.763-1.78z" fill="#fff"/>
+  <text x="36" y="16" font-family="Arial,sans-serif" font-size="8" fill="#aaa">Download on the</text>
+  <text x="36" y="29" font-family="Arial,sans-serif" font-size="14" font-weight="bold" fill="#fff">App Store</text>
+</svg>
+          </a>
+          <a href="https://play.google.com/store/apps/details?id=com.southernsoftware.PSAware" target="_blank" rel="noopener" class="store-btn android" aria-label="Get PSAware on Google Play">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 135 40" width="135" height="40" aria-hidden="true">
+  <rect width="135" height="40" rx="8" fill="#000"/>
+  <path d="M7.7 7.4c-.3.3-.4.8-.4 1.4v22.4c0 .6.1 1.1.4 1.4l.1.1 12.6-12.6v-.3L7.8 7.3l-.1.1z" fill="url(#ga)"/>
+  <path d="M24.6 24.5l-4.2-4.2v-.3l4.2-4.2.1.1 5 2.8c1.4.8 1.4 2.1 0 2.9l-5 2.8-.1.1z" fill="url(#gb)"/>
+  <path d="M24.7 24.4L20.4 20 7.7 32.7c.5.5 1.2.5 2.1.1l14.9-8.4" fill="url(#gc)"/>
+  <path d="M24.7 15.6L9.8 7.2C8.9 6.8 8.2 6.8 7.7 7.4L20.4 20l4.3-4.4z" fill="url(#gd)"/>
+  <defs>
+    <linearGradient id="ga" x1="19.8" y1="8.7" x2="5.3" y2="23.2" gradientUnits="userSpaceOnUse"><stop stop-color="#00A0FF"/><stop offset="1" stop-color="#00F"/></linearGradient>
+    <linearGradient id="gb" x1="31" y1="20" x2="6.7" y2="20" gradientUnits="userSpaceOnUse"><stop stop-color="#FFD900"/><stop offset="1" stop-color="#FF9400"/></linearGradient>
+    <linearGradient id="gc" x1="22.3" y1="22.3" x2="1.6" y2="43" gradientUnits="userSpaceOnUse"><stop stop-color="#FF3A44"/><stop offset="1" stop-color="#C31162"/></linearGradient>
+    <linearGradient id="gd" x1="4.2" y1="0.7" x2="13.2" y2="9.8" gradientUnits="userSpaceOnUse"><stop stop-color="#32A071"/><stop offset="1" stop-color="#2DA771"/></linearGradient>
+  </defs>
+  <text x="40" y="16" font-family="Arial,sans-serif" font-size="8" fill="#aaa">Get it on</text>
+  <text x="40" y="29" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#fff">Google Play</text>
+</svg>
+          </a>
+        </div>
+
+        <!-- DESKTOP: show QR codes -->
+        <div class="app-qr-wrap" aria-hidden="true">
+          <div class="app-qr-item">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://apps.apple.com/us/app/psaware/id1495838903" alt="" width="140" height="140" loading="lazy" class="app-qr-img">
+            <div class="app-qr-label">
+              <span class="qr-platform-icon">🍎</span> App Store
+            </div>
+          </div>
+          <div class="app-qr-item">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://play.google.com/store/apps/details?id=com.southernsoftware.PSAware" alt="" width="140" height="140" loading="lazy" class="app-qr-img">
+            <div class="app-qr-label">
+              <span class="qr-platform-icon">🤖</span> Google Play
+            </div>
+          </div>
+        </div>
+
+        <p class="app-qr-hint" aria-hidden="true">Scan with your phone camera to download</p>
+      </div>
+
+      <div class="app-card fu" id="icaware" style="--app-color:#e03030">
+        <div class="app-card-header">
+          <div class="app-icon" aria-hidden="true">🌀</div>
+          <div class="app-card-title-block">
+            <h2 class="app-name">ICAware</h2>
+            <span class="app-badge">Incident Command</span>
+          </div>
+        </div>
+        <p class="app-desc">Incident command management for events of all sizes — from 6-person manhunts to natural disasters. Push notifications, shelter management, EOC web interface.</p>
+
+        <!-- MOBILE: show direct store links -->
+        <div class="app-store-btns" aria-label="Download ICAware">
+          <a href="https://apps.apple.com/us/app/icaware/id6471382541" target="_blank" rel="noopener" class="store-btn ios" aria-label="Download ICAware on the App Store">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" width="120" height="40" aria-hidden="true">
+  <rect width="120" height="40" rx="8" fill="#000"/>
+  <path d="M24.769 20.3c-.032-3.246 2.649-4.816 2.769-4.888-1.509-2.202-3.855-2.503-4.682-2.529-1.977-.202-3.875 1.175-4.878 1.175-1.02 0-2.57-1.153-4.232-1.12-2.155.033-4.15 1.264-5.255 3.185-2.259 3.913-.577 9.693 1.607 12.861 1.08 1.549 2.348 3.282 4.012 3.221 1.62-.067 2.228-1.035 4.184-1.035 1.938 0 2.504 1.035 4.198 1 1.743-.028 2.841-1.568 3.898-3.127 1.246-1.784 1.752-3.527 1.774-3.617-.04-.015-3.366-1.285-3.395-5.126z" fill="#fff"/>
+  <path d="M21.594 11.22c.874-1.076 1.469-2.558 1.305-4.041-1.264.054-2.822.855-3.732 1.907-.806.94-1.522 2.468-1.336 3.913 1.415.107 2.868-.72 3.763-1.78z" fill="#fff"/>
+  <text x="36" y="16" font-family="Arial,sans-serif" font-size="8" fill="#aaa">Download on the</text>
+  <text x="36" y="29" font-family="Arial,sans-serif" font-size="14" font-weight="bold" fill="#fff">App Store</text>
+</svg>
+          </a>
+          <a href="https://play.google.com/store/apps/details?id=com.southernsoftware.ic" target="_blank" rel="noopener" class="store-btn android" aria-label="Get ICAware on Google Play">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 135 40" width="135" height="40" aria-hidden="true">
+  <rect width="135" height="40" rx="8" fill="#000"/>
+  <path d="M7.7 7.4c-.3.3-.4.8-.4 1.4v22.4c0 .6.1 1.1.4 1.4l.1.1 12.6-12.6v-.3L7.8 7.3l-.1.1z" fill="url(#ga)"/>
+  <path d="M24.6 24.5l-4.2-4.2v-.3l4.2-4.2.1.1 5 2.8c1.4.8 1.4 2.1 0 2.9l-5 2.8-.1.1z" fill="url(#gb)"/>
+  <path d="M24.7 24.4L20.4 20 7.7 32.7c.5.5 1.2.5 2.1.1l14.9-8.4" fill="url(#gc)"/>
+  <path d="M24.7 15.6L9.8 7.2C8.9 6.8 8.2 6.8 7.7 7.4L20.4 20l4.3-4.4z" fill="url(#gd)"/>
+  <defs>
+    <linearGradient id="ga" x1="19.8" y1="8.7" x2="5.3" y2="23.2" gradientUnits="userSpaceOnUse"><stop stop-color="#00A0FF"/><stop offset="1" stop-color="#00F"/></linearGradient>
+    <linearGradient id="gb" x1="31" y1="20" x2="6.7" y2="20" gradientUnits="userSpaceOnUse"><stop stop-color="#FFD900"/><stop offset="1" stop-color="#FF9400"/></linearGradient>
+    <linearGradient id="gc" x1="22.3" y1="22.3" x2="1.6" y2="43" gradientUnits="userSpaceOnUse"><stop stop-color="#FF3A44"/><stop offset="1" stop-color="#C31162"/></linearGradient>
+    <linearGradient id="gd" x1="4.2" y1="0.7" x2="13.2" y2="9.8" gradientUnits="userSpaceOnUse"><stop stop-color="#32A071"/><stop offset="1" stop-color="#2DA771"/></linearGradient>
+  </defs>
+  <text x="40" y="16" font-family="Arial,sans-serif" font-size="8" fill="#aaa">Get it on</text>
+  <text x="40" y="29" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#fff">Google Play</text>
+</svg>
+          </a>
+        </div>
+
+        <!-- DESKTOP: show QR codes -->
+        <div class="app-qr-wrap" aria-hidden="true">
+          <div class="app-qr-item">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://apps.apple.com/us/app/icaware/id6471382541" alt="" width="140" height="140" loading="lazy" class="app-qr-img">
+            <div class="app-qr-label">
+              <span class="qr-platform-icon">🍎</span> App Store
+            </div>
+          </div>
+          <div class="app-qr-item">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://play.google.com/store/apps/details?id=com.southernsoftware.ic" alt="" width="140" height="140" loading="lazy" class="app-qr-img">
+            <div class="app-qr-label">
+              <span class="qr-platform-icon">🤖</span> Google Play
+            </div>
+          </div>
+        </div>
+
+        <p class="app-qr-hint" aria-hidden="true">Scan with your phone camera to download</p>
+      </div>
+
+      <div class="app-card fu" id="jmsmobile" style="--app-color:#8b5cf6">
+        <div class="app-card-header">
+          <div class="app-icon" aria-hidden="true">🏛️</div>
+          <div class="app-card-title-block">
+            <h2 class="app-name">JMS Mobile</h2>
+            <span class="app-badge">JMS · Jail</span>
+          </div>
+        </div>
+        <p class="app-desc">Full-featured mobile companion for the Jail Management System. Security checks, cell checks, mugshots, scars/marks/tattoos, inmate profiles, court dates, and more.</p>
+
+        <!-- MOBILE: show direct store links -->
+        <div class="app-store-btns" aria-label="Download JMS Mobile">
+          <a href="https://apps.apple.com/us/app/jms-mobile/id1364998605" target="_blank" rel="noopener" class="store-btn ios" aria-label="Download JMS Mobile on the App Store">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" width="120" height="40" aria-hidden="true">
+  <rect width="120" height="40" rx="8" fill="#000"/>
+  <path d="M24.769 20.3c-.032-3.246 2.649-4.816 2.769-4.888-1.509-2.202-3.855-2.503-4.682-2.529-1.977-.202-3.875 1.175-4.878 1.175-1.02 0-2.57-1.153-4.232-1.12-2.155.033-4.15 1.264-5.255 3.185-2.259 3.913-.577 9.693 1.607 12.861 1.08 1.549 2.348 3.282 4.012 3.221 1.62-.067 2.228-1.035 4.184-1.035 1.938 0 2.504 1.035 4.198 1 1.743-.028 2.841-1.568 3.898-3.127 1.246-1.784 1.752-3.527 1.774-3.617-.04-.015-3.366-1.285-3.395-5.126z" fill="#fff"/>
+  <path d="M21.594 11.22c.874-1.076 1.469-2.558 1.305-4.041-1.264.054-2.822.855-3.732 1.907-.806.94-1.522 2.468-1.336 3.913 1.415.107 2.868-.72 3.763-1.78z" fill="#fff"/>
+  <text x="36" y="16" font-family="Arial,sans-serif" font-size="8" fill="#aaa">Download on the</text>
+  <text x="36" y="29" font-family="Arial,sans-serif" font-size="14" font-weight="bold" fill="#fff">App Store</text>
+</svg>
+          </a>
+          <a href="https://play.google.com/store/apps/details?id=com.southernsoftware.jmsmobile" target="_blank" rel="noopener" class="store-btn android" aria-label="Get JMS Mobile on Google Play">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 135 40" width="135" height="40" aria-hidden="true">
+  <rect width="135" height="40" rx="8" fill="#000"/>
+  <path d="M7.7 7.4c-.3.3-.4.8-.4 1.4v22.4c0 .6.1 1.1.4 1.4l.1.1 12.6-12.6v-.3L7.8 7.3l-.1.1z" fill="url(#ga)"/>
+  <path d="M24.6 24.5l-4.2-4.2v-.3l4.2-4.2.1.1 5 2.8c1.4.8 1.4 2.1 0 2.9l-5 2.8-.1.1z" fill="url(#gb)"/>
+  <path d="M24.7 24.4L20.4 20 7.7 32.7c.5.5 1.2.5 2.1.1l14.9-8.4" fill="url(#gc)"/>
+  <path d="M24.7 15.6L9.8 7.2C8.9 6.8 8.2 6.8 7.7 7.4L20.4 20l4.3-4.4z" fill="url(#gd)"/>
+  <defs>
+    <linearGradient id="ga" x1="19.8" y1="8.7" x2="5.3" y2="23.2" gradientUnits="userSpaceOnUse"><stop stop-color="#00A0FF"/><stop offset="1" stop-color="#00F"/></linearGradient>
+    <linearGradient id="gb" x1="31" y1="20" x2="6.7" y2="20" gradientUnits="userSpaceOnUse"><stop stop-color="#FFD900"/><stop offset="1" stop-color="#FF9400"/></linearGradient>
+    <linearGradient id="gc" x1="22.3" y1="22.3" x2="1.6" y2="43" gradientUnits="userSpaceOnUse"><stop stop-color="#FF3A44"/><stop offset="1" stop-color="#C31162"/></linearGradient>
+    <linearGradient id="gd" x1="4.2" y1="0.7" x2="13.2" y2="9.8" gradientUnits="userSpaceOnUse"><stop stop-color="#32A071"/><stop offset="1" stop-color="#2DA771"/></linearGradient>
+  </defs>
+  <text x="40" y="16" font-family="Arial,sans-serif" font-size="8" fill="#aaa">Get it on</text>
+  <text x="40" y="29" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#fff">Google Play</text>
+</svg>
+          </a>
+        </div>
+
+        <!-- DESKTOP: show QR codes -->
+        <div class="app-qr-wrap" aria-hidden="true">
+          <div class="app-qr-item">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://apps.apple.com/us/app/jms-mobile/id1364998605" alt="" width="140" height="140" loading="lazy" class="app-qr-img">
+            <div class="app-qr-label">
+              <span class="qr-platform-icon">🍎</span> App Store
+            </div>
+          </div>
+          <div class="app-qr-item">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://play.google.com/store/apps/details?id=com.southernsoftware.jmsmobile" alt="" width="140" height="140" loading="lazy" class="app-qr-img">
+            <div class="app-qr-label">
+              <span class="qr-platform-icon">🤖</span> Google Play
+            </div>
+          </div>
+        </div>
+
+        <p class="app-qr-hint" aria-hidden="true">Scan with your phone camera to download</p>
+      </div>
+
+      <div class="app-card fu" id="jmsprebook" style="--app-color:#8b5cf6">
+        <div class="app-card-header">
+          <div class="app-icon" aria-hidden="true">📋</div>
+          <div class="app-card-title-block">
+            <h2 class="app-name">JMS Prebook</h2>
+            <span class="app-badge">JMS · Booking</span>
+          </div>
+        </div>
+        <p class="app-desc">Expedite the booking process — scan a driver's license to quickly input data, capture arresting address, and send jail notifications about incoming persons.</p>
+
+        <!-- MOBILE: show direct store links -->
+        <div class="app-store-btns" aria-label="Download JMS Prebook">
+          <a href="https://apps.apple.com/us/app/jms-prebooking/id1502163275" target="_blank" rel="noopener" class="store-btn ios" aria-label="Download JMS Prebook on the App Store">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" width="120" height="40" aria-hidden="true">
+  <rect width="120" height="40" rx="8" fill="#000"/>
+  <path d="M24.769 20.3c-.032-3.246 2.649-4.816 2.769-4.888-1.509-2.202-3.855-2.503-4.682-2.529-1.977-.202-3.875 1.175-4.878 1.175-1.02 0-2.57-1.153-4.232-1.12-2.155.033-4.15 1.264-5.255 3.185-2.259 3.913-.577 9.693 1.607 12.861 1.08 1.549 2.348 3.282 4.012 3.221 1.62-.067 2.228-1.035 4.184-1.035 1.938 0 2.504 1.035 4.198 1 1.743-.028 2.841-1.568 3.898-3.127 1.246-1.784 1.752-3.527 1.774-3.617-.04-.015-3.366-1.285-3.395-5.126z" fill="#fff"/>
+  <path d="M21.594 11.22c.874-1.076 1.469-2.558 1.305-4.041-1.264.054-2.822.855-3.732 1.907-.806.94-1.522 2.468-1.336 3.913 1.415.107 2.868-.72 3.763-1.78z" fill="#fff"/>
+  <text x="36" y="16" font-family="Arial,sans-serif" font-size="8" fill="#aaa">Download on the</text>
+  <text x="36" y="29" font-family="Arial,sans-serif" font-size="14" font-weight="bold" fill="#fff">App Store</text>
+</svg>
+          </a>
+          <a href="https://play.google.com/store/apps/details?id=com.southernsoftware.jmsprebook" target="_blank" rel="noopener" class="store-btn android" aria-label="Get JMS Prebook on Google Play">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 135 40" width="135" height="40" aria-hidden="true">
+  <rect width="135" height="40" rx="8" fill="#000"/>
+  <path d="M7.7 7.4c-.3.3-.4.8-.4 1.4v22.4c0 .6.1 1.1.4 1.4l.1.1 12.6-12.6v-.3L7.8 7.3l-.1.1z" fill="url(#ga)"/>
+  <path d="M24.6 24.5l-4.2-4.2v-.3l4.2-4.2.1.1 5 2.8c1.4.8 1.4 2.1 0 2.9l-5 2.8-.1.1z" fill="url(#gb)"/>
+  <path d="M24.7 24.4L20.4 20 7.7 32.7c.5.5 1.2.5 2.1.1l14.9-8.4" fill="url(#gc)"/>
+  <path d="M24.7 15.6L9.8 7.2C8.9 6.8 8.2 6.8 7.7 7.4L20.4 20l4.3-4.4z" fill="url(#gd)"/>
+  <defs>
+    <linearGradient id="ga" x1="19.8" y1="8.7" x2="5.3" y2="23.2" gradientUnits="userSpaceOnUse"><stop stop-color="#00A0FF"/><stop offset="1" stop-color="#00F"/></linearGradient>
+    <linearGradient id="gb" x1="31" y1="20" x2="6.7" y2="20" gradientUnits="userSpaceOnUse"><stop stop-color="#FFD900"/><stop offset="1" stop-color="#FF9400"/></linearGradient>
+    <linearGradient id="gc" x1="22.3" y1="22.3" x2="1.6" y2="43" gradientUnits="userSpaceOnUse"><stop stop-color="#FF3A44"/><stop offset="1" stop-color="#C31162"/></linearGradient>
+    <linearGradient id="gd" x1="4.2" y1="0.7" x2="13.2" y2="9.8" gradientUnits="userSpaceOnUse"><stop stop-color="#32A071"/><stop offset="1" stop-color="#2DA771"/></linearGradient>
+  </defs>
+  <text x="40" y="16" font-family="Arial,sans-serif" font-size="8" fill="#aaa">Get it on</text>
+  <text x="40" y="29" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#fff">Google Play</text>
+</svg>
+          </a>
+        </div>
+
+        <!-- DESKTOP: show QR codes -->
+        <div class="app-qr-wrap" aria-hidden="true">
+          <div class="app-qr-item">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://apps.apple.com/us/app/jms-prebooking/id1502163275" alt="" width="140" height="140" loading="lazy" class="app-qr-img">
+            <div class="app-qr-label">
+              <span class="qr-platform-icon">🍎</span> App Store
+            </div>
+          </div>
+          <div class="app-qr-item">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://play.google.com/store/apps/details?id=com.southernsoftware.jmsprebook" alt="" width="140" height="140" loading="lazy" class="app-qr-img">
+            <div class="app-qr-label">
+              <span class="qr-platform-icon">🤖</span> Google Play
+            </div>
+          </div>
+        </div>
+
+        <p class="app-qr-hint" aria-hidden="true">Scan with your phone camera to download</p>
+      </div>
+    </div>
   </div>
-</div>
-</div></section>
+</section>
 </main>
 <footer class="footer" role="contentinfo">
   <div class="footer-bar" aria-hidden="true"></div>
