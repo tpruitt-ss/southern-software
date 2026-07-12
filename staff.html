@@ -1175,7 +1175,7 @@ async function doPreviewLogin() {
     }
     return;
   }
-  S.user = { id: 'preview-user-id', email: 'tpruitt@southernsoftware.com' };
+  S.user = { id: 'p-travis', email: 'tpruitt@southernsoftware.com' };
   sessionStorage.setItem('ss-preview-session', 'ok');
   sessionStorage.setItem('ss-preview-user', JSON.stringify(S.user));
   $('login-wrap').style.display = 'none';
@@ -1183,7 +1183,7 @@ async function doPreviewLogin() {
   await reload();
   setupNav();
   initSearch();
-  applyPermissions();
+  try { applyPermissions(); } catch(e) { console.warn("permissions:",e); }
   navigate('dashboard');
 }
 
@@ -1276,7 +1276,7 @@ async function boot() {
   if(checkForForm()) return;  // Show intake form if URL has #form=
   const session = sessionStorage.getItem('ss-preview-session');
   if(session === 'ok') {
-    S.user = JSON.parse(sessionStorage.getItem('ss-preview-user') || '{}');
+    S.user = {id:'p-travis', email:'tpruitt@southernsoftware.com'};
     $('login-wrap').style.display = 'none';
     $('app').style.display = 'flex';
     await reload();
@@ -1310,7 +1310,7 @@ async function reload() {
     S.tasks     = DUMMY_DATA.tasks;
     S.sections  = DUMMY_DATA.sections;
     S.issues    = [];
-    S.profiles  = [{"id":"p-brent","full_name":"Brent Boykin","title":"Senior Project Manager","team":"implementation","avatar_url":null},{"id":"p-dan","full_name":"Dan Barcus","title":"PS Project Manager","team":"implementation","avatar_url":null},{"id":"p-nick","full_name":"Nick Madray","title":"PS Project Manager","team":"implementation","avatar_url":null},{"id":"p-travis","full_name":"Travis Pruitt","title":"Director CAD|MDS Operations","team":"implementation","avatar_url":null},{"id":"p-steve","full_name":"Steve Bastarache","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-debbie","full_name":"Debbie Stevens","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-michael","full_name":"Michael Valverde","title":"FMS Implementation Specialist","team":"fms","avatar_url":null},{"id":"p-matt","full_name":"Matt Pittman","title":"FMS Implementation Specialist","team":"fms","avatar_url":null},{"id":"p-marc","full_name":"Marc Sessoms","title":"Developer","team":"implementation","avatar_url":null},{"id":"p-joe","full_name":"Joe Sharpe","title":"IT Specialist","team":"implementation","avatar_url":null},{"id":"p-zach","full_name":"Zach Perkins","title":"CAD|MDS Specialist","team":"implementation","avatar_url":null},{"id":"p-dee","full_name":"Dee Perez","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-travis2","full_name":"Travis Jones","title":"IT Specialist","team":"implementation","avatar_url":null},{"id":"p-amanda","full_name":"Amanda McKenzie","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-jeanie","full_name":"Jeanie West","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-chris","full_name":"Chris Stanley","title":"GIS Specialist","team":"implementation","avatar_url":null},{"id":"p-jesse","full_name":"Jesse Merritt","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-patrick","full_name":"Patrick Pusser","title":"Director FMS Operations","team":"fms","avatar_url":null},{"id":"p-cam","full_name":"Cameron Reynolds","title":"FMS Implementation Specialist","team":"fms","avatar_url":null},{"id":"p-jordan","full_name":"Jordan Johnstone","title":"Developer","team":"implementation","avatar_url":null}];
+    S.profiles  = [{"id":"p-brent","full_name":"Brent Boykin","title":"Senior Project Manager","team":"implementation","avatar_url":null},{"id":"p-dan","full_name":"Dan Barcus","title":"PS Project Manager","team":"implementation","avatar_url":null},{"id":"p-nick","full_name":"Nick Madray","title":"PS Project Manager","team":"implementation","avatar_url":null},{"id":"p-travis","full_name":"Travis Pruitt","title":"Director CAD|MDS Operations","team":"implementation","avatar_url":null,"role":"admin","is_admin":true},{"id":"p-steve","full_name":"Steve Bastarache","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-debbie","full_name":"Debbie Stevens","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-michael","full_name":"Michael Valverde","title":"FMS Implementation Specialist","team":"fms","avatar_url":null},{"id":"p-matt","full_name":"Matt Pittman","title":"FMS Implementation Specialist","team":"fms","avatar_url":null},{"id":"p-marc","full_name":"Marc Sessoms","title":"Developer","team":"implementation","avatar_url":null},{"id":"p-joe","full_name":"Joe Sharpe","title":"IT Specialist","team":"implementation","avatar_url":null},{"id":"p-zach","full_name":"Zach Perkins","title":"CAD|MDS Specialist","team":"implementation","avatar_url":null},{"id":"p-dee","full_name":"Dee Perez","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-travis2","full_name":"Travis Jones","title":"IT Specialist","team":"implementation","avatar_url":null},{"id":"p-amanda","full_name":"Amanda McKenzie","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-jeanie","full_name":"Jeanie West","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-chris","full_name":"Chris Stanley","title":"GIS Specialist","team":"implementation","avatar_url":null},{"id":"p-jesse","full_name":"Jesse Merritt","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-patrick","full_name":"Patrick Pusser","title":"Director FMS Operations","team":"fms","avatar_url":null},{"id":"p-cam","full_name":"Cameron Reynolds","title":"FMS Implementation Specialist","team":"fms","avatar_url":null},{"id":"p-jordan","full_name":"Jordan Johnstone","title":"Developer","team":"implementation","avatar_url":null}];
   } else {
     const [pr,proj,task,cust,iss] = await Promise.all([
       db.from('profiles').select('*'),
@@ -1326,9 +1326,7 @@ async function reload() {
     S.issues    = iss.data  || [];
   }
   // Preview mode: use first profile or a stub
-  S.profile = S.profiles.find(p=>p.id===S.user?.id)
-    || S.profiles[0]
-    || { full_name: 'Travis Pruitt', team: 'management', title: 'Director CAD|MDS Operations' };
+  S.profile = S.profiles.find(p=>p.id===S.user?.id) || S.profiles[0] || {};
 
   const name = S.profile.full_name || S.user?.email?.split('@')[0] || 'Preview User';
   $('sb-name').textContent = name;
@@ -2447,7 +2445,7 @@ function showAssignDropdown(taskId, event) {
   drop.style.top = (rect.bottom + 4) + 'px';
 
   const profiles = S.profiles.length ? S.profiles : [{
-    id:'preview-user-id', full_name:'Travis Pruitt', title:'Director CAD|MDS', team:'implementation'
+    id:'p-travis', full_name:'Travis Pruitt', title:'Director CAD|MDS', team:'implementation'
   }];
 
   drop.innerHTML = `<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);padding:.2rem .4rem .4rem">Assign to</div>`;
