@@ -557,25 +557,48 @@ const SB_ANON = 'YOUR_SUPABASE_ANON_KEY';
 const DOMAIN  = 'southernsoftware.com';
 
 const {createClient} = supabase;
-let db;
-try { db = createClient(SB_URL, SB_ANON); } catch(e) { db = null; }
 
-// Safe db wrapper — returns empty data if db not configured
-const safeDb = {
-  from: (table) => ({
-    select: (cols) => ({
-      eq: () => ({ data:[], error:null }),
-      order: () => ({ data:[], error:null }),
-      then: (r) => Promise.resolve({data:[],error:null}),
+// Preview-mode DB proxy — intercepts all calls and returns dummy data
+// or empty results so the UI never hangs waiting for a real DB
+function makePreviewDb() {
+  // Chainable query builder that always resolves safely
+  function q(resolveWith) {
+    const promise = Promise.resolve(resolveWith);
+    const chain = {
+      select: ()=>chain, eq: ()=>chain, neq: ()=>chain,
+      order: ()=>chain, limit: ()=>chain, range: ()=>chain,
+      is: ()=>chain, in: ()=>chain, filter: ()=>chain,
+      single: ()=>Promise.resolve({data:resolveWith.data?.[0]||null, error:null}),
+      then: (fn)=>promise.then(fn),
+      catch: (fn)=>promise.catch(fn),
+    };
+    return chain;
+  }
+  return {
+    from: (table) => ({
+      select: (cols) => q({data:[], error:null}),
+      insert: (d)    => ({ select: ()=>({ single: ()=>Promise.resolve({data:{id:'preview-'+Date.now(),...(Array.isArray(d)?d[0]:d)},error:null}) }), execute: ()=>Promise.resolve({data:[],error:null}) }),
+      update: (d)    => ({ eq: ()=>q({data:[],error:null}), execute: ()=>Promise.resolve({data:[],error:null}) }),
+      delete: ()     => ({ eq: ()=>q({data:[],error:null}) }),
+      upsert: (d)    => q({data:[],error:null}),
     }),
-    insert: (d) => ({ select: () => ({ single: () => Promise.resolve({data:{id:'preview-'+Date.now(),...d},error:null}) }), execute: () => Promise.resolve({data:[],error:null}) }),
-    update: (d) => ({ eq: () => Promise.resolve({data:[],error:null}) }),
-    execute: () => Promise.resolve({data:[],error:null}),
-  }),
-  auth: { getSession: () => Promise.resolve({data:{session:null}}), onAuthStateChange: ()=>{}, signOut: ()=>Promise.resolve() },
-  channel: () => ({ on: function(){ return this; }, subscribe: ()=>{} }),
-  storage: { from: () => ({ upload: ()=>Promise.resolve({error:null}), createSignedUrl: ()=>Promise.resolve({data:{signedUrl:'#'}}) }) },
-};
+    auth: {
+      getSession: ()=>Promise.resolve({data:{session:null}}),
+      onAuthStateChange: ()=>{},
+      signOut: ()=>Promise.resolve(),
+      admin: { getUserById: ()=>Promise.resolve({data:{user:null}}) },
+    },
+    channel: ()=>({ on: function(){ return this; }, subscribe: ()=>{} }),
+    storage: { from: ()=>({ upload: ()=>Promise.resolve({error:null}), createSignedUrl: ()=>Promise.resolve({data:{signedUrl:'#'}}) }) },
+  };
+}
+
+let db;
+if(SB_URL === 'YOUR_SUPABASE_URL') {
+  db = makePreviewDb();
+} else {
+  try { db = createClient(SB_URL, SB_ANON); } catch(e) { db = makePreviewDb(); }
+}
 
 
 // ── DUMMY DATA (preview mode — real data loads from Supabase when configured) ──
@@ -595,7 +618,7 @@ const STATUS_ORDER = ['todo','inprogress','waiting_customer','waiting_vendor','b
 // ── STATE ─────────────────────────────────────────────────────
 const S = {
   user:null, profile:null, profiles:[],
-  projects:[], tasks:[], customers:[], issues:[],
+  projects:[], tasks:[], customers:[], issues:[], sections:[],
   view:'dashboard', projId:null, taskId:null,
 };
 
@@ -691,32 +714,26 @@ $('sb-signout').onclick = () => {
 // ── DATA ──────────────────────────────────────────────────────
 async function reload() {
   if(SB_URL === 'YOUR_SUPABASE_URL') {
-    // Preview mode — use dummy data from ClickUp
-    // Enrich projects with customer data (simulate join)
+    // Preview mode — use real ClickUp data seeded from CSV
     S.customers = DUMMY_DATA.customers;
     S.projects  = DUMMY_DATA.projects.map(p => ({
-      ...p,
-      customers: S.customers.find(c => c.id === p.customer_id) || null,
+      ...p, customers: DUMMY_DATA.customers.find(c=>c.id===p.customer_id)||null,
     }));
     S.tasks     = DUMMY_DATA.tasks;
+    S.sections  = DUMMY_DATA.sections;
     S.issues    = [];
     S.profiles  = [{
-      id: 'preview-user-id',
-      full_name: 'Travis Pruitt',
-      title: 'Director CAD|MDS Operations',
-      team: 'implementation',
-      avatar_url: null,
-      is_admin: true,
-      active: true,
+      id:'preview-user-id', full_name:'Travis Pruitt',
+      title:'Director CAD|MDS Operations', team:'implementation',
+      avatar_url:null, is_admin:true, active:true,
     }];
   } else {
-    const _db = db;
     const [pr,proj,task,cust,iss] = await Promise.all([
-      _db.from('profiles').select('*'),
-      _db.from('projects').select('*, customers(name,state)').order('updated_at',{ascending:false}),
-      _db.from('tasks').select('*').order('sort_order'),
-      _db.from('customers').select('*').order('name'),
-      _db.from('issues').select('*').order('created_at',{ascending:false}),
+      db.from('profiles').select('*'),
+      db.from('projects').select('*, customers(name,state)').order('updated_at',{ascending:false}),
+      db.from('tasks').select('*').order('sort_order'),
+      db.from('customers').select('*').order('name'),
+      db.from('issues').select('*').order('created_at',{ascending:false}),
     ]);
     S.profiles  = pr.data   || [];
     S.projects  = proj.data || [];
@@ -1052,17 +1069,16 @@ async function openProject(id) {
     <button class="ai-btn btn-sm" onclick="aiGoLiveChecklist('${id}',this)">🚀 Go-Live Checklist</button>
     <button class="btn btn-primary btn-sm" onclick="showAddTaskModal('${id}')">+ Task</button>`;
 
-  // Load sections + tasks (dummy data or real DB)
+  // Load sections + tasks
   let secs, tasks;
   if(SB_URL === 'YOUR_SUPABASE_URL') {
-    secs  = DUMMY_DATA.sections.filter(s=>s.project_id===id).sort((a,b)=>a.sort_order-b.sort_order);
-    tasks = DUMMY_DATA.tasks.filter(t=>t.project_id===id).sort((a,b)=>a.sort_order-b.sort_order);
+    secs  = S.sections.filter(s=>s.project_id===id).sort((a,b)=>a.sort_order-b.sort_order);
+    tasks = S.tasks.filter(t=>t.project_id===id).sort((a,b)=>a.sort_order-b.sort_order);
   } else {
     const rs = await db.from('sections').select('*').eq('project_id',id).order('sort_order');
     const rt = await db.from('tasks').select('*').eq('project_id',id).order('sort_order');
-    secs = rs.data || []; tasks = rt.data || [];
+    secs = rs.data||[]; tasks = rt.data||[];
   }
-  // secs and tasks are ready
 
   const top = (tasks||[]).filter(t=>!t.parent_id);
   const done = top.filter(t=>['done','na'].includes(t.status)).length;
@@ -1208,10 +1224,13 @@ const CYCLE = ['todo','inprogress','waiting_customer','done','na'];
 async function cycleStatus(id, current) {
   const idx = CYCLE.indexOf(current);
   const next = CYCLE[(idx+1) % CYCLE.length];
-  await db.from('tasks').update({status:next}).eq('id',id);
-  // Update local
+  // Update local state immediately
   const t = S.tasks.find(t=>t.id===id);
   if(t) t.status = next;
+  // Also update dummy data array so it persists within session
+  const dt = DUMMY_DATA.tasks.find(t=>t.id===id);
+  if(dt) dt.status = next;
+  if(SB_URL !== 'YOUR_SUPABASE_URL') await db.from('tasks').update({status:next}).eq('id',id);
   // Re-render current view
   if(S.projId) openProject(S.projId);
   else if(S.view==='mine') renderMine();
@@ -1236,9 +1255,9 @@ async function quickAddTask(projId, secId, input) {
 // ── TASK PANEL ─────────────────────────────────────────────────
 async function openPanel(id) {
   S.taskId = id;
-  const {data:task}    = await db.from('tasks').select('*').eq('id',id).single();
-  const {data:cmts}    = await db.from('comments').select('*,profiles(full_name,avatar_url)').eq('task_id',id).order('created_at');
-  const {data:attaches}= await db.from('attachments').select('*').eq('task_id',id);
+  const task     = S.tasks.find(t=>t.id===id) || (await db.from('tasks').select('*').eq('id',id).single()).data || {};
+  const cmts     = SB_URL==='YOUR_SUPABASE_URL' ? [] : ((await db.from('comments').select('*,profiles(full_name,avatar_url)').eq('task_id',id).order('created_at')).data||[]);
+  const attaches = SB_URL==='YOUR_SUPABASE_URL' ? [] : ((await db.from('attachments').select('*').eq('task_id',id)).data||[]);
   const subs = S.tasks.filter(t=>t.parent_id===id);
   const proj = S.projects.find(p=>p.id===task.project_id);
 
@@ -1321,9 +1340,13 @@ async function openPanel(id) {
 function closePanel(){ $('task-panel').classList.remove('open'); S.taskId=null; }
 
 async function updateTask(id, field, value) {
-  const {error}=await db.from('tasks').update({[field]:value||null}).eq('id',id);
-  if(error){toast(error.message,'err');return;}
+  // Update local state
   const t=S.tasks.find(t=>t.id===id); if(t) t[field]=value||null;
+  const dt=DUMMY_DATA.tasks.find(t=>t.id===id); if(dt) dt[field]=value||null;
+  if(SB_URL !== 'YOUR_SUPABASE_URL') {
+    const {error}=await db.from('tasks').update({[field]:value||null}).eq('id',id);
+    if(error){toast(error.message,'err');return;}
+  }
   toast('Saved');
   openPanel(id);
 }
@@ -1811,7 +1834,7 @@ async function aiProjectSummary(projId, btnEl) {
   const over  = tasks.filter(t => t.due_date && t.due_date < new Date().toISOString().split('T')[0] && !['done','na'].includes(t.status)).length;
 
   // Get sections for breakdown
-  const { data: secs } = await db.from('sections').select('*').eq('project_id', projId).order('sort_order');
+  const secs = SB_URL==='YOUR_SUPABASE_URL' ? S.sections.filter(s=>s.project_id===projId) : ((await db.from('sections').select('*').eq('project_id',projId).order('sort_order')).data||[]);
   const sections = (secs || []).map(s => {
     const st = tasks.filter(t => t.section_id === s.id);
     const sd = st.filter(t => ['done','na'].includes(t.status)).length;
