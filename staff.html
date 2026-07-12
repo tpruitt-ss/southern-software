@@ -1846,41 +1846,56 @@ function copyAI(elId, msg) {
 
 
 
-// ── PORTAL QUICK ACCESS TILES (added to dashboard) ───────────
+// ── PORTAL QUICK ACCESS TILES ───────────────────────────────
 const PORTAL_TILES = [
-  {icon:'🏖️', label:'Time Off',         url:'https://portal.southernsoftware.com/new/timeoff/users'},
-  {icon:'📆', label:'After Hours Cal',   url:'https://portal.southernsoftware.com/new/RMS/247SupportCalendar_ReadOnly/'},
-  {icon:'🏛️', label:'Customer Search',   url:'https://portal.southernsoftware.com/new/RMS/agenciessearch'},
-  {icon:'🔍', label:'Master Search',     url:'https://portal.southernsoftware.com/new/RMS/MasterCustomerSearch'},
-  {icon:'🚔', label:'KB — PS',           url:'https://portal.southernsoftware.com/new/KB/PSFrontPage'},
-  {icon:'📊', label:'KB — FMS',          url:'https://portal.southernsoftware.com/new/KB/FMSFrontPage'},
-  {icon:'✏️', label:'Create Article',    url:'https://portal.southernsoftware.com/new/KB/CreateArticle'},
-  {icon:'🎓', label:'Training',          url:'https://portal.southernsoftware.com/new/Training_New/Admin/Conferences/index.php'},
-  {icon:'💻', label:'Virtual Classes',   url:'https://portal.southernsoftware.com/new/Training_New/Admin/Conferences/virtual_classes.php'},
-  {icon:'📰', label:'Newsletters',       url:'https://portal.southernsoftware.com/new/admin/newsletters_v2'},
-  {icon:'📱', label:'App Versions',      url:'https://portal.southernsoftware.com/new/versions/appversions/'},
-  {icon:'🖥️', label:'Hardware',          url:'https://portal.southernsoftware.com/new/RMS/hardwarelist'},
+  {icon:'🏖️', label:'Time Off',        url:'https://portal.southernsoftware.com/new/timeoff/users'},
+  {icon:'📆', label:'After Hours Cal',  url:'https://portal.southernsoftware.com/new/RMS/247SupportCalendar_ReadOnly/'},
+  {icon:'🏛️', label:'Customer Search',  url:'https://portal.southernsoftware.com/new/RMS/agenciessearch'},
+  {icon:'🔍', label:'Master Search',    url:'https://portal.southernsoftware.com/new/RMS/MasterCustomerSearch'},
+  {icon:'🚔', label:'KB — PS',          url:'https://portal.southernsoftware.com/new/KB/PSFrontPage'},
+  {icon:'📊', label:'KB — FMS',         url:'https://portal.southernsoftware.com/new/KB/FMSFrontPage'},
+  {icon:'✏️', label:'Create Article',   url:'https://portal.southernsoftware.com/new/KB/CreateArticle'},
+  {icon:'🎓', label:'Training',         url:'https://portal.southernsoftware.com/new/Training_New/Admin/Conferences/index.php'},
+  {icon:'💻', label:'Virtual Classes',  url:'https://portal.southernsoftware.com/new/Training_New/Admin/Conferences/virtual_classes.php'},
+  {icon:'📰', label:'Newsletters',      url:'https://portal.southernsoftware.com/new/admin/newsletters_v2'},
+  {icon:'📱', label:'App Versions',     url:'https://portal.southernsoftware.com/new/versions/appversions/'},
+  {icon:'🖥️', label:'Hardware',         url:'https://portal.southernsoftware.com/new/RMS/hardwarelist'},
 ];
+
 function renderPortalTiles(containerId) {
-  const wrap = document.createElement('div');
+  var wrap = document.createElement('div');
   wrap.style.marginTop = '1.25rem';
-  wrap.innerHTML = \`<div class="dash-h" style="margin-bottom:.6rem">🔗 Portal Quick Access</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:.45rem">
-      \${PORTAL_TILES.map(t=>\`
-        <a href="\${t.url}" target="_blank" rel="noopener"
-           style="display:flex;flex-direction:column;align-items:center;gap:.3rem;
-                  padding:.6rem .4rem;background:var(--card);border:1px solid var(--border);
-                  border-radius:var(--r2);text-decoration:none;
-                  transition:border-color var(--tr),transform var(--tr)"
-           onmouseover="this.style.borderColor='var(--border2)';this.style.transform='translateY(-2px)'"
-           onmouseout="this.style.borderColor='';this.style.transform=''">
-          <span style="font-size:1.25rem">\${t.icon}</span>
-          <span style="font-size:10px;font-weight:600;color:var(--muted);text-align:center;line-height:1.2">\${t.label}</span>
-        </a>\`).join('')}
-    </div>\`;
-  const c = document.getElementById(containerId);
-  if(c) c.parentElement.insertBefore(wrap, c.nextSibling);
+  var grid = document.createElement('div');
+  grid.innerHTML = '<div class="dash-h" style="margin-bottom:.6rem">&#128279; Portal Quick Access</div>';
+  var tileGrid = document.createElement('div');
+  tileGrid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:.45rem';
+  PORTAL_TILES.forEach(function(t) {
+    var a = document.createElement('a');
+    a.href = t.url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:.3rem;'
+      + 'padding:.6rem .4rem;background:var(--card);border:1px solid var(--border);'
+      + 'border-radius:var(--r2);text-decoration:none;'
+      + 'transition:border-color var(--tr),transform var(--tr)';
+    a.onmouseover = function(){ this.style.borderColor='var(--border2)'; this.style.transform='translateY(-2px)'; };
+    a.onmouseout  = function(){ this.style.borderColor=''; this.style.transform=''; };
+    var ico = document.createElement('span');
+    ico.style.fontSize = '1.25rem';
+    ico.textContent = t.icon;
+    var lbl = document.createElement('span');
+    lbl.style.cssText = 'font-size:10px;font-weight:600;color:var(--muted);text-align:center;line-height:1.2';
+    lbl.textContent = t.label;
+    a.appendChild(ico);
+    a.appendChild(lbl);
+    tileGrid.appendChild(a);
+  });
+  grid.appendChild(tileGrid);
+  wrap.appendChild(grid);
+  var c = document.getElementById(containerId);
+  if(c) c.parentElement.appendChild(wrap);
 }
+
 // ── BOOT ──────────────────────────────────────────────────────
 boot();
 </script>
