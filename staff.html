@@ -680,14 +680,18 @@ a#skip-link:focus{left:8px}
 
         <div class="sb-label">My Work</div>
         <div class="sb-item active" data-v="dashboard"><span class="i">📊</span>Dashboard</div>
+        <div class="sb-item" data-v="exec"><span class="i">🧭</span>Executive Overview</div>
         <div class="sb-item" data-v="mine"><span class="i">✅</span>My Tasks<span class="sb-badge" id="mine-badge" style="display:none"></span></div>
         <div class="sb-item" data-v="calendar"><span class="i">📅</span>Calendar</div>
         <div class="sb-item" data-v="workload"><span class="i">⚖️</span>Team Workload</div>
+        <div class="sb-item" data-v="pmconsole"><span class="i">🧑‍💼</span>PM Console</div>
 
         <div class="sb-label">Projects</div>
         <div class="sb-item" data-v="projects"><span class="i">📁</span>All Projects</div>
+        <div class="sb-item" data-v="board"><span class="i">📋</span>Status Board</div>
         <div class="sb-item" data-v="alltasks"><span class="i">🗂️</span>All Tasks</div>
         <div class="sb-item" data-v="golive"><span class="i">🚀</span>Go-Live Schedule</div>
+        <div class="sb-item" data-v="followup"><span class="i">📞</span>Follow-ups</div>
         <div class="sb-item" data-v="triage"><span class="i">📥</span>Unassigned<span class="sb-badge" id="triage-badge" style="display:none"></span></div>
         <div class="sb-item" data-v="timeline"><span class="i">🗓️</span>Portfolio Timeline</div>
         <div class="sb-item" data-v="reports"><span class="i">📈</span>Reports</div>
@@ -1395,6 +1399,7 @@ const VIEW_TITLES = { handbook:'Employee Handbook', activity:'Activity Feed', ad
   dashboard:'Dashboard', mine:'My Tasks', calendar:'Calendar',
   workload:'Team Workload', golive:'Go-Live Schedule', triage:'Unassigned Tasks',
   timeline:'Portfolio Timeline', reports:'Status Reports', alltasks:'All Tasks',
+  board:'Status Board', exec:'Executive Overview', pmconsole:'PM Console', followup:'Customer Follow-ups',
   projects:'Projects', customers:'Customers', issues:'Bug & Issue Tracker', team:'Team',
 };
 
@@ -1819,6 +1824,181 @@ function setTextSize(dir){
 }
 function initTextSize(){ try{ const s=localStorage.getItem('ss-textsize'); if(s!==null){ const n=parseInt(s,10); if(!isNaN(n)) _tsIdx=Math.max(0,Math.min(TS_STEPS.length-1,n)); } }catch(e){} applyTextSize(); }
 
+/* ═══ PM STATUS BOARD DATA (imported from the team's Google Sheet) ═══ */
+const PM_BOARD=[
+  {"state": "AL", "name": "Margaret PD", "am": "Neal Brooks", "received": "2025-11-21", "deliverables": "SAP RMS MDIS", "status": "Go-Live Complete", "pm": "Brent Boykin", "it": "Brian Sharpe", "cad": "Other or NA", "rms": "Dee Perez", "jms": "", "mdis": "Brian Sharpe", "hardware": "Ready to Ship", "notes": "Go Live completed July 9, 2026. Customer is adding barcode equipment which is pending shipment and training.", "updated": "2026-07-09 11:07:00 — bboykin"},
+  {"state": "AL", "name": "Marion Co SO", "am": "Neal Brooks", "received": "2025-12-18", "deliverables": "RMS JMS", "status": "Go-Live Complete", "pm": "Brent Boykin", "it": "Brian Sharpe", "cad": "Other or NA", "rms": "Jonathan Bledsoe", "jms": "Jeanie West", "mdis": "", "hardware": "Received by Customer", "notes": "Go Live June 23, 2026 (Completed)", "updated": "2026-07-09 11:10:15 — bboykin"},
+  {"state": "AL", "name": "Sheffield PD", "am": "Neal Brooks", "received": "2026-05-28", "deliverables": "DE MDIS RMS JMS QMS", "status": "Scheduled", "pm": "Dan Barcus", "it": "Joe Sharpe", "cad": "Hunter Phillips", "rms": "Dee Perez", "jms": "Adam Nelson", "mdis": "Joe Sharpe", "hardware": "Ready to Ship", "notes": "Phase 1 scheduled for next week. Staff will be on-site Tuesday and Wednesday.", "updated": "2026-07-09 11:26:49 — dbarcus"},
+  {"state": "NC", "name": "Hot Springs PD", "am": "Steve Libera", "received": "2026-03-26", "deliverables": "SAP RMS", "status": "Scheduled", "pm": "Brent Boykin", "it": "Fernando Ponce", "cad": "Other or NA", "rms": "Alan Morgan", "jms": "", "mdis": "", "hardware": "None", "notes": "Install in progress.", "updated": "2026-07-09 11:16:41 — bboykin"},
+  {"state": "NC", "name": "Marshall PD", "am": "Steve Libera", "received": "2026-01-13", "deliverables": "SAP RMS", "status": "Ongoing", "pm": "Nick Madray", "it": "Fernando Ponce", "cad": "Other or NA", "rms": "Amanda McKenzie", "jms": "", "mdis": "", "hardware": "", "notes": "Customer now has a server in place, rescheduling dates.", "updated": "2026-06-18 09:53:30 — nmadray"},
+  {"state": "NC", "name": "Novant Health", "am": "Steve Libera", "received": "2025-10-31", "deliverables": "SRMS to RMS to Nucleus RMS", "status": "Ongoing", "pm": "Travis Pruitt", "it": "Dale Ring", "cad": "Other or NA", "rms": "Amanda McKenzie", "jms": "", "mdis": "", "hardware": "", "notes": "NOVANT has signed proposals and issued PO have a call scheduled on 06/18 to get this back moving forward.", "updated": "2026-06-13 10:38:20 — tpruitt"},
+  {"state": "NC", "name": "Rutherford Co", "am": "Steve Libera", "received": "2025-09-24", "deliverables": "CAD,MDIS,JMS, New RMS, QMS, Conversions", "status": "Scheduled", "pm": "Nick Madray", "it": "Fernando Ponce", "cad": "Zach Perkins", "rms": "Amanda McKenzie, Jonathan Bledsoe", "jms": "Jeanie West", "mdis": "Fernando Ponce, Brian Sharpe", "hardware": "Shipped", "notes": "JMS End user in progress. JMS Go Live date moved forward to 07/21/26. CAD, RMS, MDIS training scheduled for most of the month of August, Go Live is 09/01/26", "updated": "2026-07-09 12:14:45 — dbarcus"},
+  {"state": "NC", "name": "Spindale PD", "am": "Steve Libera", "received": "2025-09-25", "deliverables": "Return to RMS", "status": "Scheduled", "pm": "Nick Madray", "it": "Fernando Ponce", "cad": "Other or NA", "rms": "Amanda McKenzie, Jonathan Bledsoe", "jms": "", "mdis": "", "hardware": "None", "notes": "End User scheduled, Go Live is 09/01/26.", "updated": "2026-07-09 12:14:37 — dbarcus"},
+  {"state": "SC", "name": "Chesterfield CO SO", "am": "Steve Libera", "received": "2026-06-09", "deliverables": "Return to RMS w/Conv, Add MDIS", "status": "Ongoing", "pm": "Nick Madray", "it": "Joe Sharpe", "cad": "", "rms": "Amanda McKenzie", "jms": "", "mdis": "Joe Sharpe", "hardware": "", "notes": "Scheduling onsite kick-off.", "updated": "2026-06-18 09:44:08 — nmadray"},
+  {"state": "SC", "name": "Joint Base Fire and Emergeney Services", "am": "Steve Libera", "received": "2025-08-22", "deliverables": "CAD/MDS/MDIS/PSAware", "status": "Awaiting Customer Action", "pm": "Nick Madray", "it": "Joe Sharpe", "cad": "Corey Port, Hunter Phillips", "rms": "", "jms": "", "mdis": "Brian Sharpe", "hardware": "Received by Customer", "notes": "Server purchased. Delivery sometime in late July.", "updated": "2026-06-18 09:53:36 — nmadray"},
+  {"state": "SC", "name": "Society Hill PD", "am": "Steve Libera", "received": "2026-07-07", "deliverables": "RMS", "status": "Ongoing", "pm": "Nick Madray", "it": "", "cad": "", "rms": "Dee Perez", "jms": "", "mdis": "", "hardware": "", "notes": "Initial call scheduled", "updated": "2026-07-09 12:13:41 — dbarcus"},
+  {"state": "VA", "name": "Bland Co E911", "am": "Eddie Lance", "received": "2025-11-10", "deliverables": "CAD w/Conversion", "status": "Scheduled", "pm": "Dan Barcus", "it": "Dale Ring", "cad": "Zach Perkins, Corey Port", "rms": "", "jms": "", "mdis": "", "hardware": "", "notes": "Server installs complete. Most cleints as well. Alan on-site next week for PH2.", "updated": "2026-07-09 12:15:23 — dbarcus"},
+  {"state": "VA", "name": "Bland Co SO", "am": "Eddie Lance", "received": "2026-04-02", "deliverables": "RMS MDIS w/Conversion", "status": "Scheduled", "pm": "Dan Barcus", "it": "Dale Ring", "cad": "", "rms": "Alan Morgan", "jms": "", "mdis": "", "hardware": "Received by Customer", "notes": "Server installs complete. Most cleints as well. Zacha and Corey on-site next week for PH2.", "updated": "2026-07-09 12:15:14 — dbarcus"},
+  {"state": "VA", "name": "Pulaski Co E-Comm", "am": "Eddie Lance", "received": "2025-12-08", "deliverables": "CAD w/Conv", "status": "Awaiting Customer Action", "pm": "Nick Madray", "it": "Dale Ring", "cad": "Hunter Phillips", "rms": "", "jms": "", "mdis": "", "hardware": "", "notes": "Phase 2 for CAD completed. End user on-hold until RMS contract is added.", "updated": "2026-06-18 09:53:42 — nmadray"},
+  {"state": "VA", "name": "St. Paul PD", "am": "Eddie Lance", "received": "2026-07-01", "deliverables": "SAP RMS MDIS", "status": "Received", "pm": "Dan Barcus", "it": "", "cad": "", "rms": "Alan Morgan", "jms": "", "mdis": "", "hardware": "", "notes": "Initial contact made. Chief requested initial call on Fri, July 17.", "updated": "2026-07-09 11:28:15 — dbarcus"}
+];
+
+const BOARD_STATUS={
+  'Received':{c:'#64748b',label:'Received'},
+  'Ongoing':{c:'#3b82f6',label:'Ongoing'},
+  'Scheduled':{c:'#0ea5e9',label:'Scheduled'},
+  'Awaiting Customer Action':{c:'#f59e0b',label:'Awaiting Customer'},
+  'Go-Live Complete':{c:'#22c55e',label:'Go-Live Complete'}
+};
+const HW_COLOR={'Ready to Ship':'#eab308','Shipped':'#3b82f6','Received by Customer':'#22c55e','None':'#475569','':'#334155'};
+function bStat(s){const m=BOARD_STATUS[s]||{c:'#64748b',label:s||'—'};return `<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${m.c};background:${m.c}22;white-space:nowrap">${m.label}</span>`;}
+function bHw(h){const c=HW_COLOR[h]!==undefined?HW_COLOR[h]:'#334155';return h?`<span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:6px;color:${c};background:${c}22;white-space:nowrap">${h}</span>`:'<span style="color:#475569;font-size:11px">—</span>';}
+function stampNow(){try{const d=new Date();const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;}catch(e){return '';}}
+
+/* ═══════════════════════════════════════════════════════════════
+   PM STATUS BOARD · EXECUTIVE OVERVIEW · PM CONSOLE · FOLLOW-UPS
+   (all powered by the imported PM_BOARD status-board data)
+   ═══════════════════════════════════════════════════════════════ */
+let _bf={q:'',state:'',pm:'',status:'',am:''};
+function boardFiltered(){
+  const q=_bf.q.toLowerCase();
+  return PM_BOARD.map((p,i)=>({p,i})).filter(({p})=>
+    (!q||((p.name+' '+p.deliverables+' '+p.notes).toLowerCase().includes(q))) &&
+    (!_bf.state||p.state===_bf.state)&&(!_bf.pm||p.pm===_bf.pm)&&
+    (!_bf.status||p.status===_bf.status)&&(!_bf.am||p.am===_bf.am));
+}
+function boardDrawList(){
+  const rows=boardFiltered();
+  const th=(t,al='left')=>`<th style="text-align:${al};padding:7px 9px;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#64748b;border-bottom:1px solid #ffffff14;white-space:nowrap">${t}</th>`;
+  const statusSel=(p,i)=>`<select onclick="event.stopPropagation()" onchange="updateBoardStatus(${i},this.value)" class="fc" style="padding:2px 4px;font-size:11px;width:auto;background:transparent;border:1px solid #ffffff14">${Object.keys(BOARD_STATUS).map(s=>`<option ${s===p.status?'selected':''}>${s}</option>`).join('')}</select>`;
+  const hwSel=(p,i)=>`<select onclick="event.stopPropagation()" onchange="updateBoardHw(${i},this.value)" class="fc" style="padding:2px 4px;font-size:11px;width:auto;background:transparent;border:1px solid #ffffff14">${['','None','Ready to Ship','Shipped','Received by Customer'].map(s=>`<option ${s===p.hardware?'selected':''} value="${s}">${s||'—'}</option>`).join('')}</select>`;
+  const body=rows.map(({p,i})=>`<tr onclick="boardDetail(${i})" style="cursor:pointer" onmouseover="this.style.background='#ffffff06'" onmouseout="this.style.background='transparent'">
+      <td style="padding:7px 9px;font-size:12px;color:#94a3b8">${p.state}</td>
+      <td style="padding:7px 9px;font-size:12px;color:#e2e8f0;font-weight:600">${p.name}</td>
+      <td style="padding:7px 9px;font-size:12px;color:#cbd5e1">${p.pm||'—'}</td>
+      <td style="padding:7px 9px;font-size:11px;color:#94a3b8;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.deliverables}</td>
+      <td style="padding:7px 9px">${statusSel(p,i)}</td>
+      <td style="padding:7px 9px">${hwSel(p,i)}</td>
+      <td style="padding:7px 9px;font-size:10px;color:#64748b;white-space:nowrap">${(p.updated||'').split(':').slice(0,2).join(':')}</td>
+    </tr>`).join('');
+  $('bd-count').textContent=rows.length+' project'+(rows.length===1?'':'s');
+  $('bd-list').innerHTML=`<table style="width:100%;border-collapse:collapse"><thead><tr>${th('ST')}${th('Project')}${th('PM')}${th('Deliverables')}${th('Status')}${th('Hardware')}${th('Updated')}</tr></thead><tbody>${body||`<tr><td colspan="7" style="padding:20px;text-align:center;color:#64748b">No matching projects</td></tr>`}</tbody></table>`;
+}
+function renderBoard(){
+  const uniq=k=>[...new Set(PM_BOARD.map(p=>p[k]).filter(Boolean))].sort();
+  const sc=s=>PM_BOARD.filter(p=>p.status===s).length;
+  const chips=Object.keys(BOARD_STATUS).map(s=>`<span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;color:${BOARD_STATUS[s].c};background:${BOARD_STATUS[s].c}22">${BOARD_STATUS[s].label}: ${sc(s)}</span>`).join('');
+  const opts=(arr,cur)=>arr.map(v=>`<option ${v===cur?'selected':''}>${v}</option>`).join('');
+  $('content').innerHTML=`<div style="max-width:1150px;margin:0 auto;padding:16px 8px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${chips}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+      <input id="bd-q" class="fc" style="flex:1;min-width:160px" placeholder="Search projects, deliverables, notes…" value="${_bf.q}">
+      <select id="bd-state" class="fc" style="width:auto"><option value="">All states</option>${opts(uniq('state'),_bf.state)}</select>
+      <select id="bd-pm" class="fc" style="width:auto"><option value="">All PMs</option>${opts(uniq('pm'),_bf.pm)}</select>
+      <select id="bd-status" class="fc" style="width:auto"><option value="">All statuses</option>${opts(Object.keys(BOARD_STATUS),_bf.status)}</select>
+      <select id="bd-am" class="fc" style="width:auto"><option value="">All acct mgrs</option>${opts(uniq('am'),_bf.am)}</select>
+    </div>
+    <div id="bd-count" style="font-size:12px;color:#64748b;margin:0 0 8px 4px"></div>
+    <div id="bd-list" style="background:#0f172a80;border:1px solid #ffffff0f;border-radius:12px;overflow:auto"></div>
+  </div>`;
+  $('bd-q').oninput=()=>{_bf.q=$('bd-q').value;boardDrawList();};
+  $('bd-state').onchange=()=>{_bf.state=$('bd-state').value;boardDrawList();};
+  $('bd-pm').onchange=()=>{_bf.pm=$('bd-pm').value;boardDrawList();};
+  $('bd-status').onchange=()=>{_bf.status=$('bd-status').value;boardDrawList();};
+  $('bd-am').onchange=()=>{_bf.am=$('bd-am').value;boardDrawList();};
+  boardDrawList();
+}
+function updateBoardStatus(i,v){ PM_BOARD[i].status=v; PM_BOARD[i].updated=stampNow()+' — '+(S.profile?.full_name||'you'); boardDrawList(); toast('Status updated'); if($('notif-btn'))renderNotifs(); }
+function updateBoardHw(i,v){ PM_BOARD[i].hardware=v; PM_BOARD[i].updated=stampNow()+' — '+(S.profile?.full_name||'you'); boardDrawList(); toast('Hardware updated'); }
+function boardDetail(i){
+  const p=PM_BOARD[i];
+  const staff=[['Project Manager',p.pm],['IT Staff',p.it],['CAD Trainer',p.cad],['RMS Trainer',p.rms],['JMS Trainer',p.jms],['MDIS Trainer',p.mdis]];
+  const row=(l,v)=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid #ffffff08"><span style="font-size:12px;color:#94a3b8">${l}</span><span style="font-size:12px;color:#e2e8f0;text-align:right">${v||'—'}</span></div>`;
+  const body=`<div class="fstack" style="max-height:70vh;overflow:auto">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:4px">${bStat(p.status)}${bHw(p.hardware)}<span style="font-size:11px;color:#64748b">${p.state} · ${p.am}</span></div>
+    <div class="fg"><label class="fl">Deliverables</label><p>${p.deliverables}</p></div>
+    <div class="fg"><label class="fl">Date received</label><p>${p.received||'—'}</p></div>
+    <div class="fg"><label class="fl">Staffing</label><div>${staff.map(([l,v])=>row(l,v)).join('')}</div></div>
+    <div class="fg"><label class="fl">Notes</label><textarea class="fc" id="bd-notes" rows="4">${p.notes||''}</textarea></div>
+    <div style="font-size:11px;color:#64748b">Last updated: ${p.updated||'—'}</div>
+  </div>`;
+  showModal('📋 '+p.name, body, `<button class="btn btn-primary btn-sm" onclick="saveBoardNotes(${i})">Save notes</button>`);
+}
+function saveBoardNotes(i){ const t=$('bd-notes'); if(t){ PM_BOARD[i].notes=t.value.trim(); PM_BOARD[i].updated=stampNow()+' — '+(S.profile?.full_name||'you'); toast('Saved'); } closeModal(); if(S.view==='board') boardDrawList(); }
+
+function barChart(title,data){
+  const max=Math.max(1,...data.map(d=>d.value));
+  return `<div style="background:#0f172a80;border:1px solid #ffffff0f;border-radius:14px;padding:16px 18px"><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;margin-bottom:12px">${title}</div>${data.map(d=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div style="width:135px;min-width:135px;font-size:12px;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.label}</div><div style="flex:1;background:#ffffff0d;border-radius:5px;height:16px;overflow:hidden"><div style="height:100%;width:${d.value/max*100}%;background:${d.color||'#3b82f6'};border-radius:5px"></div></div><div style="width:26px;text-align:right;font-size:12px;font-weight:700;color:#e2e8f0">${d.value}</div></div>`).join('')}</div>`;
+}
+function renderExec(){
+  const rows=PM_BOARD;
+  const by=k=>{const m={};rows.forEach(r=>{const v=r[k]||'—';m[v]=(m[v]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1]);};
+  const sc=s=>rows.filter(r=>r.status===s).length;
+  const hwPend=rows.filter(r=>['Ready to Ship','Shipped'].includes(r.hardware)).length;
+  const tiles=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">
+    ${statTile(rows.length,'Active projects','#3b82f6')}
+    ${statTile(sc('Awaiting Customer Action'),'Awaiting customer','#f59e0b')}
+    ${statTile(sc('Scheduled'),'Scheduled','#0ea5e9')}
+    ${statTile(sc('Go-Live Complete'),'Go-live complete','#22c55e')}
+    ${statTile(hwPend,'Hardware to ship','#eab308')}</div>`;
+  const pal=['#3b82f6','#22c55e','#f59e0b','#a855f7','#ef4444','#06b6d4','#ec4899','#eab308'];
+  const statusData=Object.keys(BOARD_STATUS).map(s=>({label:BOARD_STATUS[s].label,value:sc(s),color:BOARD_STATUS[s].c})).filter(d=>d.value);
+  const stateData=by('state').map((e,i)=>({label:e[0],value:e[1],color:pal[i%pal.length]}));
+  const pmData=by('pm').map((e,i)=>({label:e[0],value:e[1],color:pal[i%pal.length]}));
+  const amData=by('am').map((e,i)=>({label:e[0],value:e[1],color:pal[i%pal.length]}));
+  $('content').innerHTML=`<div style="max-width:1050px;margin:0 auto;padding:20px 8px">${tiles}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      ${barChart('By status',statusData)}
+      ${barChart('By state',stateData)}
+      ${barChart('By project manager',pmData)}
+      ${barChart('By account manager',amData)}
+    </div></div>`;
+}
+
+function renderPMConsole(){
+  const pms=[...new Set(PM_BOARD.map(p=>p.pm).filter(Boolean))].sort();
+  const me=S.profile?.full_name;
+  if(!_bf.pmc) _bf.pmc = pms.includes(me)?me:pms[0];
+  $('content').innerHTML=`<div style="max-width:1000px;margin:0 auto;padding:18px 8px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <span style="font-size:13px;color:#94a3b8">Project manager:</span>
+      <select id="pmc-sel" class="fc" style="width:auto">${pms.map(p=>`<option ${p===_bf.pmc?'selected':''}>${p}</option>`).join('')}</select>
+    </div><div id="pmc-body"></div></div>`;
+  const draw=()=>{
+    const pm=_bf.pmc; const mine=PM_BOARD.map((p,i)=>({p,i})).filter(({p})=>p.pm===pm);
+    const attn=mine.filter(({p})=>['Awaiting Customer Action','Received'].includes(p.status) || ['Ready to Ship'].includes(p.hardware));
+    const tile=(n,l,c)=>statTile(n,l,c);
+    const card=({p,i})=>`<div onclick="boardDetail(${i})" style="background:#0f172a80;border:1px solid #ffffff0f;border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer" onmouseover="this.style.background='#0f172acc'" onmouseout="this.style.background='#0f172a80'">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><div style="font-weight:600;color:#e2e8f0;flex:1">${p.name} <span style="font-size:11px;color:#64748b">· ${p.state}</span></div>${bStat(p.status)}${bHw(p.hardware)}</div>
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:3px">${p.deliverables}</div>
+        <div style="font-size:12px;color:#cbd5e1">${p.notes||''}</div></div>`;
+    const attnHtml=attn.length?attn.map(x=>{const p=x.p;const why=p.status==='Awaiting Customer Action'?'Waiting on customer':p.status==='Received'?'New — needs kickoff':'Hardware ready to ship';return `<div onclick="boardDetail(${x.i})" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:9px;cursor:pointer" onmouseover="this.style.background='#ffffff08'" onmouseout="this.style.background='transparent'"><span style="font-size:11px;font-weight:700;color:#f59e0b;min-width:150px">${why}</span><span style="font-size:13px;color:#e2e8f0;flex:1">${p.name}</span><span style="font-size:11px;color:#64748b">${p.state}</span></div>`;}).join(''):'<div style="padding:14px;color:#64748b;font-size:13px">Nothing needs attention 🎉</div>';
+    $('pmc-body').innerHTML=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px">${tile(mine.length,'My projects','#3b82f6')}${tile(mine.filter(({p})=>p.status==='Awaiting Customer Action').length,'Awaiting customer','#f59e0b')}${tile(mine.filter(({p})=>p.status==='Scheduled').length,'Scheduled','#0ea5e9')}${tile(mine.filter(({p})=>p.hardware==='Ready to Ship').length,'Hardware to ship','#eab308')}</div>
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#f59e0b;margin:0 0 8px 4px">⚡ Needs attention</div>
+      <div style="background:#0f172a80;border:1px solid #ffffff0f;border-radius:12px;padding:5px;margin-bottom:22px">${attnHtml}</div>
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin:0 0 8px 4px">My projects (${mine.length})</div>
+      ${mine.map(card).join('')||'<div style="color:#64748b">No projects.</div>'}`;
+  };
+  $('pmc-sel').onchange=()=>{_bf.pmc=$('pmc-sel').value;draw();};
+  draw();
+}
+
+function renderFollowup(){
+  const waiting=PM_BOARD.map((p,i)=>({p,i})).filter(({p})=>p.status==='Awaiting Customer Action');
+  const newp=PM_BOARD.map((p,i)=>({p,i})).filter(({p})=>p.status==='Received');
+  const item=({p,i})=>`<div onclick="boardDetail(${i})" style="display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border-radius:9px;cursor:pointer" onmouseover="this.style.background='#ffffff06'" onmouseout="this.style.background='transparent'">
+      <div style="min-width:140px"><div style="font-size:13px;font-weight:600;color:#e2e8f0">${p.name}</div><div style="font-size:11px;color:#64748b">${p.state} · PM ${p.pm}</div></div>
+      <div style="flex:1;font-size:12px;color:#cbd5e1">${p.notes||'—'}</div>
+      <div style="font-size:10px;color:#475569;white-space:nowrap">${(p.updated||'').split(' ')[0]}</div></div>`;
+  const sect=(title,arr,color)=>arr.length?`<div style="margin-bottom:22px"><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${color};margin:0 0 8px 4px">${title} (${arr.length})</div><div style="background:#0f172a80;border:1px solid #ffffff0f;border-radius:12px;padding:5px">${arr.map(item).join('')}</div></div>`:'';
+  $('content').innerHTML=`<div style="max-width:900px;margin:0 auto;padding:20px 8px">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px">${statTile(waiting.length,'Awaiting customer','#f59e0b')}${statTile(newp.length,'New — need first contact','#3b82f6')}</div>
+    ${sect('⏳ Waiting on customer — follow up',waiting,'#f59e0b')}
+    ${sect('📥 New — needs initial contact',newp,'#3b82f6')}
+    ${!waiting.length&&!newp.length?'<div class="empty"><div class="empty-i">🎉</div><div class="empty-h">No customer follow-ups pending</div></div>':''}
+  </div>`;
+}
+
 function navigate(v, extra={}) {
   S.view = v;
   document.querySelectorAll('.sb-item[data-v]').forEach(i=>i.classList.toggle('active',i.dataset.v===v));
@@ -1828,6 +2008,7 @@ function navigate(v, extra={}) {
   ({dashboard:renderDash, mine:renderMine, calendar:renderCal,
     workload:renderWorkload, golive:renderGoLive, triage:renderTriage,
     timeline:renderTimeline, reports:renderReports, alltasks:renderAllTasks,
+    board:renderBoard, exec:renderExec, pmconsole:renderPMConsole, followup:renderFollowup,
     projects:renderProjects, customers:renderCustomers,
     issues:renderIssues, team:renderTeam, handbook:renderHandbook,
     activity:renderActivity, admin:renderAdmin})[v]?.(extra);
