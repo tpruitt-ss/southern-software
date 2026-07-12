@@ -618,18 +618,20 @@ function dueTag(d) {
 const PREVIEW_PASSWORD = 'ss2026preview';  // ← change this to whatever you want
 
 async function doPreviewLogin() {
-  const pw = $('preview-pw')?.value || '';
+  const inp = $('preview-pw');
+  const pw = inp ? inp.value.trim() : '';
   if(pw !== PREVIEW_PASSWORD) {
-    $('preview-pw').style.borderColor = 'var(--red)';
-    $('preview-pw').placeholder = 'Wrong password — try again';
-    $('preview-pw').value = '';
+    if(inp) {
+      inp.style.borderColor = 'var(--red)';
+      inp.value = '';
+      inp.placeholder = 'Wrong password — try again';
+      setTimeout(() => { inp.style.borderColor=''; inp.placeholder='Enter preview password'; }, 2000);
+    }
     return;
   }
-  // Mock user for preview
-  S.user = {
-    id: 'preview-user-id',
-    email: 'tpruitt@southernsoftware.com',
-  };
+  S.user = { id: 'preview-user-id', email: 'tpruitt@southernsoftware.com' };
+  sessionStorage.setItem('ss-preview-session', 'ok');
+  sessionStorage.setItem('ss-preview-user', JSON.stringify(S.user));
   $('login-wrap').style.display = 'none';
   $('app').style.display = 'flex';
   await reload();
@@ -638,7 +640,6 @@ async function doPreviewLogin() {
 }
 
 async function boot() {
-  // Check if already logged in this session
   const session = sessionStorage.getItem('ss-preview-session');
   if(session === 'ok') {
     S.user = JSON.parse(sessionStorage.getItem('ss-preview-user') || '{}');
@@ -655,28 +656,6 @@ async function boot() {
 function showLogin() {
   $('login-wrap').style.display = 'flex';
   $('app').style.display = 'none';
-}
-
-// Save session so refresh doesn't log you out
-const _origDoPreviewLogin = doPreviewLogin;
-async function doPreviewLogin() {
-  const pw = $('preview-pw')?.value || '';
-  if(pw !== PREVIEW_PASSWORD) {
-    const inp = $('preview-pw');
-    inp.style.borderColor = 'var(--red)';
-    inp.placeholder = 'Wrong password — try again';
-    inp.value = '';
-    setTimeout(() => { inp.style.borderColor = ''; inp.placeholder = 'Enter preview password'; }, 2000);
-    return;
-  }
-  S.user = { id: 'preview-user-id', email: 'tpruitt@southernsoftware.com' };
-  sessionStorage.setItem('ss-preview-session', 'ok');
-  sessionStorage.setItem('ss-preview-user', JSON.stringify(S.user));
-  $('login-wrap').style.display = 'none';
-  $('app').style.display = 'flex';
-  await reload();
-  setupNav();
-  navigate('dashboard');
 }
 
 $('sb-signout').onclick = () => {
