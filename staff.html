@@ -666,9 +666,12 @@ textarea.fc{resize:vertical;min-height:72px}
         <div class="sb-item active" data-v="dashboard"><span class="i">📊</span>Dashboard</div>
         <div class="sb-item" data-v="mine"><span class="i">✅</span>My Tasks<span class="sb-badge" id="mine-badge" style="display:none"></span></div>
         <div class="sb-item" data-v="calendar"><span class="i">📅</span>Calendar</div>
+        <div class="sb-item" data-v="workload"><span class="i">⚖️</span>Team Workload</div>
 
         <div class="sb-label">Projects</div>
         <div class="sb-item" data-v="projects"><span class="i">📁</span>All Projects</div>
+        <div class="sb-item" data-v="golive"><span class="i">🚀</span>Go-Live Schedule</div>
+        <div class="sb-item" data-v="triage"><span class="i">📥</span>Unassigned<span class="sb-badge" id="triage-badge" style="display:none"></span></div>
         <div class="sb-item" data-v="customers"><span class="i">🏛️</span>Customers</div>
         <div class="sb-item" data-v="issues"><span class="i">🐛</span>Bug Tracker</div>
         <div class="sb-item" data-v="team"><span class="i">👥</span>Team</div>
@@ -1356,6 +1359,7 @@ function setupNav() {
 
 const VIEW_TITLES = { handbook:'Employee Handbook', activity:'Activity Feed', admin:'Admin Panel',
   dashboard:'Dashboard', mine:'My Tasks', calendar:'Calendar',
+  workload:'Team Workload', golive:'Go-Live Schedule', triage:'Unassigned Tasks',
   projects:'Projects', customers:'Customers', issues:'Bug & Issue Tracker', team:'Team',
 };
 
@@ -1395,6 +1399,97 @@ function renderActivity(){
   $('content').innerHTML=html;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   NEW VIEWS: Team Workload · Go-Live Schedule · Unassigned Triage
+   plus shared "is this mine / how many days" helpers.
+   ═══════════════════════════════════════════════════════════════ */
+function isMine(t){ return t.assignee_id===S.user?.id || (S.profile && t.assignee_name===S.profile.full_name); }
+function daysUntil(d){ if(!d) return null; return Math.round((new Date(d+'T12:00:00')-new Date(today()+'T12:00:00'))/86400000); }
+function inNextDays(d,n){ const du=daysUntil(d); return du!==null && du>=0 && du<=n; }
+function statTile(n,l,col){ return `<div style="flex:1;min-width:120px;background:#0f172a80;border:1px solid #ffffff0f;border-radius:14px;padding:14px 16px"><div style="font-size:26px;font-weight:800;color:${col}">${n}</div><div style="font-size:12px;color:#94a3b8;margin-top:2px">${l}</div></div>`; }
+
+function updateSidebarBadges(){
+  const mineN=S.tasks.filter(t=>isMine(t)&&!['done','na'].includes(t.status)).length;
+  const triN=S.tasks.filter(t=>!['done','na'].includes(t.status)&&!t.assignee_name&&!t.assignee_id).length;
+  const mb=$('mine-badge'); if(mb){ mb.style.display=mineN?'':'none'; mb.textContent=mineN; }
+  const tb=$('triage-badge'); if(tb){ tb.style.display=triN?'':'none'; tb.textContent=triN; }
+}
+
+function renderWorkload(){
+  const open = S.tasks.filter(t=>!['done','na'].includes(t.status));
+  const map=new Map();
+  open.forEach(t=>{
+    const name=t.assignee_name || (t.assignee_id&&getP(t.assignee_id)?.full_name) || '(Unassigned)';
+    if(!map.has(name)) map.set(name,{name,total:0,overdue:0,waiting:0,inprogress:0,todo:0,blocked:0,tasks:[]});
+    const r=map.get(name); r.total++; r.tasks.push(t);
+    if(isOver(t.due_date)) r.overdue++;
+    if(t.status==='waiting_customer'||t.status==='waiting_vendor') r.waiting++;
+    else if(t.status==='inprogress') r.inprogress++;
+    else if(t.status==='blocked') r.blocked++;
+    else if(t.status==='todo') r.todo++;
+  });
+  const rows=[...map.values()].sort((a,b)=>b.total-a.total);
+  const max=Math.max(1,...rows.map(r=>r.total));
+  const unassigned=map.get('(Unassigned)')?.total||0;
+  const people=rows.filter(r=>r.name!=='(Unassigned)').length;
+  const overdueTotal=rows.reduce((s,r)=>s+r.overdue,0);
+  const badge=(n,l,col)=> n?`<span title="${l}" style="font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;color:${col};background:${col}22;white-space:nowrap">${n} ${l}</span>`:'';
+  const seg=(n,col)=> n?`<div style="width:${n/max*100}%;background:${col}"></div>`:'';
+  const bar=r=>`<div style="display:flex;height:8px;border-radius:6px;overflow:hidden;background:#ffffff10;width:100%">${seg(r.overdue,'#ef4444')}${seg(r.inprogress,'#3b82f6')}${seg(r.waiting,'#f59e0b')}${seg(r.blocked,'#a855f7')}${seg(r.todo,'#64748b')}</div>`;
+  const taskLi=t=>{const p=S.projects.find(x=>x.id===t.project_id);return `<div onclick="event.stopPropagation();openPanel('${t.id}')" style="display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:8px;cursor:pointer" onmouseover="this.style.background='#ffffff08'" onmouseout="this.style.background='transparent'"><div style="flex:1;min-width:0;font-size:12px;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</div><span class="mt-proj">${p?.customers?.name||p?.name||''}</span>${dueTag(t.due_date)}</div>`;};
+  const rowHtml=r=>`<div style="background:#0f172a80;border:1px solid #ffffff0f;border-radius:12px;margin-bottom:8px">
+     <div onclick="var b=this.parentElement.querySelector('.wl-tasks');b.style.display=b.style.display==='none'?'block':'none';" style="display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer">
+       ${r.name==='(Unassigned)'?'<div class="ava" style="width:34px;height:34px;font-size:13px;background:#475569">—</div>':avaByName(r.name,34)}
+       <div style="width:150px;min-width:150px"><div style="font-size:13px;font-weight:600;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.name}</div><div style="font-size:11px;color:#64748b">${r.total} open</div></div>
+       <div style="flex:1">${bar(r)}</div>
+       <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;min-width:190px">${badge(r.overdue,'overdue','#ef4444')}${badge(r.inprogress,'active','#3b82f6')}${badge(r.waiting,'waiting','#f59e0b')}${badge(r.blocked,'blocked','#a855f7')}</div>
+     </div>
+     <div class="wl-tasks" style="display:none;padding:4px 8px 10px 8px;border-top:1px solid #ffffff0f">${r.tasks.slice().sort((a,b)=>(a.due_date||'9999').localeCompare(b.due_date||'9999')).map(taskLi).join('')}</div>
+   </div>`;
+  const tiles=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">${statTile(open.length,'Open tasks','#3b82f6')}${statTile(people,'People with work','#22c55e')}${statTile(overdueTotal,'Overdue','#ef4444')}${statTile(unassigned,'Unassigned','#f59e0b')}</div>`;
+  $('content').innerHTML=`<div style="max-width:1000px;margin:0 auto;padding:20px 8px">${tiles}<div style="font-size:12px;color:#64748b;margin:0 0 10px 4px">Click a person to see their open tasks. Bar mix: <span style="color:#ef4444">overdue</span> · <span style="color:#3b82f6">in progress</span> · <span style="color:#f59e0b">waiting</span> · <span style="color:#a855f7">blocked</span> · <span style="color:#64748b">to do</span>.</div>${rows.map(rowHtml).join('')}</div>`;
+}
+
+function renderGoLive(){
+  const projs = S.projects.filter(p=>!['complete','cancelled'].includes(p.status))
+    .map(p=>({p,date:p.go_live||p.target_date})).filter(x=>x.date)
+    .sort((a,b)=>a.date.localeCompare(b.date));
+  const overdue=projs.filter(x=>isOver(x.date)).length;
+  const next30=projs.filter(x=>inNextDays(x.date,30)).length;
+  const health=d=>{ const du=daysUntil(d); if(du<0) return ['#ef4444','Past due']; if(du===0) return ['#f59e0b','Today']; if(du<=14) return ['#f59e0b',du+'d left']; if(du<=45) return ['#eab308',du+'d left']; return ['#22c55e',du+'d left']; };
+  const card=x=>{ const p=x.p, date=x.date, [col,lbl]=health(date), prog=projProgress(p.id);
+    const prods=(Array.isArray(p.products)?p.products.join(', '):p.products)||p.type||'';
+    return `<div onclick="openProject('${p.id}')" style="display:flex;align-items:center;gap:14px;padding:12px 14px;background:#0f172a80;border:1px solid #ffffff0f;border-left:3px solid ${col};border-radius:12px;margin-bottom:8px;cursor:pointer" onmouseover="this.style.background='#0f172acc'" onmouseout="this.style.background='#0f172a80'">
+      <div style="text-align:center;min-width:60px"><div style="font-size:13px;font-weight:800;color:${col}">${fmt(date)}</div><div style="font-size:10px;color:#64748b">${new Date(date+'T12:00:00').getFullYear()}</div></div>
+      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div><div style="font-size:11px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.customers?.name||''}${prods?' · '+prods:''}</div></div>
+      <div style="width:110px"><div style="height:6px;background:#ffffff10;border-radius:4px;overflow:hidden"><div style="height:100%;width:${prog}%;background:${col}"></div></div><div style="font-size:10px;color:#64748b;margin-top:3px;text-align:right">${prog}% done</div></div>
+      <span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${col};background:${col}22;white-space:nowrap;min-width:66px;text-align:center">${lbl}</span>
+    </div>`; };
+  const tiles=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">${statTile(projs.length,'Scheduled go-lives','#3b82f6')}${statTile(next30,'Next 30 days','#f59e0b')}${statTile(overdue,'Past due','#ef4444')}</div>`;
+  const body= projs.length? projs.map(card).join('') : `<div class="empty"><div class="empty-i">🚀</div><div class="empty-h">No go-live dates set</div><div>Add a target date to projects to see them here.</div></div>`;
+  $('content').innerHTML=`<div style="max-width:900px;margin:0 auto;padding:20px 8px">${tiles}${body}</div>`;
+}
+
+function renderTriage(){
+  const open = S.tasks.filter(t=>!['done','na'].includes(t.status) && !t.assignee_name && !t.assignee_id);
+  if(!open.length){
+    $('content').innerHTML=`<div style="max-width:900px;margin:0 auto;padding:20px 8px"><div class="empty"><div class="empty-i">🎉</div><div class="empty-h">Nothing unassigned</div><div>Every open task has an owner.</div></div></div>`;
+    return;
+  }
+  const byProj=new Map();
+  open.forEach(t=>{ const p=S.projects.find(x=>x.id===t.project_id); const key=p?p.id:'none'; if(!byProj.has(key)) byProj.set(key,{proj:p,tasks:[]}); byProj.get(key).tasks.push(t); });
+  const groups=[...byProj.values()].sort((a,b)=>b.tasks.length-a.tasks.length);
+  const row=t=>`<div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:8px" onmouseover="this.style.background='#ffffff06'" onmouseout="this.style.background='transparent'">
+     <div style="flex:1;min-width:0;cursor:pointer" onclick="openPanel('${t.id}')"><div style="font-size:13px;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</div></div>
+     ${sc(t.status)}
+     ${dueTag(t.due_date)}
+     <button class="btn btn-ghost btn-sm" onclick="showAssignDropdown('${t.id}', event)">＋ Assign</button>
+   </div>`;
+  const group=g=>`<div style="margin-bottom:18px"><div style="font-size:12px;font-weight:700;color:#cbd5e1;margin:0 0 6px 4px">${g.proj?(g.proj.customers?.name||g.proj.name):'No project'} <span style="color:#475569">(${g.tasks.length})</span></div><div style="background:#0f172a80;border:1px solid #ffffff0f;border-radius:12px;padding:5px">${g.tasks.map(row).join('')}</div></div>`;
+  const tiles=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px">${statTile(open.length,'Unassigned tasks','#f59e0b')}${statTile(groups.length,'Projects affected','#3b82f6')}</div>`;
+  $('content').innerHTML=`<div style="max-width:900px;margin:0 auto;padding:20px 8px">${tiles}${groups.map(group).join('')}</div>`;
+}
+
 function navigate(v, extra={}) {
   S.view = v;
   document.querySelectorAll('.sb-item[data-v]').forEach(i=>i.classList.toggle('active',i.dataset.v===v));
@@ -1402,9 +1497,11 @@ function navigate(v, extra={}) {
   $('topbar-actions').innerHTML = '';
   closePanel();
   ({dashboard:renderDash, mine:renderMine, calendar:renderCal,
+    workload:renderWorkload, golive:renderGoLive, triage:renderTriage,
     projects:renderProjects, customers:renderCustomers,
     issues:renderIssues, team:renderTeam, handbook:renderHandbook,
     activity:renderActivity, admin:renderAdmin})[v]?.(extra);
+  updateSidebarBadges();
 }
 
 
@@ -1553,33 +1650,34 @@ function renderDash() {
 
 // ── MY TASKS ──────────────────────────────────────────────────
 function renderMine() {
-  const tasks = S.tasks.filter(t=>t.assignee_id===S.user.id && !['done','na'].includes(t.status));
-  const groups = [
-    {s:'blocked',      label:'🔴 Blocked'},
-    {s:'inprogress',   label:'🔵 In Progress'},
-    {s:'waiting_customer', label:'🟡 Waiting on Customer'},
-    {s:'waiting_vendor',   label:'🟠 Waiting on Vendor'},
-    {s:'todo',         label:'⬜ To Do'},
-  ];
-  let html = '';
-  if(!tasks.length){
-    html=`<div class="empty"><div class="empty-i">✅</div><div class="empty-h">All caught up!</div><div>No open tasks assigned to you.</div></div>`;
-  } else {
-    groups.forEach(g=>{
-      const gt=tasks.filter(t=>t.status===g.s);
-      if(!gt.length) return;
-      html+=`<div class="group-label">${g.label} (${gt.length})</div>`;
-      gt.forEach(t=>{
-        const proj=S.projects.find(p=>p.id===t.project_id);
-        html+=`<div class="my-task-row" onclick="openPanel('${t.id}')">
-          <div class="task-check" data-s="${t.status}">${{done:'✓',na:'—',inprogress:'◑',blocked:'✕',waiting_customer:'⏳',waiting_vendor:'⏳'}[t.status]||''}</div>
-          <div class="mt-title">${t.title}</div>
-          <span class="mt-proj">${proj?.customers?.name||proj?.name||''}</span>
-          ${dueTag(t.due_date)}
-        </div>`;
-      });
-    });
+  // FIX: imported ClickUp tasks carry assignee_name (not assignee_id) — match on either.
+  const open = S.tasks.filter(t=>isMine(t) && !['done','na'].includes(t.status));
+  if(!open.length){
+    $('content').innerHTML=`<div class="empty"><div class="empty-i">✅</div><div class="empty-h">All caught up!</div><div>No open tasks assigned to you.</div></div>`;
+    return;
   }
+  const projName=id=>{const p=S.projects.find(x=>x.id===id);return p?.customers?.name||p?.name||'';};
+  const bucketOf=t=>{
+    if(!t.due_date) return 'nodate';
+    if(isOver(t.due_date)) return 'overdue';
+    if(isToday(t.due_date)) return 'today';
+    if(inNextDays(t.due_date,7)) return 'week';
+    return 'later';
+  };
+  const buckets=[['overdue','⚠️ Overdue','#ef4444'],['today','📌 Today','#f59e0b'],['week','🗓️ This Week','#3b82f6'],['later','🔮 Later','#94a3b8'],['nodate','🗒️ No Due Date','#64748b']];
+  const row=t=>`<div class="my-task-row" onclick="openPanel('${t.id}')" style="display:flex;align-items:center;gap:12px">
+      <div class="task-check" data-s="${t.status}">${{done:'✓',na:'—',inprogress:'◑',blocked:'⊘',waiting_customer:'⏳',waiting_vendor:'⏳'}[t.status]||''}</div>
+      <div class="mt-title" style="flex:1;min-width:0">${t.title}</div>
+      <span class="mt-proj">${projName(t.project_id)}</span>
+      ${sc(t.status)}
+      ${dueTag(t.due_date)}
+    </div>`;
+  let html='';
+  buckets.forEach(([key,label,color])=>{
+    const g=open.filter(t=>bucketOf(t)===key);
+    if(!g.length) return;
+    html+=`<div class="group-label" style="color:${color}">${label} (${g.length})</div>`+g.map(row).join('');
+  });
   $('content').innerHTML = html;
 }
 
