@@ -1281,6 +1281,8 @@ async function boot() {
     $('app').style.display = 'flex';
     await reload();
     setupNav();
+    initSearch();
+    try { applyPermissions(); } catch(e) { console.warn("permissions:",e); }
     navigate('dashboard');
     return;
   }
