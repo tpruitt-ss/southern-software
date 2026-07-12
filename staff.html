@@ -6,7 +6,17 @@
 <title>SS Staff Portal</title>
 <meta name="robots" content="noindex,nofollow">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
 <style>
+.leaflet-container{background:#0b1220 !important;font-family:inherit}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#111e35;color:#e2e8f0;box-shadow:0 4px 18px rgba(0,0,0,.5)}
+.leaflet-popup-content{font-size:13px;margin:8px 12px}
+.leaflet-bar a{background:#111e35;color:#cbd5e1;border-color:#ffffff20}
+.leaflet-bar a:hover{background:#1e293b}
+.leaflet-control-attribution{background:rgba(15,23,42,.7) !important;color:#64748b !important}
+.leaflet-control-attribution a{color:#60a5fa !important}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#06101f;--bg2:#0b1a2e;--bg3:#0f2040;--card:#111e35;
@@ -2288,31 +2298,81 @@ function renderSalesReq(){
   $('sr-s').oninput=draw; $('sr-st').onchange=draw; draw();
 }
 function showNewSalesReq(){
-  const prods=(typeof PRODUCTS!=='undefined'?PRODUCTS:['CAD','RMS','JMS','MDS','Utility Billing','Payroll']);
   const me=(S.profile&&S.profile.full_name)||'Travis Pruitt';
+  const sec=(title,inner,open)=>`<details ${open?'open':''} style="border:1px solid #ffffff12;border-radius:10px;margin-top:8px;background:#0f172a55"><summary style="cursor:pointer;padding:9px 12px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#cbd5e1;list-style:none">${title}</summary><div style="padding:6px 12px 12px">${inner}</div></details>`;
+  const mod=(id,label,num,vendor)=>`<label style="display:flex;align-items:center;gap:8px;padding:3px 0;font-size:13px;color:#cbd5e1">
+      <input type="checkbox" class="sr-mod" data-label="${label}" id="${id}"><span style="flex:1">${label}</span>
+      ${num?`<input type="number" min="0" class="fc sr-num" data-for="${id}" placeholder="#" style="width:60px;padding:3px 6px">`:''}
+      ${vendor?`<input class="fc sr-ven" data-for="${id}" placeholder="vendor" style="width:120px;padding:3px 6px">`:''}</label>`;
+  const grid=items=>`<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px">${items}</div>`;
+  const FMS=[['fmsGL','General Ledger'],['fmsAP','Accounts Payable / Positive Pay'],['fmsAR','Accounts Receivable'],
+    ['fmsPR','Payroll'],['fmsPRint','Payroll Interface',0,1],['fmsTC','Time Clock Interface',0,1],
+    ['fmsUB','Utility Billing'],['fmsUBint','UB Interface',0,1],['fmsMeter','Meter Reading',1],
+    ['fmsTPP','Third-Party Payment (Invoice Cloud)'],['fmsUBexp','UB Bill Export',0,1],
+    ['fmsTax','Tax Billing'],['fmsBL','Business License'],['fmsCash','Payment Central / Cash Mgmt'],
+    ['fmsFA','Fixed Assets'],['fmsDecals','Vehicle Decals'],['fmsMeals','Meals & Lodging'],
+    ['fmsPO','Purchase Requisition'],['fmsEP','Employee Portal',1],['fmsCem','Cemetery'],
+    ['fmsHost','Include Hosting'],['fmsEmail','Email Services'],
+    ['fmsMagiq','Analytics Magiq'],['fmsBudget','Magiq Budgeting'],['fmsBudgetBk','Magiq Budget Book']];
+  const CAD=[['psCADf','CAD Full',1],['psCADa','CAD Admin',1],['psCADe','CAD EOC',1],['psCADrs','CAD RS',1],
+    ['psMDSf','MDS Full',1],['psMDSa','MDS Admin',1],['psGBO','Geo Back Office'],['psOps','OpsView',1],
+    ['psAware','PSAware',1],['psCC','Citizen Connect'],['psWM3','Watch Manager – 3rd Party'],['psWMss','Watch Manager – SS'],
+    ['psNCIC','NCIC'],['psAlarm','Alarm Billing'],['psCFS','CFS Interface Support',0,1],['psRadio','Radio Interface',0,1],
+    ['psCADconv','CAD Data Conversion',0,1],['psAnalytics','PS Analytics'],['psCAD247','CAD 24/7 Support']];
+  const PS=[['psRMS','RMS'],['psJMS','JMS'],['psMDIS','MDIS'],['psQM','QuarterMaster'],['psClery','Clery'],['psDE','Data Exchange (DE)']];
   showModal('New Sales Request',`<div class="fstack">
-    <div style="background:#3b82f618;border:1px solid #3b82f640;border-radius:8px;padding:7px 11px;font-size:12px;color:#93c5fd">→ This request will be sent to <b>Janet Benson</b> (Sales Administrator) for processing.</div>
-    <div class="fg"><label class="fl">Agency / Prospect *</label><input class="fc" id="nsr-agency" placeholder="e.g. Robeson County Sheriff’s Office" list="nsr-cust"><datalist id="nsr-cust">${S.customers.map(c=>`<option value="${escH(c.name)}">`).join('')}</datalist></div>
-    <div class="fg2">
-      <div class="fg"><label class="fl">Product / System *</label><select class="fc" id="nsr-product">${prods.map(p=>`<option>${escH(p)}</option>`).join('')}</select></div>
-      <div class="fg"><label class="fl">State</label><input class="fc" id="nsr-state" placeholder="NC" maxlength="4"></div>
-    </div>
+    <div style="background:#3b82f618;border:1px solid #3b82f640;border-radius:8px;padding:7px 11px;font-size:12px;color:#93c5fd">→ Routes to <b>Janet Benson</b> (Sales Administrator) for processing into a project.</div>
     <div class="fg2">
       <div class="fg"><label class="fl">Requested by</label><input class="fc" id="nsr-by" value="${escH(me)}"></div>
-      <div class="fg"><label class="fl">Est. value</label><input class="fc" id="nsr-val" placeholder="$0"></div>
+      <div class="fg"><label class="fl">FMS or PS *</label><select class="fc" id="nsr-side"><option>Public Safety</option><option>FMS</option><option>Both</option></select></div>
     </div>
-    <div class="fg"><label class="fl">Agency contact</label><input class="fc" id="nsr-contact" placeholder="Name · email · phone"></div>
-    <div class="fg"><label class="fl">Details for Janet</label><textarea class="fc" id="nsr-notes" rows="4" placeholder="What the prospect needs, timeline, licenses, hardware, etc."></textarea></div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">Request type</label><select class="fc" id="nsr-type"><option>New Customer</option><option>Add-On (current customer)</option></select></div>
+      <div class="fg"><label class="fl">Contract or Proposal</label><select class="fc" id="nsr-contract"><option>Proposal</option><option>Contract</option></select></div>
+    </div>
+    ${sec('🏛️ Customer & Contact',`
+      <div class="fg"><label class="fl">Agency / Prospect *</label><input class="fc" id="nsr-agency" placeholder="e.g. Robeson County Sheriff’s Office" list="nsr-cust"><datalist id="nsr-cust">${S.customers.map(c=>`<option value="${escH(c.name)}">`).join('')}</datalist></div>
+      <div class="fg2"><div class="fg"><label class="fl">City</label><input class="fc" id="nsr-city"></div><div class="fg"><label class="fl">State</label><input class="fc" id="nsr-state" maxlength="4"></div></div>
+      <div class="fg2"><div class="fg"><label class="fl">Agency type</label><input class="fc" id="nsr-atype" placeholder="Sheriff, PD, City…"></div><div class="fg"><label class="fl">Est. value</label><input class="fc" id="nsr-val" placeholder="$0"></div></div>
+      <div class="fg"><label class="fl">Contact (name · title)</label><input class="fc" id="nsr-contact" placeholder="Name · Title"></div>
+      <div class="fg2"><div class="fg"><label class="fl">Contact phone</label><input class="fc" id="nsr-cphone"></div><div class="fg"><label class="fl">Contact email</label><input class="fc" id="nsr-cemail"></div></div>`,true)}
+    ${sec('🛡️ Public Safety — CAD / MDS',grid(CAD.map(m=>mod(...m)).join('')),false)}
+    ${sec('🛡️ Public Safety — Other products',grid(PS.map(m=>mod(...m)).join('')),false)}
+    ${sec('🏢 FMS Products & Modules',grid(FMS.map(m=>mod(...m)).join('')),false)}
+    ${sec('🔁 Data Conversion & Involvement',`
+      <div class="fg2"><div class="fg"><label class="fl"># to Install</label><input type="number" min="0" class="fc" id="nsr-install"></div><div class="fg"><label class="fl"># to Train</label><input type="number" min="0" class="fc" id="nsr-train"></div></div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:#cbd5e1;margin-top:4px">
+        <label style="display:flex;gap:6px"><input type="checkbox" class="sr-mod" data-label="Data conversion needed" id="nsr-conv"> Data conversion</label>
+        <label style="display:flex;gap:6px"><input type="checkbox" class="sr-mod" data-label="Sales RD involved" id="nsr-rd"> RD involved</label>
+        <label style="display:flex;gap:6px"><input type="checkbox" class="sr-mod" data-label="Sales DM involved" id="nsr-dm"> DM involved</label>
+        <label style="display:flex;gap:6px"><input type="checkbox" class="sr-mod" data-label="Sales NB involved" id="nsr-nb"> NB involved</label>
+      </div>
+      <div class="fg" style="margin-top:6px"><label class="fl">Demo completed by</label><input class="fc" id="nsr-demo"></div>`,false)}
+    <div class="fg"><label class="fl">Notes / details for Janet</label><textarea class="fc" id="nsr-notes" rows="3" placeholder="Anything else Janet needs to process this…"></textarea></div>
   </div>`,`<button class="btn btn-primary btn-sm" onclick="submitSalesReq()">📤 Send to Janet</button>`);
 }
 function submitSalesReq(){
   const agency=($('nsr-agency').value||'').trim();
   if(!agency){ toast('Enter an agency or prospect name'); return; }
-  const rec={id:'req-'+Date.now(),agency:agency,state:($('nsr-state').value||'').trim(),
-    product:$('nsr-product').value,requestedBy:($('nsr-by').value||'').trim()||'Sales',
+  const mods=[...document.querySelectorAll('.sr-mod:checked')].map(cb=>{
+    const num=document.querySelector('.sr-num[data-for="'+cb.id+'"]');
+    const ven=document.querySelector('.sr-ven[data-for="'+cb.id+'"]');
+    let s=cb.dataset.label; if(num&&num.value)s+=' ×'+num.value; if(ven&&ven.value)s+=' ('+ven.value+')';
+    return s;
+  });
+  const side=$('nsr-side').value, type=$('nsr-type').value, contract=$('nsr-contract').value;
+  const inst=$('nsr-install').value, tr=$('nsr-train').value;
+  const productSummary=mods.length?mods.join(', '):side;
+  const detail=[`${type} · ${contract} · ${side}`,
+    mods.length?('Requested: '+mods.join(', ')):'',
+    (inst||tr)?`Install ${inst||0} / Train ${tr||0}`:'',
+    $('nsr-demo').value?('Demo by '+$('nsr-demo').value):'',
+    $('nsr-notes').value].filter(Boolean).join(' · ');
+  const rec={id:'req-'+Date.now(),agency,state:($('nsr-state').value||'').trim(),
+    product:(mods[0]||side),requestedBy:($('nsr-by').value||'').trim()||'Sales',
     date:today(),status:'New',assignedTo:'Janet Benson',
-    contact:($('nsr-contact').value||'').trim(),value:($('nsr-val').value||'').trim(),
-    notes:($('nsr-notes').value||'').trim()||'Sales request submitted for processing.'};
+    contact:[$('nsr-contact').value,$('nsr-cphone').value,$('nsr-cemail').value].filter(Boolean).join(' · '),
+    value:($('nsr-val').value||'').trim(),notes:detail||'Sales request submitted for processing.'};
   if(typeof SALES_REQS!=='undefined') SALES_REQS.unshift(rec);
   closeModal();
   toast('Sales request for '+agency+' sent to Janet Benson');
@@ -2434,37 +2494,58 @@ function renderMap(extra){
   const byState={}; pts.forEach(p=>{const s=p.s||'—'; byState[s]=(byState[s]||0)+1;});
   const topStates=Object.entries(byState).sort((a,b)=>b[1]-a[1]);
   $('topbar-actions').innerHTML='';
-  const proj=(la,lo)=>[ (lo+125)/59*1000, (50-la)/26*560 ];
-  // rough continental-US border waypoints [lon,lat], clockwise from NW
-  const US=[[-124.7,48.4],[-124.2,43.3],[-124.4,40.4],[-122.4,37.8],[-120.6,34.4],[-117.1,32.5],[-114.7,32.7],[-111,31.3],[-108.2,31.8],[-106.5,31.8],[-103,29],[-101.4,29.8],[-99.5,27.5],[-97.4,25.9],[-97.2,27.8],[-95.3,28.9],[-93.8,29.7],[-91.3,29.3],[-89.4,29.2],[-88,30.4],[-85.6,29.9],[-83,29.1],[-82.8,27.8],[-81.8,25.8],[-80.4,25.2],[-80.1,27],[-81.1,29.2],[-81.4,30.7],[-80.9,32],[-78.9,33.9],[-76,35],[-75.5,37],[-75.9,38.5],[-74,40.5],[-71.1,41.5],[-70.7,41.7],[-70.8,43.1],[-67,44.9],[-69.2,47.4],[-71.5,45],[-74.7,45],[-76.5,44],[-79.2,43.3],[-82.5,41.7],[-83.1,42.3],[-84.4,46.5],[-88.4,48.3],[-90,47.3],[-95.2,49],[-104,49],[-114.7,49],[-123,49]];
-  const usPath=US.map(([lo,la])=>proj(la,lo).map(n=>n.toFixed(1)).join(',')).join(' ');
-  // state label centroids from the data
-  const sc={}; pts.forEach(p=>{if(!p.s)return;(sc[p.s]=sc[p.s]||{x:0,y:0,n:0});const [x,y]=proj(p.la,p.lo);sc[p.s].x+=x;sc[p.s].y+=y;sc[p.s].n++;});
-  const stLabels=Object.entries(sc).filter(([,v])=>v.n>=3).map(([s,v])=>`<text x="${(v.x/v.n).toFixed(0)}" y="${(v.y/v.n).toFixed(0)}" fill="#64748b" font-size="13" font-weight="600" text-anchor="middle" opacity="0.8">${s}</text>`).join('');
   $('content').innerHTML=`
   <div class="toolbar">
     <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="mp-s" placeholder="Search agencies…" style="width:240px"></div>
     <select class="fc" id="mp-st" style="width:auto;padding:6px 10px"><option value="">All States</option>${states.map(s=>`<option>${s}</option>`).join('')}</select>
     <span id="mp-count" style="font-size:12px;color:#64748b;align-self:center"></span>
   </div>
-  <div style="display:flex;gap:16px;flex-wrap:wrap">
-    <div style="flex:1;min-width:520px;background:#0b1220;border:1px solid #ffffff12;border-radius:12px;padding:8px">
-      <svg id="mp-svg" viewBox="0 0 1000 560" style="width:100%;height:auto;background:#0b1220"></svg>
-    </div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+    <div style="flex:1;min-width:520px"><div id="leaflet-map" style="height:64vh;min-height:480px;border-radius:12px;overflow:hidden;border:1px solid #ffffff12"></div></div>
     <div style="width:200px">
       <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;margin:6px 0 8px 2px">By State</div>
-      ${topStates.map(([s,n])=>`<div style="display:flex;justify-content:space-between;padding:5px 8px;border-bottom:1px solid #ffffff08;font-size:13px;color:#cbd5e1"><span>${s}</span><span style="color:#60a5fa;font-weight:600">${n}</span></div>`).join('')}
+      <div style="max-height:60vh;overflow:auto">${topStates.map(([s,n])=>`<div onclick="(function(){const el=document.getElementById('mp-st');if(el){el.value='${s==='—'?'':s}';el.dispatchEvent(new Event('change'));}})()" style="display:flex;justify-content:space-between;padding:5px 8px;border-bottom:1px solid #ffffff08;font-size:13px;color:#cbd5e1;cursor:pointer">${s}<span style="color:#60a5fa;font-weight:600">${n}</span></div>`).join('')}</div>
     </div>
   </div>`;
+  // ── Fallback to SVG scatter if Leaflet didn't load ──
+  if(typeof L==='undefined'){ _renderMapSVG(pts,heat); return; }
+  try{ if(window._lmap){ window._lmap.remove(); window._lmap=null; } }catch(e){}
+  const map=L.map('leaflet-map',{zoomControl:true,attributionControl:true,scrollWheelZoom:true}).setView([37.8,-89],5);
+  window._lmap=map;
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    {maxZoom:19,subdomains:'abcd',attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+  let layer=null;
   const draw=()=>{
     const q=$('mp-s').value.toLowerCase(), st=$('mp-st').value;
     const f=pts.filter(p=>(!st||p.s===st)&&(!q||p.n.toLowerCase().includes(q)));
     $('mp-count').textContent=`${f.length} agencies`;
-    const dots=f.map(p=>{const [x,y]=proj(p.la,p.lo);
-      return heat
-        ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="14" fill="#f97316" fill-opacity="0.10"/>`
-        : `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="#3b82f6" fill-opacity="0.72" stroke="#93c5fd" stroke-width="0.4"><title>${escH(p.n)}${p.city?', '+escH(p.city):''}${p.s?' ('+p.s+')':''}</title></circle>`;}).join('');
-    $('mp-svg').innerHTML=`<rect x="0" y="0" width="1000" height="560" fill="#0b1220"/><polygon points="${usPath}" fill="#1e293b55" stroke="#334155" stroke-width="1.2"/>${stLabels}${dots}`;
+    if(layer){ map.removeLayer(layer); layer=null; }
+    if(heat){
+      layer=L.heatLayer(f.map(p=>[p.la,p.lo,0.7]),{radius:24,blur:18,maxZoom:9,minOpacity:.25,
+        gradient:{0.2:'#1d4ed8',0.4:'#22c55e',0.6:'#eab308',0.8:'#f97316',1.0:'#ef4444'}}).addTo(map);
+    } else {
+      layer=L.layerGroup(f.map(p=>L.circleMarker([p.la,p.lo],{radius:4,color:'#93c5fd',weight:.6,fillColor:'#3b82f6',fillOpacity:.75})
+        .bindPopup(`<b>${(p.n||'').replace(/</g,'&lt;')}</b>${p.city?'<br>'+p.city:''}${p.s?' ('+p.s+')':''}`))).addTo(map);
+    }
+    if(st&&f.length){ try{ map.fitBounds(L.latLngBounds(f.map(p=>[p.la,p.lo])).pad(0.2)); }catch(e){} }
+  };
+  $('mp-s').oninput=draw; $('mp-st').onchange=()=>{ if(!$('mp-st').value){ map.setView([37.8,-89],5); } draw(); };
+  setTimeout(()=>{ try{map.invalidateSize();}catch(e){} draw(); },120);
+}
+function _renderMapSVG(pts,heat){
+  const proj=(la,lo)=>[ (lo+125)/59*1000, (50-la)/26*560 ];
+  const US=[[-124.7,48.4],[-124.2,43.3],[-124.4,40.4],[-122.4,37.8],[-120.6,34.4],[-117.1,32.5],[-114.7,32.7],[-111,31.3],[-108.2,31.8],[-106.5,31.8],[-103,29],[-101.4,29.8],[-99.5,27.5],[-97.4,25.9],[-97.2,27.8],[-95.3,28.9],[-93.8,29.7],[-91.3,29.3],[-89.4,29.2],[-88,30.4],[-85.6,29.9],[-83,29.1],[-82.8,27.8],[-81.8,25.8],[-80.4,25.2],[-80.1,27],[-81.1,29.2],[-81.4,30.7],[-80.9,32],[-78.9,33.9],[-76,35],[-75.5,37],[-75.9,38.5],[-74,40.5],[-71.1,41.5],[-70.7,41.7],[-70.8,43.1],[-67,44.9],[-69.2,47.4],[-71.5,45],[-74.7,45],[-76.5,44],[-79.2,43.3],[-82.5,41.7],[-83.1,42.3],[-84.4,46.5],[-88.4,48.3],[-90,47.3],[-95.2,49],[-104,49],[-114.7,49],[-123,49]];
+  const usPath=US.map(([lo,la])=>proj(la,lo).map(n=>n.toFixed(1)).join(',')).join(' ');
+  const el=document.getElementById('leaflet-map'); if(!el) return;
+  el.style.height='auto';
+  const draw=()=>{
+    const q=($('mp-s').value||'').toLowerCase(), st=$('mp-st').value;
+    const f=pts.filter(p=>(!st||p.s===st)&&(!q||p.n.toLowerCase().includes(q)));
+    $('mp-count').textContent=`${f.length} agencies`;
+    const dots=f.map(p=>{const [x,y]=proj(p.la,p.lo);return heat
+      ?`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="14" fill="#f97316" fill-opacity="0.10"/>`
+      :`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="#3b82f6" fill-opacity="0.72" stroke="#93c5fd" stroke-width="0.4"><title>${escH(p.n)}</title></circle>`;}).join('');
+    el.innerHTML=`<svg viewBox="0 0 1000 560" style="width:100%;height:auto;background:#0b1220;border-radius:12px"><rect width="1000" height="560" fill="#0b1220"/><polygon points="${usPath}" fill="#1e293b55" stroke="#334155" stroke-width="1.2"/>${dots}</svg>`;
   };
   $('mp-s').oninput=draw; $('mp-st').onchange=draw; draw();
 }
