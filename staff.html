@@ -620,17 +620,32 @@ textarea.fc{resize:vertical;min-height:72px}
 .assign-option:hover{background:rgba(255,255,255,.07)}
 .assign-option.selected{background:rgba(46,127,212,.12);color:var(--bluel)}
 
+/* ─── ACCESSIBILITY ─────────────────────────────────────────── */
+a#skip-link{position:fixed;left:-999px;top:8px;z-index:9999;background:var(--blue);color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:14px}
+a#skip-link:focus{left:8px}
+:focus-visible{outline:2px solid var(--bluel);outline-offset:2px}
+.sb-item:focus-visible,.tab:focus-visible,.my-task-row:focus-visible,.row:focus-visible,.stat:focus-visible{outline-offset:-2px}
+.ts-btn{min-width:30px;padding:2px 7px;font-weight:700;line-height:1.2}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+
 /* ─── RESPONSIVE ───────────────────────────────────────────── */
+#mobile-menu-btn{display:none}
+#sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400}
 @media(max-width:800px){
   .shell{grid-template-columns:1fr}
-  .sidebar{display:none}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;width:250px;z-index:500;transform:translateX(-100%);transition:transform .22s ease;box-shadow:0 0 44px rgba(0,0,0,.6)}
+  .sidebar.open{transform:translateX(0)}
+  #sb-overlay.show{display:block}
+  #mobile-menu-btn{display:inline-flex}
   .dash-cols{grid-template-columns:1fr}
   .fg2{grid-template-columns:1fr}
   .panel{width:100vw}
+  #topbar-actions{flex-wrap:wrap}
 }
 </style>
 </head>
 <body>
+<a href="#content" id="skip-link">Skip to content</a>
 
 <!-- LOGIN — TEMP PREVIEW (remove before go-live) -->
 <div id="login-wrap">
@@ -653,6 +668,7 @@ textarea.fc{resize:vertical;min-height:72px}
 <!-- APP SHELL -->
 <div id="app">
   <div class="shell">
+    <div id="sb-overlay" onclick="closeSidebar()"></div>
     <aside class="sidebar">
       <div class="sb-logo" style="gap:6px;padding:.75rem .7rem">
         <img src="data:image/png;base64,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" alt="PS" style="width:26px;height:26px;object-fit:contain;flex-shrink:0">
@@ -670,8 +686,11 @@ textarea.fc{resize:vertical;min-height:72px}
 
         <div class="sb-label">Projects</div>
         <div class="sb-item" data-v="projects"><span class="i">📁</span>All Projects</div>
+        <div class="sb-item" data-v="alltasks"><span class="i">🗂️</span>All Tasks</div>
         <div class="sb-item" data-v="golive"><span class="i">🚀</span>Go-Live Schedule</div>
         <div class="sb-item" data-v="triage"><span class="i">📥</span>Unassigned<span class="sb-badge" id="triage-badge" style="display:none"></span></div>
+        <div class="sb-item" data-v="timeline"><span class="i">🗓️</span>Portfolio Timeline</div>
+        <div class="sb-item" data-v="reports"><span class="i">📈</span>Reports</div>
         <div class="sb-item" data-v="customers"><span class="i">🏛️</span>Customers</div>
         <div class="sb-item" data-v="issues"><span class="i">🐛</span>Bug Tracker</div>
         <div class="sb-item" data-v="team"><span class="i">👥</span>Team</div>
@@ -709,22 +728,33 @@ textarea.fc{resize:vertical;min-height:72px}
         <div class="sb-item" data-v="handbook"><span class="i">📖</span>Employee Handbook</div>
 
       </nav>
+      <div class="sb-textsize" style="display:flex;align-items:center;gap:6px;padding:.5rem .7rem;border-top:1px solid var(--border)">
+        <span style="font-size:11px;color:var(--muted);flex:1">Text size</span>
+        <button class="btn btn-ghost btn-sm ts-btn" onclick="setTextSize(-1)" aria-label="Decrease text size" title="Smaller text">A−</button>
+        <button class="btn btn-ghost btn-sm ts-btn" onclick="setTextSize(0)" aria-label="Reset text size" title="Reset text size">A</button>
+        <button class="btn btn-ghost btn-sm ts-btn" onclick="setTextSize(1)" aria-label="Increase text size" title="Larger text">A+</button>
+      </div>
       <div class="sb-user">
         <div class="sb-avatar" id="sb-ava">?</div>
         <div style="flex:1;min-width:0">
           <div class="sb-uname" id="sb-name">…</div>
           <div class="sb-uteam" id="sb-team"></div>
         </div>
-        <button class="sb-signout" id="sb-signout" title="Sign out">⏻</button>
+        <button class="sb-signout" id="sb-signout" title="Sign out" aria-label="Sign out">⏻</button>
       </div>
     </aside>
     <div class="main">
       <div class="topbar">
+        <button id="mobile-menu-btn" class="btn btn-ghost btn-sm" onclick="toggleSidebar()" title="Menu" aria-label="Open navigation menu" style="margin-right:.4rem">☰</button>
         <div class="topbar-title" id="topbar-title">Dashboard</div>
         <div class="gsearch-wrap" style="margin:0 .75rem">
           <span class="gsearch-icon">🔍</span>
           <input class="gsearch-input" id="gsearch" placeholder="Search tasks, projects, customers… (⌘K)">
           <div class="gsearch-results" id="gsearch-results"></div>
+        </div>
+        <div id="notif-wrap" style="position:relative;margin-right:.4rem">
+          <button id="notif-btn" class="btn btn-ghost btn-sm" style="position:relative" title="Notifications" aria-label="Notifications">🔔<span id="notif-badge" class="sb-badge" style="display:none;position:absolute;top:-5px;right:-5px"></span></button>
+          <div id="notif-panel" style="display:none;position:absolute;right:0;top:calc(100% + 6px);width:340px;max-height:440px;overflow:auto;background:#0f172a;border:1px solid #ffffff1f;border-radius:12px;box-shadow:0 14px 44px #000b;z-index:400;padding:6px"></div>
         </div>
         <div id="topbar-actions"></div>
       </div>
@@ -1186,6 +1216,7 @@ async function doPreviewLogin() {
   await reload();
   setupNav();
   initSearch();
+  initNotifs();
   try { applyPermissions(); } catch(e) { console.warn("permissions:",e); }
   navigate('dashboard');
 }
@@ -1276,6 +1307,8 @@ async function submitIntakeForm(type) {
 
 
 async function boot() {
+  const _h = window.location.hash;
+  if(_h.startsWith('#status=')){ try{ await reload(); }catch(e){} showStatusPage(decodeURIComponent(_h.replace('#status=',''))); return; }
   if(checkForForm()) return;  // Show intake form if URL has #form=
   const session = sessionStorage.getItem('ss-preview-session');
   if(session === 'ok') {
@@ -1285,6 +1318,7 @@ async function boot() {
     await reload();
     setupNav();
     initSearch();
+    initNotifs();
     try { applyPermissions(); } catch(e) { console.warn("permissions:",e); }
     navigate('dashboard');
     return;
@@ -1360,6 +1394,7 @@ function setupNav() {
 const VIEW_TITLES = { handbook:'Employee Handbook', activity:'Activity Feed', admin:'Admin Panel',
   dashboard:'Dashboard', mine:'My Tasks', calendar:'Calendar',
   workload:'Team Workload', golive:'Go-Live Schedule', triage:'Unassigned Tasks',
+  timeline:'Portfolio Timeline', reports:'Status Reports', alltasks:'All Tasks',
   projects:'Projects', customers:'Customers', issues:'Bug & Issue Tracker', team:'Team',
 };
 
@@ -1413,6 +1448,7 @@ function updateSidebarBadges(){
   const triN=S.tasks.filter(t=>!['done','na'].includes(t.status)&&!t.assignee_name&&!t.assignee_id).length;
   const mb=$('mine-badge'); if(mb){ mb.style.display=mineN?'':'none'; mb.textContent=mineN; }
   const tb=$('triage-badge'); if(tb){ tb.style.display=triN?'':'none'; tb.textContent=triN; }
+  if($('notif-btn')) renderNotifs();
 }
 
 function renderWorkload(){
@@ -1490,6 +1526,299 @@ function renderTriage(){
   $('content').innerHTML=`<div style="max-width:900px;margin:0 auto;padding:20px 8px">${tiles}${groups.map(group).join('')}</div>`;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   NEW VIEWS (batch 2): Status Reports + CSV/Print · Portfolio Timeline
+   ═══════════════════════════════════════════════════════════════ */
+function reportRows(){
+  return S.projects.map(p=>{
+    const open=S.tasks.filter(t=>t.project_id===p.id && !['done','na'].includes(t.status));
+    const overdue=open.filter(t=>isOver(t.due_date)).length;
+    const date=p.go_live||p.target_date||'';
+    return {id:p.id, customer:p.customers?.name||'', project:p.name, status:projLabel(p.status), statusRaw:p.status, progress:projProgress(p.id), open:open.length, overdue, date};
+  }).sort((a,b)=>a.customer.localeCompare(b.customer)||a.project.localeCompare(b.project));
+}
+
+function renderReports(){
+  const rows=reportRows();
+  $('topbar-actions').innerHTML=`<button class="btn btn-ghost btn-sm" onclick="printReport()">🖨 Print / PDF</button><button class="btn btn-primary btn-sm" onclick="exportReportCSV()">⬇ Export CSV</button>`;
+  const totOpen=S.tasks.filter(t=>!['done','na'].includes(t.status)).length;
+  const totOver=S.tasks.filter(t=>!['done','na'].includes(t.status)&&isOver(t.due_date)).length;
+  const atRisk=S.projects.filter(p=>['at_risk','behind'].includes(p.status)).length;
+  const tiles=`<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px">${statTile(S.projects.length,'Projects','#3b82f6')}${statTile(atRisk,'At risk / behind','#ef4444')}${statTile(totOpen,'Open tasks','#22c55e')}${statTile(totOver,'Overdue','#f59e0b')}</div>`;
+  const th=(t,al='left')=>`<th style="text-align:${al};padding:8px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#64748b;border-bottom:1px solid #ffffff14">${t}</th>`;
+  const td=(v,al='left')=>`<td style="padding:8px 10px;font-size:12px;color:#e2e8f0;border-bottom:1px solid #ffffff0a;text-align:${al}">${v}</td>`;
+  const body=rows.map(r=>`<tr onclick="openProject('${r.id}')" style="cursor:pointer" onmouseover="this.style.background='#ffffff06'" onmouseout="this.style.background='transparent'">${td(r.customer)}${td(r.project)}${td(`<span class="psb ${projColor(r.statusRaw)}">${r.status}</span>`)}${td(r.progress+'%','center')}${td(r.open,'center')}${td(r.overdue?`<span style="color:#ef4444;font-weight:700">${r.overdue}</span>`:'0','center')}${td(r.date?fmt(r.date):'—')}</tr>`).join('');
+  $('content').innerHTML=`<div style="max-width:1050px;margin:0 auto;padding:20px 8px">${tiles}<div style="background:#0f172a80;border:1px solid #ffffff0f;border-radius:14px;overflow:hidden"><table style="width:100%;border-collapse:collapse"><thead><tr>${th('Customer')}${th('Project')}${th('Status')}${th('Progress','center')}${th('Open','center')}${th('Overdue','center')}${th('Target')}</tr></thead><tbody>${body}</tbody></table></div></div>`;
+}
+
+function exportReportCSV(){
+  const rows=reportRows();
+  const head=['Customer','Project','Status','Progress %','Open Tasks','Overdue','Target/Go-Live'];
+  const esc=v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`;
+  const lines=[head.map(esc).join(',')].concat(rows.map(r=>[r.customer,r.project,r.status,r.progress,r.open,r.overdue,r.date].map(esc).join(',')));
+  const blob=new Blob([lines.join('\r\n')],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='SS-portfolio-status-'+today()+'.csv';
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  toast('CSV exported');
+}
+
+function printReport(){
+  const rows=reportRows();
+  const w=window.open('','_blank');
+  if(!w){ toast('Allow popups to print the report','err'); return; }
+  const body=rows.map(r=>`<tr><td>${r.customer}</td><td>${r.project}</td><td>${r.status}</td><td style="text-align:center">${r.progress}%</td><td style="text-align:center">${r.open}</td><td style="text-align:center">${r.overdue}</td><td>${r.date||'—'}</td></tr>`).join('');
+  w.document.write(`<html><head><title>Portfolio Status — ${today()}</title><style>body{font-family:Arial,Helvetica,sans-serif;padding:28px;color:#111}h1{font-size:18px;margin:0 0 2px}table{border-collapse:collapse;width:100%;font-size:12px;margin-top:14px}th,td{border:1px solid #cbd5e1;padding:6px 9px;text-align:left}th{background:#f1f5f9}</style></head><body><h1>Southern Software — Portfolio Status Report</h1><div style="color:#555;font-size:12px">Generated ${fmtLong(today())} · ${rows.length} projects</div><table><thead><tr><th>Customer</th><th>Project</th><th>Status</th><th>Progress</th><th>Open</th><th>Overdue</th><th>Target/Go-Live</th></tr></thead><tbody>${body}</tbody></table></body></html>`);
+  w.document.close(); w.focus(); setTimeout(()=>{ try{w.print();}catch(e){} },400);
+}
+
+function renderTimeline(){
+  const items=S.projects.filter(p=>p.status!=='cancelled').map(p=>({p,date:p.go_live||p.target_date})).filter(x=>x.date);
+  if(!items.length){ $('content').innerHTML=`<div class="empty"><div class="empty-i">🗓️</div><div class="empty-h">No dated projects</div><div>Add target dates to see the timeline.</div></div>`; return; }
+  const dates=items.map(x=>x.date).concat([today()]);
+  const min=dates.reduce((a,b)=>a<b?a:b), max=dates.reduce((a,b)=>a>b?a:b);
+  const d0=new Date(min+'T12:00:00'), start=new Date(d0.getFullYear(),d0.getMonth(),1);
+  const d1=new Date(max+'T12:00:00'), end=new Date(d1.getFullYear(),d1.getMonth()+1,0);
+  const total=(end-start)/86400000||1;
+  const pos=ds=>Math.max(0,Math.min(100,(new Date(ds+'T12:00:00')-start)/86400000/total*100));
+  const todayPos=pos(today());
+  let months=[], cur=new Date(start);
+  while(cur<=end){ const ms=cur.toISOString().split('T')[0]; months.push({label:cur.toLocaleDateString('en-US',{month:'short'}), pos:pos(ms), year:cur.getFullYear(), m:cur.getMonth()}); cur=new Date(cur.getFullYear(),cur.getMonth()+1,1); }
+  const header=`<div style="display:flex;gap:10px;margin-bottom:8px"><div style="width:210px;min-width:210px"></div><div style="position:relative;flex:1;height:20px">${months.map(m=>`<div style="position:absolute;left:${m.pos}%;font-size:10px;color:#64748b;transform:translateX(-2px)">${m.label}${m.m===0?" '"+String(m.year).slice(2):''}</div>`).join('')}<div style="position:absolute;left:${todayPos}%;font-size:9px;color:#38bdf8;transform:translateX(-50%);top:8px">▼ today</div></div></div>`;
+  const rowH=item=>{ const p=item.p, dp=pos(item.date), du=daysUntil(item.date), overdue=du<0;
+    const col= overdue?'#ef4444':(du<=14?'#f59e0b':(du<=45?'#eab308':'#22c55e'));
+    const barLeft=Math.min(todayPos,dp), barW=Math.max(Math.abs(dp-todayPos),0.6);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:5px 0">
+      <div style="width:210px;min-width:210px;font-size:12px;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${p.name}">${p.name}</div>
+      <div style="position:relative;flex:1;height:24px;background:#ffffff08;border-radius:6px;cursor:pointer" onclick="openProject('${p.id}')">
+        <div style="position:absolute;left:${todayPos}%;top:-2px;bottom:-2px;width:2px;background:#38bdf8;opacity:.4"></div>
+        <div style="position:absolute;left:${barLeft}%;width:${barW}%;top:6px;height:12px;background:${col};border-radius:6px;opacity:.85"></div>
+        <div style="position:absolute;left:${dp}%;top:4px;transform:translateX(-50%);font-size:9px;color:${col};font-weight:700;white-space:nowrap">◆ ${fmt(item.date)}</div>
+      </div>
+    </div>`; };
+  const sorted=items.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  $('content').innerHTML=`<div style="max-width:1150px;margin:0 auto;padding:20px 8px"><div style="font-size:12px;color:#64748b;margin-bottom:16px">Each bar runs from today to the project's go-live/target date. <span style="color:#22c55e">green</span> on the runway · <span style="color:#eab308">soon</span> · <span style="color:#ef4444">past due</span>. Click a bar to open the project.</div>${header}${sorted.map(rowH).join('')}</div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NEW (batch 3): Notifications bell · Customer status share · All Tasks
+   ═══════════════════════════════════════════════════════════════ */
+function buildNotifs(){
+  const n=[];
+  const openMine=S.tasks.filter(t=>isMine(t)&&!['done','na'].includes(t.status));
+  openMine.filter(t=>isOver(t.due_date)).forEach(t=>n.push({icon:'⚠️',color:'#ef4444',text:t.title,sub:'Overdue · '+fmt(t.due_date),action:`openPanel('${t.id}')`}));
+  openMine.filter(t=>t.due_date&&!isOver(t.due_date)&&inNextDays(t.due_date,3)).forEach(t=>n.push({icon:'⏰',color:'#f59e0b',text:t.title,sub:'Due '+(isToday(t.due_date)?'today':fmt(t.due_date)),action:`openPanel('${t.id}')`}));
+  if(isAdmin()||isManager()){
+    const un=S.tasks.filter(t=>!['done','na'].includes(t.status)&&!t.assignee_name&&!t.assignee_id).length;
+    if(un) n.push({icon:'📥',color:'#f59e0b',text:un+' tasks need an owner',sub:'Unassigned across projects',action:`navigate('triage')`});
+    const risk=S.projects.filter(p=>['at_risk','behind'].includes(p.status));
+    if(risk.length) n.push({icon:'🚩',color:'#ef4444',text:risk.length+' projects at risk / behind',sub:'Review portfolio status',action:`navigate('reports')`});
+    S.projects.filter(p=>!['complete','cancelled'].includes(p.status)).map(p=>({p,d:p.go_live||p.target_date})).filter(x=>x.d&&inNextDays(x.d,30)).sort((a,b)=>a.d.localeCompare(b.d)).forEach(x=>n.push({icon:'🚀',color:'#a855f7',text:'Go-live soon: '+x.p.name,sub:fmt(x.d)+(x.p.customers?.name?' · '+x.p.customers.name:''),action:`navigate('golive')`}));
+  }
+  return n;
+}
+function renderNotifs(){
+  const list=buildNotifs();
+  const badge=$('notif-badge'); if(badge){ badge.style.display=list.length?'':'none'; badge.textContent=list.length; }
+  const panel=$('notif-panel'); if(!panel) return;
+  panel.innerHTML=`<div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;padding:8px 10px">Notifications</div>`+
+    (list.length? list.map(x=>`<div onclick="closeNotifs();${x.action}" style="display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border-radius:9px;cursor:pointer" onmouseover="this.style.background='#ffffff08'" onmouseout="this.style.background='transparent'"><div style="font-size:15px">${x.icon}</div><div style="flex:1;min-width:0"><div style="font-size:13px;color:#e2e8f0">${x.text}</div><div style="font-size:11px;color:${x.color}">${x.sub}</div></div></div>`).join('')
+    : `<div style="padding:20px 10px;text-align:center;color:#64748b;font-size:13px">🎉 You're all caught up</div>`);
+}
+function closeNotifs(){ const p=$('notif-panel'); if(p) p.style.display='none'; }
+function initNotifs(){
+  const btn=$('notif-btn'); if(!btn) return;
+  btn.onclick=e=>{ e.stopPropagation(); const p=$('notif-panel'); if(p.style.display==='block'){ p.style.display='none'; } else { renderNotifs(); p.style.display='block'; setTimeout(()=>document.addEventListener('click', closeNotifs, {once:true}),0); } };
+  renderNotifs();
+}
+
+function shareStatusLink(id){
+  const url=window.location.href.split('#')[0]+'#status='+id;
+  try{ navigator.clipboard.writeText(url); toast('Status link copied — share it with the customer'); }
+  catch(e){ toast('Status link: '+url); }
+}
+function showStatusPage(projId){
+  const proj=S.projects.find(p=>p.id===projId);
+  const lw=document.getElementById('login-wrap'), app=document.getElementById('app');
+  if(lw) lw.style.display='none'; if(app) app.style.display='none';
+  const wrap=document.createElement('div'); wrap.id='status-wrap';
+  wrap.style.cssText='min-height:100vh;background:#0b1220;padding:2rem 1rem;color:#e2e8f0;font-family:system-ui,Arial,sans-serif';
+  if(!proj){ wrap.innerHTML='<div style="max-width:640px;margin:4rem auto;text-align:center"><div style="font-size:2rem">🔍</div><h2>Project not found</h2><p style="color:#94a3b8">This status link may have expired.</p></div>'; document.body.appendChild(wrap); return; }
+  const roots=S.tasks.filter(t=>t.project_id===projId && !t.parent_id);
+  const done=roots.filter(t=>t.status==='done').length;
+  const pct=Math.round(done/(roots.length||1)*100);
+  const date=proj.go_live||proj.target_date;
+  const secs=S.sections.filter(s=>s.project_id===projId).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+  const secName=s=>s.name||s.title||'Phase';
+  const phaseHtml=secs.map(s=>{
+    const st=S.tasks.filter(t=>t.section_id===s.id && !t.parent_id);
+    if(!st.length) return '';
+    const d=st.filter(t=>t.status==='done').length, p=Math.round(d/st.length*100), col= p===100?'#22c55e':(p>0?'#3b82f6':'#64748b');
+    return `<div style="background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:13px 16px;margin-bottom:10px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:600">${secName(s)}</div><div style="font-size:12px;color:${col};font-weight:700">${d}/${st.length} · ${p}%</div></div><div style="height:7px;background:#1e293b;border-radius:5px;overflow:hidden"><div style="height:100%;width:${p}%;background:${col}"></div></div></div>`;
+  }).join('');
+  const nextUp=S.tasks.filter(t=>t.project_id===projId && ['inprogress','todo','waiting_customer','waiting_vendor','blocked'].includes(t.status)).slice(0,10);
+  const sColor={active:'#22c55e',at_risk:'#f59e0b',behind:'#ef4444',on_hold:'#94a3b8',complete:'#22c55e',cancelled:'#64748b'}[proj.status]||'#3b82f6';
+  wrap.innerHTML=`<div style="max-width:760px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px"><img src="logo-mark-trans.png" alt="SS" style="width:38px;height:38px" onerror="this.style.display='none'"><div style="font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#94a3b8;font-size:13px">Southern Software · Implementation Status</div></div>
+    <h1 style="font-size:1.6rem;margin:.2rem 0 2px">${proj.name}</h1>
+    <div style="color:#94a3b8;margin-bottom:18px">${proj.customers?.name||''}${proj.customers?.state?' · '+proj.customers.state:''}</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px">
+      <div style="flex:1;min-width:120px;background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:16px"><div style="font-size:28px;font-weight:800;color:#3b82f6">${pct}%</div><div style="font-size:12px;color:#94a3b8">Complete (${done}/${roots.length})</div></div>
+      <div style="flex:1;min-width:120px;background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:16px"><div style="font-size:16px;font-weight:800;color:${sColor}">${projLabel(proj.status)}</div><div style="font-size:12px;color:#94a3b8">Status</div></div>
+      <div style="flex:1;min-width:120px;background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:16px"><div style="font-size:16px;font-weight:800;color:#a855f7">${date?fmtLong(date):'TBD'}</div><div style="font-size:12px;color:#94a3b8">Target Go-Live</div></div>
+    </div>
+    <h3 style="font-size:.95rem;color:#cbd5e1;margin:0 0 10px">Phases</h3>
+    ${phaseHtml||'<div style="color:#64748b;font-size:13px">No phases defined.</div>'}
+    <h3 style="font-size:.95rem;color:#cbd5e1;margin:22px 0 10px">In Progress &amp; Upcoming</h3>
+    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:6px">${nextUp.map(t=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #16202e"><div style="flex:1;min-width:0">${t.title}</div><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#1e293b;color:#93c5fd;white-space:nowrap">${(STATUS[t.status]||{}).label||t.status}</span></div>`).join('')||'<div style="padding:14px;color:#64748b">Nothing outstanding 🎉</div>'}</div>
+    <div style="text-align:center;color:#475569;font-size:12px;margin-top:26px">Live status as of ${fmtLong(today())} · Southern Software, Inc.</div>
+  </div>`;
+  document.body.appendChild(wrap);
+  document.title=proj.name+' — Status';
+}
+
+function renderAllTasks(){
+  const assignees=[...new Set(S.tasks.map(t=>t.assignee_name).filter(Boolean))].sort();
+  const custs=[...new Set(S.projects.map(p=>p.customers?.name).filter(Boolean))].sort();
+  const sel=new Set();
+  const presets=[['🔴 Overdue',{du:'overdue'}],['🗓️ Due this week',{du:'week'}],['📥 Unassigned',{asg:'__none'}],['⛔ Blocked',{st:'blocked'}],['⏳ Waiting on customer',{st:'waiting_customer'}],['↺ Clear',{}]];
+  $('content').innerHTML=`<div style="max-width:1050px;margin:0 auto;padding:16px 8px">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${presets.map((p,i)=>`<button class="btn btn-ghost btn-sm at-preset" data-i="${i}">${p[0]}</button>`).join('')}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+      <input id="at-q" class="fc" style="flex:1;min-width:180px" placeholder="Search tasks…">
+      <select id="at-status" class="fc" style="width:auto"><option value="">All statuses</option>${STATUS_ORDER.filter(s=>s!=='assigned').map(s=>`<option value="${s}">${STATUS[s].label}</option>`).join('')}</select>
+      <select id="at-assignee" class="fc" style="width:auto"><option value="">All assignees</option><option value="__none">Unassigned</option>${assignees.map(a=>`<option>${a}</option>`).join('')}</select>
+      <select id="at-cust" class="fc" style="width:auto"><option value="">All customers</option>${custs.map(a=>`<option>${a}</option>`).join('')}</select>
+      <select id="at-due" class="fc" style="width:auto"><option value="">Any due</option><option value="overdue">Overdue</option><option value="today">Today</option><option value="week">This week</option><option value="none">No date</option></select>
+    </div>
+    <div id="at-bulkbar" style="display:none;align-items:center;gap:10px;background:#1e293b;border:1px solid #ffffff1a;border-radius:10px;padding:8px 12px;margin-bottom:10px;flex-wrap:wrap">
+      <span id="at-selcount" style="font-size:12px;color:#cbd5e1;font-weight:600"></span>
+      <select id="at-bassign" class="fc" style="width:auto"><option value="">Assign to…</option><option value="__none">Unassigned</option>${S.profiles.map(p=>`<option value="${p.id}">${p.full_name}</option>`).join('')}</select>
+      <select id="at-bstatus" class="fc" style="width:auto"><option value="">Set status…</option>${STATUS_ORDER.filter(s=>s!=='assigned').map(s=>`<option value="${s}">${STATUS[s].label}</option>`).join('')}</select>
+      <button class="btn btn-ghost btn-sm" id="at-clearsel">Clear selection</button>
+    </div>
+    <div id="at-count" style="font-size:12px;color:#64748b;margin:0 0 8px 4px"></div>
+    <div id="at-list"></div>
+  </div>`;
+  const projOf=id=>S.projects.find(x=>x.id===id);
+  const projName=id=>{const p=projOf(id);return p?.customers?.name||p?.name||'';};
+  const updateBar=()=>{ const bar=$('at-bulkbar'); if(!bar)return; bar.style.display=sel.size?'flex':'none'; $('at-selcount').textContent=sel.size+' selected'; };
+  const draw=()=>{
+    const q=$('at-q').value.toLowerCase(), st=$('at-status').value, asg=$('at-assignee').value, cu=$('at-cust').value, du=$('at-due').value;
+    let items=S.tasks.filter(t=>!['done','na'].includes(t.status));
+    if(q) items=items.filter(t=>(t.title||'').toLowerCase().includes(q));
+    if(st) items=items.filter(t=>t.status===st);
+    if(asg==='__none') items=items.filter(t=>!t.assignee_name&&!t.assignee_id);
+    else if(asg) items=items.filter(t=>t.assignee_name===asg);
+    if(cu) items=items.filter(t=>projOf(t.project_id)?.customers?.name===cu);
+    if(du==='overdue') items=items.filter(t=>isOver(t.due_date));
+    else if(du==='today') items=items.filter(t=>isToday(t.due_date));
+    else if(du==='week') items=items.filter(t=>t.due_date&&!isOver(t.due_date)&&inNextDays(t.due_date,7));
+    else if(du==='none') items=items.filter(t=>!t.due_date);
+    const shown=items.slice(0,300);
+    $('at-count').textContent=items.length+' task'+(items.length===1?'':'s')+(items.length>300?' (showing 300)':'');
+    $('at-list').innerHTML=shown.map(t=>`<div class="my-task-row" style="display:flex;align-items:center;gap:10px"><input type="checkbox" class="at-check" data-id="${t.id}" ${sel.has(t.id)?'checked':''} style="width:15px;height:15px;flex-shrink:0;cursor:pointer"><div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;cursor:pointer" onclick="openPanel('${t.id}')">${avaByName(t.assignee_name,26)||'<div class="ava" style="width:26px;height:26px;font-size:10px;background:#475569">—</div>'}<div class="mt-title" style="flex:1;min-width:0">${t.title}</div><span class="mt-proj">${projName(t.project_id)}</span>${sc(t.status)}${dueTag(t.due_date)}</div></div>`).join('')||`<div class="empty"><div class="empty-i">🔍</div><div class="empty-h">No matching tasks</div></div>`;
+    $('at-list').querySelectorAll('.at-check').forEach(cb=>cb.onchange=()=>{ cb.checked?sel.add(cb.dataset.id):sel.delete(cb.dataset.id); updateBar(); });
+    updateBar();
+  };
+  const setF=(o={})=>{ $('at-q').value=o.q||''; $('at-status').value=o.st||''; $('at-assignee').value=o.asg||''; $('at-cust').value=o.cu||''; $('at-due').value=o.du||''; draw(); };
+  const applyStatus=(id,status)=>{ const t=S.tasks.find(x=>x.id===id); if(t)t.status=status; if(typeof DUMMY_DATA!=='undefined'){const dt=DUMMY_DATA.tasks.find(x=>x.id===id); if(dt)dt.status=status;} if(SB_URL!=='YOUR_SUPABASE_URL') db.from('tasks').update({status}).eq('id',id); };
+  const applyAssign=(id,pid)=>{ const t=S.tasks.find(x=>x.id===id); if(t)t.assignee_id=pid; if(typeof DUMMY_DATA!=='undefined'){const dt=DUMMY_DATA.tasks.find(x=>x.id===id); if(dt)dt.assignee_id=pid;} if(SB_URL!=='YOUR_SUPABASE_URL') db.from('tasks').update({assignee_id:pid}).eq('id',id); };
+  $('at-q').oninput=draw;
+  ['at-status','at-assignee','at-cust','at-due'].forEach(id=>$(id).onchange=draw);
+  document.querySelectorAll('.at-preset').forEach(b=>b.onclick=()=>setF(presets[+b.dataset.i][1]));
+  $('at-clearsel').onclick=()=>{ sel.clear(); draw(); };
+  $('at-bassign').onchange=function(){ const v=this.value; if(!v||!sel.size)return; const n=sel.size; sel.forEach(id=>applyAssign(id, v==='__none'?null:v)); toast('Assigned '+n+' task'+(n>1?'s':'')); sel.clear(); this.value=''; draw(); if($('notif-btn'))renderNotifs(); };
+  $('at-bstatus').onchange=function(){ const v=this.value; if(!v||!sel.size)return; const n=sel.size; sel.forEach(id=>applyStatus(id,v)); toast('Updated '+n+' task'+(n>1?'s':'')); sel.clear(); this.value=''; draw(); };
+  draw();
+}
+
+function toggleSidebar(){ const sb=document.querySelector('.sidebar'); const ov=$('sb-overlay'); if(!sb)return; const open=sb.classList.toggle('open'); if(ov) ov.classList.toggle('show',open); }
+function closeSidebar(){ const sb=document.querySelector('.sidebar'); const ov=$('sb-overlay'); if(sb) sb.classList.remove('open'); if(ov) ov.classList.remove('show'); }
+
+/* ═══════════════════════════════════════════════════════════════
+   PROJECT KICKOFF — generates the two PM emails (personnel request +
+   kickoff announcement) from project data. Auto-detect reads the
+   deliverables to decide needed skill areas (heuristic now; can call
+   the AI edge function on the contract at go-live).
+   ═══════════════════════════════════════════════════════════════ */
+const KICKOFF_ROLES=[
+  {key:'pm',label:'Project Manager',kw:[]},
+  {key:'it',label:'IT / MIDS',kw:['it','mids','ncic','server','host','cradlepoint','network','vpn']},
+  {key:'cad',label:'CAD',kw:['cad']},
+  {key:'rms',label:'RMS',kw:['rms']},
+  {key:'mdis',label:'MDIS / Mobile',kw:['mdis','mds','mobile']},
+  {key:'jms',label:'JMS / Jail',kw:['jms','jail']},
+  {key:'qms',label:'QMS / Nucleus',kw:['qms','nucleus']},
+  {key:'avl',label:'AVL',kw:['avl']},
+  {key:'analytics',label:'Analytics / Dashboard',kw:['analytics','dashboard']},
+];
+function showKickoff(projId){
+  const proj=S.projects.find(p=>p.id===projId); if(!proj) return;
+  proj.team=proj.team||{};
+  if(proj.team['_need_pm']===undefined) proj.team['_need_pm']=true;
+  const cust=proj.customers?.name||proj.name;
+  const deliv0=(Array.isArray(proj.products)?proj.products.join('\n'):(proj.products||proj.type||'')).toString().trim();
+  const profOpts=(selName)=>`<option value="">— select —</option>`+S.profiles.map(p=>`<option ${selName===p.full_name?'selected':''}>${p.full_name}</option>`).join('');
+  const rolesHtml=()=>KICKOFF_ROLES.map(r=>{
+    const on=!!proj.team['_need_'+r.key];
+    return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0">
+      <label style="display:flex;align-items:center;gap:6px;min-width:180px;font-size:13px;color:#e2e8f0;cursor:pointer"><input type="checkbox" class="kf-need" data-k="${r.key}" ${on?'checked':''}> ${r.label}</label>
+      <select class="kf-person fc" data-k="${r.key}" style="flex:1;${on?'':'opacity:.4'}" ${on?'':'disabled'}>${profOpts(proj.team[r.key])}</select>
+    </div>`;
+  }).join('');
+  const body=`<div class="fstack" style="max-height:72vh;overflow:auto">
+    <div class="fg"><label class="fl">Customer</label><p>${cust}</p></div>
+    <div class="fg"><label class="fl">Deliverables (one per line)</label><textarea class="fc" id="kf-deliv" rows="4">${deliv0}</textarea></div>
+    <div class="fg"><label class="fl" style="display:flex;justify-content:space-between;align-items:center">Project team <button class="btn btn-ghost btn-xs" id="kf-auto" type="button">✨ Auto-detect from deliverables</button></label>
+      <div id="kf-roles">${rolesHtml()}</div>
+    </div>
+    <div class="fg"><label class="fl" style="display:flex;justify-content:space-between;align-items:center">① Personnel request — to team leads <span><button class="btn btn-ghost btn-xs" id="kf-copy1" type="button">📋 Copy</button> <button class="btn btn-ghost btn-xs" id="kf-mail1" type="button">✉️ Open</button></span></label><textarea class="fc" id="kf-email1" rows="7" readonly style="font-size:12px"></textarea></div>
+    <div class="fg"><label class="fl" style="display:flex;justify-content:space-between;align-items:center">② Kickoff announcement — to project staff <span><button class="btn btn-ghost btn-xs" id="kf-copy2" type="button">📋 Copy</button> <button class="btn btn-ghost btn-xs" id="kf-mail2" type="button">✉️ Open</button></span></label><textarea class="fc" id="kf-email2" rows="11" readonly style="font-size:12px"></textarea></div>
+  </div>`;
+  showModal('🚀 Project Kickoff — '+proj.name, body, `<button class="btn btn-primary btn-sm" onclick="closeModal()">Done</button>`);
+  const pmName=()=> proj.team.pm || S.profile?.full_name || 'Project Manager';
+  const needed=()=>KICKOFF_ROLES.filter(r=>proj.team['_need_'+r.key]);
+  const delivLines=()=> $('kf-deliv').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const regen=()=>{
+    const dl=delivLines(), need=needed();
+    const needLabels=need.filter(r=>r.key!=='pm').map(r=>r.label).join(', ');
+    const e1=`Good morning,\n\nNew project for ${cust}. Deliverables:\n${dl.map(d=>'  • '+d).join('\n')||'  • (add deliverables)'}\n\nWe need ${needLabels||'[skill areas]'} people.\n\nThanks!\n${pmName()}`;
+    const assignLines=need.map(r=>`${r.label}: ${proj.team[r.key]||'[unassigned]'}`).join('\n');
+    const e2=`Good morning everyone,\n\nWe have received the contract for ${cust}. The deliverables listed in this contract are:\n${dl.map(d=>'  • '+d).join('\n')||'  • (add deliverables)'}\n\nCurrent Assignees:\n${assignLines||'(assign the team above)'}\n\nThe Project Manager will reach out to the customer and the Southern Software Project staff, and project scheduling will begin once payment is received.\n\nPlease let me know if you have any questions.\n\nThank you!\n${pmName()}`;
+    if($('kf-email1')) $('kf-email1').value=e1;
+    if($('kf-email2')) $('kf-email2').value=e2;
+  };
+  const rebindRoles=()=>{
+    $('kf-roles').innerHTML=rolesHtml();
+    $('kf-roles').querySelectorAll('.kf-need').forEach(cb=>cb.onchange=()=>{ proj.team['_need_'+cb.dataset.k]=cb.checked; rebindRoles(); regen(); });
+    $('kf-roles').querySelectorAll('.kf-person').forEach(se=>se.onchange=()=>{ proj.team[se.dataset.k]=se.value; regen(); });
+  };
+  rebindRoles();
+  $('kf-deliv').oninput=regen;
+  $('kf-auto').onclick=()=>{ const txt=$('kf-deliv').value.toLowerCase(); KICKOFF_ROLES.forEach(r=>{ if(r.key==='pm'){proj.team['_need_pm']=true;return;} proj.team['_need_'+r.key]=r.kw.some(k=>txt.includes(k)); }); rebindRoles(); regen(); toast('Roles detected from deliverables'); };
+  const copy=(id)=>{ try{ navigator.clipboard.writeText($(id).value); toast('Copied — paste into your email'); }catch(e){ toast('Copy not available'); } };
+  const mailto=(subject,id)=>{ window.open('mailto:?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent($(id).value)); };
+  $('kf-copy1').onclick=()=>copy('kf-email1');
+  $('kf-copy2').onclick=()=>copy('kf-email2');
+  $('kf-mail1').onclick=()=>mailto('New Project — '+cust+': staffing needed','kf-email1');
+  $('kf-mail2').onclick=()=>mailto('Contract Received — '+cust,'kf-email2');
+  regen();
+}
+
+/* ─── TEXT SIZE / ACCESSIBILITY ─────────────────────────────── */
+const TS_STEPS=[0.9,1,1.1,1.25,1.45];
+let _tsIdx=1;
+function applyTextSize(){ try{ document.documentElement.style.zoom=TS_STEPS[_tsIdx]; }catch(e){} }
+function setTextSize(dir){
+  if(dir===0) _tsIdx=1; else _tsIdx=Math.max(0,Math.min(TS_STEPS.length-1,_tsIdx+dir));
+  applyTextSize();
+  try{ localStorage.setItem('ss-textsize', String(_tsIdx)); }catch(e){}
+  const pct=Math.round(TS_STEPS[_tsIdx]*100);
+  if(typeof toast==='function') toast('Text size: '+pct+'%');
+}
+function initTextSize(){ try{ const s=localStorage.getItem('ss-textsize'); if(s!==null){ const n=parseInt(s,10); if(!isNaN(n)) _tsIdx=Math.max(0,Math.min(TS_STEPS.length-1,n)); } }catch(e){} applyTextSize(); }
+
 function navigate(v, extra={}) {
   S.view = v;
   document.querySelectorAll('.sb-item[data-v]').forEach(i=>i.classList.toggle('active',i.dataset.v===v));
@@ -1498,10 +1827,12 @@ function navigate(v, extra={}) {
   closePanel();
   ({dashboard:renderDash, mine:renderMine, calendar:renderCal,
     workload:renderWorkload, golive:renderGoLive, triage:renderTriage,
+    timeline:renderTimeline, reports:renderReports, alltasks:renderAllTasks,
     projects:renderProjects, customers:renderCustomers,
     issues:renderIssues, team:renderTeam, handbook:renderHandbook,
     activity:renderActivity, admin:renderAdmin})[v]?.(extra);
   updateSidebarBadges();
+  closeSidebar();
 }
 
 
@@ -1688,10 +2019,12 @@ function renderCal() {
     const first=new Date(yr,mo,1).getDay(), dim=new Date(yr,mo+1,0).getDate();
     const mname=new Date(yr,mo).toLocaleDateString('en-US',{month:'long',year:'numeric'});
     const all=S.tasks.filter(t=>t.due_date);
+    const golives={}; S.projects.filter(p=>!['complete','cancelled'].includes(p.status)).forEach(p=>{const gd=p.go_live||p.target_date; if(gd){(golives[gd]=golives[gd]||[]).push(p);}});
     let h=`<div class="cal-nav">
       <button class="btn btn-ghost btn-sm" onclick="calP()">◀</button>
       <div class="cal-month">${mname}</div>
       <button class="btn btn-ghost btn-sm" onclick="calN()">▶</button>
+      <span style="margin-left:auto;font-size:11px;color:#94a3b8">🚀 = project go-live</span>
     </div>
     <div class="cal-head">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-dname">${d}</div>`).join('')}</div>
     <div class="cal-grid">`;
@@ -1702,6 +2035,7 @@ function renderCal() {
       const dt=all.filter(t=>t.due_date===ds);
       h+=`<div class="cal-cell${isT?' today':''}">
         <div class="cal-dn">${d}</div>
+        ${(golives[ds]||[]).map(p=>`<div class="cal-chip" style="background:rgba(168,85,247,.22);color:#d8b4fe;border-left:2px solid #a855f7" onclick="openProject('${p.id}')" title="Go-Live: ${p.name}">🚀 ${p.customers?.name||p.name}</div>`).join('')}
         ${dt.slice(0,3).map(t=>`<div class="cal-chip ${t.status==='done'?'done':isOver(t.due_date)?'over':''}" onclick="openPanel('${t.id}')" title="${t.title}">${t.title}</div>`).join('')}
         ${dt.length>3?`<div style="font-size:9px;color:var(--dim)">+${dt.length-3} more</div>`:''}
       </div>`;
@@ -1810,6 +2144,8 @@ async function openProject(id) {
     <button class="ai-btn btn-sm" onclick="aiGoLiveChecklist('${id}',this)">🚀 Go-Live</button>
     <button class="btn btn-ghost btn-sm" onclick="exportExcel()" title="Export tasks to CSV">📊 Export</button>
     <button class="btn btn-ghost btn-sm" onclick="exportProjectPDF()" title="Print/PDF report">🖨️ Report</button>
+    <button class="btn btn-ghost btn-sm" onclick="shareStatusLink('${id}')" title="Copy customer-facing status link">🔗 Share</button>
+    <button class="btn btn-ghost btn-sm" onclick="showKickoff('${id}')" title="Generate kickoff emails">📧 Kickoff</button>
     <button class="btn btn-primary btn-sm" onclick="showAddTaskModal('${id}')">+ Task</button>`;
 
   // Load sections + tasks
@@ -2218,17 +2554,32 @@ function showCustDetail(id){
   const c=S.customers.find(x=>x.id===id);
   if(!c) return;
   const projs=S.projects.filter(p=>p.customer_id===id);
+  const projIds=projs.map(p=>p.id);
+  const openTasks=S.tasks.filter(t=>projIds.includes(t.project_id)&&!['done','na'].includes(t.status));
+  const overdue=openTasks.filter(t=>isOver(t.due_date)).length;
+  const bugs=S.issues.filter(i=>i.customer_id===id&&!['done','na'].includes(i.status));
+  const nextGo=projs.map(p=>p.go_live||p.target_date).filter(Boolean).sort()[0];
+  const allProducts=[...new Set(projs.flatMap(p=>Array.isArray(p.products)?p.products:(p.products?[p.products]:[])).concat(c.products||[]))];
+  const stat=(n,l,col)=>`<div style="flex:1;min-width:78px;background:#0f172a80;border:1px solid #ffffff0f;border-radius:10px;padding:10px 8px;text-align:center"><div style="font-size:19px;font-weight:800;color:${col}">${n}</div><div style="font-size:10px;color:#94a3b8;margin-top:1px">${l}</div></div>`;
   showModal(c.name,`
   <div class="fstack">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+      ${stat(projs.length,'Projects','#3b82f6')}
+      ${stat(openTasks.length,'Open tasks','#22c55e')}
+      ${stat(overdue,'Overdue','#ef4444')}
+      ${stat(bugs.length,'Open bugs','#f59e0b')}
+      ${stat(nextGo?fmt(nextGo):'—','Next go-live','#a855f7')}
+    </div>
     <div class="fg2">
       <div class="fg"><label class="fl">State</label><p>${c.state||'—'}</p></div>
       <div class="fg"><label class="fl">Agency Type</label><p>${c.agency_type||'—'}</p></div>
     </div>
     <div class="fg"><label class="fl">Contact</label><p>${[c.contact_name,c.contact_email,c.contact_phone].filter(Boolean).join(' · ')||'—'}</p></div>
-    ${c.products?.length?`<div class="fg"><label class="fl">Products</label><p>${c.products.join(' · ')}</p></div>`:''}
+    ${allProducts.length?`<div class="fg"><label class="fl">Products</label><p>${allProducts.join(' · ')}</p></div>`:''}
     <div class="fg"><label class="fl">Projects (${projs.length})</label>
-      ${projs.map(p=>`<div class="row" onclick="closeModal();openProject('${p.id}')"><span>📁</span><div class="row-main">${p.name}</div><span class="psb ${projColor(p.status)}">${projLabel(p.status)}</span></div>`).join('')||`<p style="color:var(--dim);font-size:13px">None yet</p>`}
+      ${projs.map(p=>{const op=S.tasks.filter(t=>t.project_id===p.id&&!['done','na'].includes(t.status)).length;const date=p.go_live||p.target_date;return `<div class="row" onclick="closeModal();openProject('${p.id}')"><span>📁</span><div class="row-main">${p.name}<div style="font-size:11px;color:var(--dim)">${projProgress(p.id)}% complete · ${op} open${date?' · '+fmt(date):''}</div></div><span class="psb ${projColor(p.status)}">${projLabel(p.status)}</span></div>`;}).join('')||`<p style="color:var(--dim);font-size:13px">None yet</p>`}
     </div>
+    ${bugs.length?`<div class="fg"><label class="fl">Open Bugs (${bugs.length})</label>${bugs.map(i=>`<div class="row" onclick="closeModal();showIssueDetail('${i.id}')"><span>🐛</span><div class="row-main">${i.title}</div>${sc(i.status)}</div>`).join('')}</div>`:''}
     ${c.notes?`<div class="fg"><label class="fl">Notes</label><p style="color:var(--muted)">${c.notes}</p></div>`:''}
   </div>`,
   `<button class="btn btn-primary btn-sm" onclick="showNewProjModal('${id}');closeModal()">+ New Project</button>`);
@@ -2869,11 +3220,7 @@ function renderPortalTiles(containerId) {
   if(c) c.parentElement.appendChild(wrap);
 }
 
-// ── BOOT ──────────────────────────────────────────────────────
-boot();
-</script>
-</body>
-</html>// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
 // KANBAN BOARD VIEW
 // ══════════════════════════════════════════════════════════════
 let _dragTaskId = null, _dragFromStatus = null;
@@ -2923,5 +3270,9 @@ async function kDrop(e,newStatus){
   renderKanban();
 }
 
-
-
+// ── BOOT ──────────────────────────────────────────────────────
+initTextSize();
+boot();
+</script>
+</body>
+</html>
