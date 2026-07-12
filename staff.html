@@ -680,6 +680,7 @@ a#skip-link:focus{left:8px}
 
         <div class="sb-label">My Work</div>
         <div class="sb-item active" data-v="overview"><span class="i">📊</span>Overview</div>
+        <div class="sb-item" data-v="mysites"><span class="i">📍</span>My Sites</div>
         <div class="sb-item" data-v="mine"><span class="i">✅</span>My Tasks<span class="sb-badge" id="mine-badge" style="display:none"></span></div>
         <div class="sb-item" data-v="alltasks"><span class="i">🗂️</span>All Tasks</div>
         <div class="sb-item" data-v="triage"><span class="i">📥</span>Unassigned<span class="sb-badge" id="triage-badge" style="display:none"></span></div>
@@ -1067,72 +1068,77 @@ function runSearch(q) {
   const r = document.getElementById('gsearch-results');
   if(!r) return;
   if(!q || q.length < 2) { r.classList.remove('open'); return; }
-  q = q.trim();
-  const ql = q.toLowerCase();
+  q = q.trim(); const ql = q.toLowerCase();
   let html = '';
+  const sect=(label,items)=>{ if(items.length){ html+=`<div class="gsearch-section">${label}</div>`+items.join(''); } };
 
-  // Projects
-  const projMatches = S.projects.filter(p =>
-    p.name.toLowerCase().includes(ql) ||
-    (p.customers?.name||'').toLowerCase().includes(ql)
-  ).slice(0,5);
-  if(projMatches.length) {
-    html += `<div class="gsearch-section">Projects</div>`;
-    html += projMatches.map(p => `
-      <div class="gsearch-item" onclick="closeSearch();openProject('${p.id}')">
-        <span style="font-size:1.1rem">📁</span>
-        <div class="gsearch-item-main">${highlight(p.name, q)}</div>
-        <div class="gsearch-item-sub">${p.customers?.name||''} · ${p.customers?.state||''}</div>
-      </div>`).join('');
-  }
-
-  // Tasks
-  const taskMatches = S.tasks.filter(t =>
-    t.title.toLowerCase().includes(ql) ||
-    (t.notes||'').toLowerCase().includes(ql)
-  ).slice(0,6);
-  if(taskMatches.length) {
-    html += `<div class="gsearch-section">Tasks</div>`;
-    html += taskMatches.map(t => {
-      const proj = S.projects.find(p => p.id === t.project_id);
-      return `<div class="gsearch-item" onclick="closeSearch();openPanel('${t.id}')">
-        <div class="task-check" data-s="${t.status}" style="width:16px;height:16px;flex-shrink:0">${t.status==='done'?'✓':''}</div>
-        <div class="gsearch-item-main">${highlight(t.title, q)}</div>
-        <div class="gsearch-item-sub">${proj?.customers?.name||proj?.name||''}</div>
-      </div>`;
-    }).join('');
-  }
-
-  // Customers
+  // 1) Customers FIRST — the spine
+  const custEx=id=>((typeof CUST_EXTRA!=='undefined'&&CUST_EXTRA[id])||{});
   const custMatches = S.customers.filter(c =>
-    c.name.toLowerCase().includes(ql) ||
-    (c.state||'').toLowerCase().includes(ql) ||
-    (c.contact_name||'').toLowerCase().includes(ql)
-  ).slice(0,4);
-  if(custMatches.length) {
-    html += `<div class="gsearch-section">Customers</div>`;
-    html += custMatches.map(c => `
-      <div class="gsearch-item" onclick="closeSearch();showCustDetail('${c.id}')">
-        <span style="font-size:1.1rem">🏛️</span>
-        <div class="gsearch-item-main">${highlight(c.name, q)}</div>
-        <div class="gsearch-item-sub">${c.state||''} · ${c.agency_type||''}</div>
-      </div>`).join('');
-  }
+    c.name.toLowerCase().includes(ql) || (c.state||'').toLowerCase().includes(ql) ||
+    (c.agency_type||'').toLowerCase().includes(ql) || (custEx(c.id).county||'').toLowerCase().includes(ql) ||
+    (custEx(c.id).account||'').toLowerCase().includes(ql)
+  ).slice(0,6);
+  sect('Customers', custMatches.map(c => {
+    const oi=(S.issues||[]).filter(i=>i.customer_id===c.id&&!['done','na'].includes(i.status)).length;
+    return `<div class="gsearch-item" onclick="closeSearch();showCustDetail('${c.id}')">
+      <span style="font-size:1.1rem">🏛️</span>
+      <div class="gsearch-item-main">${highlight(c.name, q)}</div>
+      <div class="gsearch-item-sub">${c.state||''}${c.agency_type?' · '+c.agency_type:''}${oi?' · <span style="color:#f87171">'+oi+' open</span>':''}</div>
+    </div>`; }));
 
-  // Staff
-  const staffMatches = S.profiles.filter(p =>
-    (p.full_name||'').toLowerCase().includes(ql) ||
-    (p.title||'').toLowerCase().includes(ql)
-  ).slice(0,3);
-  if(staffMatches.length) {
-    html += `<div class="gsearch-section">Staff</div>`;
-    html += staffMatches.map(p => `
-      <div class="gsearch-item" onclick="closeSearch();navigate('team')">
-        ${ava(p,22)}
-        <div class="gsearch-item-main">${highlight(p.full_name||'', q)}</div>
-        <div class="gsearch-item-sub">${p.title||''}</div>
-      </div>`).join('');
-  }
+  // 2) Projects (active + historical)
+  const allP=[...S.projects, ...(typeof SITE_PROJECTS!=='undefined'?SITE_PROJECTS:[])];
+  const cn={}; S.customers.forEach(c=>cn[c.id]=c.name);
+  const projMatches = allP.filter(p => (p.name||'').toLowerCase().includes(ql)).slice(0,5);
+  sect('Projects', projMatches.map(p => {
+    const hist=(typeof SITE_PROJECTS!=='undefined')&&SITE_PROJECTS.some(x=>x.id===p.id);
+    return `<div class="gsearch-item" onclick="closeSearch();${hist?`openSiteProject('${p.id}')`:`openProject('${p.id}')`}">
+      <span style="font-size:1.1rem">📁</span>
+      <div class="gsearch-item-main">${highlight(p.name, q)}</div>
+      <div class="gsearch-item-sub">${p.customers?.name||cn[p.customer_id]||''}</div>
+    </div>`; }));
+
+  // 3) Tasks
+  const taskMatches = S.tasks.filter(t => (t.title||'').toLowerCase().includes(ql)).slice(0,5);
+  sect('Tasks', taskMatches.map(t => {
+    const proj = S.projects.find(p => p.id === t.project_id);
+    return `<div class="gsearch-item" onclick="closeSearch();openPanel('${t.id}')">
+      <div class="task-check" data-s="${t.status}" style="width:16px;height:16px;flex-shrink:0">${t.status==='done'?'✓':''}</div>
+      <div class="gsearch-item-main">${highlight(t.title, q)}</div>
+      <div class="gsearch-item-sub">${proj?.customers?.name||proj?.name||''}</div>
+    </div>`; }));
+
+  // 4) Open issues
+  const issMatches=(S.issues||[]).filter(i=>(i.title||'').toLowerCase().includes(ql)||(i.product||'').toLowerCase().includes(ql)).slice(0,4);
+  sect('Issues', issMatches.map(i=>`<div class="gsearch-item" onclick="closeSearch();showIssueDetail('${i.id}')">
+      <span style="font-size:1.05rem">${({bug:'🐛',feature:'✨',question:'❓',task:'📋'}[i.type]||'🐛')}</span>
+      <div class="gsearch-item-main">${highlight(i.title, q)}</div>
+      <div class="gsearch-item-sub">${i.product||''}${cn[i.customer_id]?' · '+cn[i.customer_id]:''}</div></div>`));
+
+  // 5) Knowledge Base
+  const KBA=(typeof KB_ARTICLES!=='undefined'?KB_ARTICLES:[]);
+  const kbMatches=KBA.filter(a=>a.title.toLowerCase().includes(ql)||(a.keywords||'').toLowerCase().includes(ql)).slice(0,4);
+  sect('Knowledge Base', kbMatches.map(a=>`<div class="gsearch-item" onclick="closeSearch();kbDetail(${KBA.indexOf(a)})">
+      <span style="font-size:1.05rem">${a.video?'🎬':'📄'}</span>
+      <div class="gsearch-item-main">${highlight(a.title, q)}</div>
+      <div class="gsearch-item-sub">${a.cat||''}${a.ps?' · '+a.ps:''}</div></div>`));
+
+  // 6) Sales opportunities
+  const OPP=(typeof SALES_OPPS!=='undefined'?SALES_OPPS:[]);
+  const oppMatches=OPP.filter(o=>o.agency.toLowerCase().includes(ql)||(o.product||'').toLowerCase().includes(ql)).slice(0,3);
+  sect('Opportunities', oppMatches.map(o=>`<div class="gsearch-item" onclick="closeSearch();navigate('saleslist')">
+      <span style="font-size:1.05rem">💰</span>
+      <div class="gsearch-item-main">${highlight(o.agency, q)} · ${o.product}</div>
+      <div class="gsearch-item-sub">${o.stage}${o.owner?' · '+o.owner:''}</div></div>`));
+
+  // 7) Staff (real directory)
+  const DIR=(typeof STAFF_DIR!=='undefined'&&STAFF_DIR.length)?STAFF_DIR:S.profiles.map(p=>({name:p.full_name,title:p.title,ext:'',phone:'',email:''}));
+  const staffMatches=DIR.filter(p=>(p.name||'').toLowerCase().includes(ql)||(p.title||'').toLowerCase().includes(ql)||(p.ext||'').includes(ql)).slice(0,4);
+  sect('Staff', staffMatches.map(p=>`<div class="gsearch-item" onclick="closeSearch();navigate('team')">
+      <span style="font-size:1.05rem">👤</span>
+      <div class="gsearch-item-main">${highlight(p.name||'', q)}</div>
+      <div class="gsearch-item-sub">${p.title||''}${p.ext?' · Ext '+p.ext:''}</div></div>`));
 
   if(!html) html = `<div class="gsearch-empty">No results for "<strong>${q}</strong>"</div>`;
   r.innerHTML = html;
@@ -1415,7 +1421,7 @@ function setupNav() {
 }
 
 const VIEW_TITLES = { handbook:'Employee Handbook', activity:'Activity Feed', admin:'Admin Panel',
-  overview:'Overview', schedule:'Schedule', people:'Team Workload',
+  overview:'Overview', mysites:'My Sites', schedule:'Schedule', people:'Team Workload',
   dashboard:'Dashboard', mine:'My Tasks', calendar:'Calendar',
   workload:'Team Workload', golive:'Go-Live Schedule', triage:'Unassigned Tasks',
   timeline:'Portfolio Timeline', reports:'Status Reports', alltasks:'All Tasks',
@@ -2169,7 +2175,7 @@ function navigate(v, extra={}) {
   $('topbar-title').textContent = VIEW_TITLES[v] || v;
   $('topbar-actions').innerHTML = '';
   closePanel();
-  ({overview:renderOverview, schedule:renderSchedule, people:renderPeople,
+  ({overview:renderOverview, mysites:renderMySites, schedule:renderSchedule, people:renderPeople,
     mine:renderMine, triage:renderTriage, alltasks:renderAllTasks,
     board:renderBoard, followup:renderFollowup, conf:renderConferences,
     projects:renderProjects, customers:renderCustomers,
@@ -3415,26 +3421,92 @@ async function updateProjStatus(id, status) {
 }
 
 // ── CUSTOMERS ──────────────────────────────────────────────────
+// ── MY SITES — field-staff home ────────────────────────────────
+function renderMySites(){
+  const site=(typeof SITE_PROJECTS!=='undefined'?SITE_PROJECTS:[]);
+  const PE=id=>((typeof PROJ_EXTRA!=='undefined'&&PROJ_EXTRA[id])||{});
+  $('topbar-actions').innerHTML='';
+  const rows=S.customers.map(c=>{
+    const active=S.projects.filter(p=>p.customer_id===c.id&&!['complete','cancelled'].includes(p.status)).length;
+    const allProj=[...S.projects.filter(p=>p.customer_id===c.id),...site.filter(p=>p.customer_id===c.id)];
+    const oi=(S.issues||[]).filter(i=>i.customer_id===c.id&&!['done','na'].includes(i.status)).length;
+    const gos=allProj.map(p=>p.go_live||p.target_date).filter(d=>d&&d>=today()).sort();
+    let last=null; allProj.forEach(p=>(PE(p.id).history||[]).forEach(h=>{if(!last||(h.when||'')>(last.when||''))last={...h,proj:p.name};}));
+    const score=oi*100+active*10+(gos.length?5:0)+(last?1:0);
+    return {c,active,oi,nextGo:gos[0],last,score,total:allProj.length};
+  }).filter(r=>r.score>0).sort((a,b)=>b.score-a.score);
+  const totOI=rows.reduce((s,r)=>s+r.oi,0), totGo=rows.filter(r=>r.nextGo).length;
+  const card=r=>`<div class="proj-row" onclick="showCustDetail('${r.c.id}')" style="align-items:flex-start">
+      <span style="font-size:1.3rem">🏛️</span>
+      <div class="proj-info" style="flex:1">
+        <div class="proj-name">${escH(r.c.name)} <span style="font-size:11px;color:#64748b">${r.c.state||''}</span></div>
+        <div class="proj-meta">${r.active} active · ${r.total} total project${r.total!==1?'s':''}${r.nextGo?' · go-live '+fmt(r.nextGo):''}</div>
+        ${r.last?`<div style="font-size:11px;color:#94a3b8;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:640px">📝 ${fmt(r.last.when)}: ${escH(r.last.text.slice(0,120))}</div>`:''}
+      </div>
+      <div class="proj-right" style="display:flex;align-items:center;gap:8px">
+        ${r.oi?`<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;color:#f87171;background:#ef444422">🐛 ${r.oi}</span>`:''}
+      </div></div>`;
+  $('content').innerHTML=`<div style="max-width:1000px;margin:0 auto;padding:6px 4px">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+      ${statTile(rows.length,'My sites','#3b82f6')}
+      ${statTile(totOI,'Open issues','#ef4444')}
+      ${statTile(totGo,'Upcoming go-lives','#eab308')}
+    </div>
+    <div style="font-size:12px;color:#64748b;margin:0 0 8px 4px">Sites needing attention — most urgent first (open issues, then active work and upcoming go-lives).</div>
+    <div class="proj-list">${rows.map(card).join('')||`<div class="empty"><div class="empty-i">🎉</div><div class="empty-h">Nothing needs attention</div></div>`}</div>
+  </div>`;
+}
+function printCustomer(id){
+  const c=S.customers.find(x=>x.id===id); if(!c) return;
+  const ex=(typeof CUST_EXTRA!=='undefined'&&CUST_EXTRA[id])||{};
+  const site=(typeof SITE_PROJECTS!=='undefined'?SITE_PROJECTS:[]);
+  const PE=i=>((typeof PROJ_EXTRA!=='undefined'&&PROJ_EXTRA[i])||{});
+  const projs=[...S.projects.filter(p=>p.customer_id===id),...site.filter(p=>p.customer_id===id)];
+  const oi=(S.issues||[]).filter(i=>i.customer_id===id&&!['done','na'].includes(i.status));
+  const lics=ex.licenses||[]; const contacts=ex.contacts||[];
+  let hw=[]; projs.forEach(p=>(PE(p.id).hardware||[]).forEach(h=>hw.push(h)));
+  let hist=[]; projs.forEach(p=>(PE(p.id).history||[]).forEach(h=>hist.push({...h,proj:p.name})));
+  hist.sort((a,b)=>(b.when||'').localeCompare(a.when||''));
+  const esc=s=>String(s==null?'':s).replace(/[&<>]/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[x]));
+  const rows=(arr,f)=>arr.map(f).join('');
+  const w=window.open('','_blank'); if(!w){toast('Allow pop-ups to print');return;}
+  w.document.write(`<html><head><title>${esc(c.name)} — Site Summary</title>
+    <style>body{font-family:Arial,sans-serif;color:#111;margin:28px;font-size:12px}h1{font-size:20px;margin:0}h2{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#555;border-bottom:1px solid #ccc;padding-bottom:3px;margin:18px 0 8px}table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:3px 6px;border-bottom:1px solid #eee;vertical-align:top}.sub{color:#666}</style></head><body>
+    <h1>${esc(c.name)}</h1>
+    <div class="sub">${esc(c.state||'')} ${c.agency_type?'· '+esc(c.agency_type):''} ${ex.county?'· '+esc(ex.county)+' County':''} ${ex.phone?'· '+esc(ex.phone):''} ${ex.account?'· Acct #'+esc(ex.account):''}</div>
+    <div class="sub">Printed ${new Date().toLocaleDateString()} · Sales owner: ${esc(ex.sales_owner||'—')}</div>
+    <h2>Contacts (${contacts.length})</h2><table>${rows(contacts,ct=>`<tr><td>${esc(ct.role)}</td><td>${esc(ct.name)}</td><td>${esc(ct.email||'')}</td></tr>`)||'<tr><td>None on file</td></tr>'}</table>
+    <h2>Open Issues (${oi.length})</h2><table>${rows(oi,i=>`<tr><td>${esc(i.title)}</td><td>${esc(i.product||'')}</td><td>${esc(i.status)}</td></tr>`)||'<tr><td>None</td></tr>'}</table>
+    <h2>Licenses (${lics.length})</h2><table>${rows(lics,l=>`<tr><td>${esc(l.product||'')}</td><td>${esc(l.type||'')}</td><td>Qty ${esc(l.count||'')}</td><td>${esc(l.support||'')}</td></tr>`)||'<tr><td>None</td></tr>'}</table>
+    <h2>Hardware (${hw.length})</h2><table>${rows(hw,h=>`<tr><td>${esc(h.type||h.desc||'')}</td><td>${esc(h.mfr||'')}</td><td>${h.srn?'SRN '+esc(h.srn):''}</td><td>${h.shipped?'Shipped':h.received?'Received':'Ordered'}</td></tr>`)||'<tr><td>None</td></tr>'}</table>
+    <h2>Projects (${projs.length})</h2><table>${rows(projs,p=>`<tr><td>${esc(p.name)}</td><td>${esc(projLabel(p.status))}</td><td>${PE(p.id).pm?'PM '+esc(PE(p.id).pm):''}</td></tr>`)||'<tr><td>None</td></tr>'}</table>
+    <h2>Recent Site Notes</h2><table>${rows(hist.slice(0,20),h=>`<tr><td style="white-space:nowrap">${esc(h.when||'')}</td><td>${esc(h.text)}</td></tr>`)||'<tr><td>None</td></tr>'}</table>
+  </body></html>`);
+  w.document.close(); setTimeout(()=>w.print(),300);
+}
+
 function renderCustomers() {
   $('topbar-actions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="showNewCustModal()">+ New Customer</button>`;
   $('content').innerHTML=`
   <div class="search-wrap" style="margin-bottom:1rem"><span class="search-i">🔍</span><input class="search-fc" id="cs" placeholder="Search customers…" style="width:240px"></div>
   <div class="proj-list" id="cust-list"></div>`;
+  const site=(typeof SITE_PROJECTS!=='undefined'?SITE_PROJECTS:[]);
   const draw=()=>{
     const q=$('cs').value.toLowerCase();
-    const custs=S.customers.filter(c=>!q||c.name.toLowerCase().includes(q)||(c.state||'').toLowerCase().includes(q));
+    const custs=S.customers.filter(c=>!q||c.name.toLowerCase().includes(q)||(c.state||'').toLowerCase().includes(q)||(c.agency_type||'').toLowerCase().includes(q));
     const g=$('cust-list');
     g.innerHTML=custs.map(c=>{
-      const projs=S.projects.filter(p=>p.customer_id===c.id);
+      const np=S.projects.filter(p=>p.customer_id===c.id).length+site.filter(p=>p.customer_id===c.id).length;
+      const oi=(S.issues||[]).filter(i=>i.customer_id===c.id&&!['done','na'].includes(i.status)).length;
       return `<div class="proj-row" onclick="showCustDetail('${c.id}')">
         <span style="font-size:1.3rem">🏛️</span>
         <div class="proj-info">
-          <div class="proj-name">${c.name}</div>
-          <div class="proj-meta">${c.state||''}${c.agency_type?' · '+c.agency_type:''}${c.contact_name?' · '+c.contact_name:''}</div>
+          <div class="proj-name">${escH(c.name)}</div>
+          <div class="proj-meta">${c.state||''}${c.agency_type?' · '+escH(c.agency_type):''}</div>
         </div>
-        <div class="proj-right">
-          <span style="font-size:12px;color:var(--muted)">${projs.length} project${projs.length!==1?'s':''}</span>
-          ${c.products?.length?`<span style="font-size:11px;color:var(--dim)">${c.products.slice(0,4).join(' · ')}</span>`:''}
+        <div class="proj-right" style="display:flex;align-items:center;gap:8px">
+          ${oi?`<span title="Open issues" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;color:#f87171;background:#ef444422">🐛 ${oi}</span>`:''}
+          <span style="font-size:12px;color:var(--muted)">${np} project${np!==1?'s':''}</span>
         </div>
       </div>`;
     }).join('')||`<div class="empty"><div class="empty-i">🏛️</div><div class="empty-h">No customers</div></div>`;
@@ -3533,7 +3605,7 @@ function showCustDetail(id){
     ${sec('📚 Knowledge Base for this site',kbMatch.length,kbHtml,false)}
     ${sec('🎪 Conferences',confs.length,confHtml,false)}
   </div>`,
-  `<button class="btn btn-ghost btn-sm" onclick="showNewIssueModal('${id}');closeModal()">🐛 Report Issue</button><button class="btn btn-primary btn-sm" onclick="showNewProjModal('${id}');closeModal()">+ New Project</button>`);
+  `<button class="btn btn-ghost btn-sm" onclick="printCustomer('${id}')">🖨️ Print</button><button class="btn btn-ghost btn-sm" onclick="showNewIssueModal('${id}');closeModal()">🐛 Report Issue</button><button class="btn btn-primary btn-sm" onclick="showNewProjModal('${id}');closeModal()">+ New Project</button>`);
 }
 
 // ── ISSUES ─────────────────────────────────────────────────────
@@ -3590,10 +3662,10 @@ function showIssueDetail(id){
       <div class="fg"><label class="fl">Type</label><p style="text-transform:capitalize">${i.type}</p></div>
       <div class="fg"><label class="fl">Assignee</label><p>${a?.full_name||'Unassigned'}</p></div>
     </div>
-    ${cust?`<div class="fg"><label class="fl">Customer</label><p>${cust.name}</p></div>`:''}
+    ${cust?`<div class="fg"><label class="fl">Customer</label><p><span onclick="closeModal();showCustDetail('${cust.id}')" style="color:#60a5fa;cursor:pointer">🏛️ ${escH(cust.name)} →</span></p></div>`:''}
     ${i.description?`<div class="fg"><label class="fl">Description</label><p style="color:var(--muted)">${i.description}</p></div>`:''}
   </div>`,
-  `<select class="fc btn-sm" style="width:auto" onchange="updateIssueStatus('${id}',this.value)">
+  `${cust?`<button class="btn btn-ghost btn-sm" onclick="closeModal();showCustDetail('${cust.id}')">View site →</button>`:''}<select class="fc btn-sm" style="width:auto" onchange="updateIssueStatus('${id}',this.value)">
     ${STATUS_ORDER.map(s=>`<option value="${s}"${i.status===s?' selected':''}>${STATUS[s].label}</option>`).join('')}
   </select>`);
 }
@@ -3628,7 +3700,7 @@ function renderTeam(){
           <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(d.title||'')}</div></div>
         </div>
         <div style="font-size:12px;color:#cbd5e1;line-height:1.7">
-          ${d.ext?`<div>\u260E\uFE0F Ext ${escH(d.ext)}${d.phone?' · '+escH(d.phone):''}</div>`:(d.phone?`<div>\u260E\uFE0F ${escH(d.phone)}</div>`:'')}
+          ${d.ext||d.phone?`<div>\u260E\uFE0F ${d.ext?'Ext '+escH(d.ext):''}${d.ext&&d.phone?' · ':''}${d.phone?`<a href="tel:${escH(d.phone.replace(/[^0-9+]/g,''))}" style="color:#60a5fa">${escH(d.phone)}</a>`:''}</div>`:''}
           ${d.email?`<div><a href="mailto:${escH(d.email)}" style="color:#60a5fa">${escH(d.email)}</a></div>`:''}
         </div>
         ${(d.roles||[]).length||open?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:.5rem;align-items:center">${(d.roles||[]).map(r=>`<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;color:${roleColor[r]||'#94a3b8'};background:${(roleColor[r]||'#94a3b8')}22">${r}</span>`).join('')}${open?`<span style="font-size:10px;color:#94a3b8;margin-left:auto">${open} open task${open!==1?'s':''}</span>`:''}</div>`:''}
