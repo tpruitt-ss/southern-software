@@ -848,11 +848,7 @@ async function reload() {
     S.tasks     = DUMMY_DATA.tasks;
     S.sections  = DUMMY_DATA.sections;
     S.issues    = [];
-    S.profiles  = [{
-      id:'preview-user-id', full_name:'Travis Pruitt',
-      title:'Director CAD|MDS Operations', team:'implementation',
-      avatar_url:null, is_admin:true, active:true,
-    }];
+    S.profiles  = [{"id":"p-brent","full_name":"Brent Boykin","title":"Senior Project Manager","team":"implementation","avatar_url":null},{"id":"p-dan","full_name":"Dan Barcus","title":"PS Project Manager","team":"implementation","avatar_url":null},{"id":"p-nick","full_name":"Nick Madray","title":"PS Project Manager","team":"implementation","avatar_url":null},{"id":"p-travis","full_name":"Travis Pruitt","title":"Director CAD|MDS Operations","team":"implementation","avatar_url":null},{"id":"p-steve","full_name":"Steve Bastarache","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-debbie","full_name":"Debbie Stevens","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-michael","full_name":"Michael Valverde","title":"FMS Implementation Specialist","team":"fms","avatar_url":null},{"id":"p-matt","full_name":"Matt Pittman","title":"FMS Implementation Specialist","team":"fms","avatar_url":null},{"id":"p-marc","full_name":"Marc Sessoms","title":"Developer","team":"implementation","avatar_url":null},{"id":"p-joe","full_name":"Joe Sharpe","title":"IT Specialist","team":"implementation","avatar_url":null},{"id":"p-zach","full_name":"Zach Perkins","title":"CAD|MDS Specialist","team":"implementation","avatar_url":null},{"id":"p-dee","full_name":"Dee Perez","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-travis2","full_name":"Travis Jones","title":"IT Specialist","team":"implementation","avatar_url":null},{"id":"p-amanda","full_name":"Amanda McKenzie","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-jeanie","full_name":"Jeanie West","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-chris","full_name":"Chris Stanley","title":"GIS Specialist","team":"implementation","avatar_url":null},{"id":"p-jesse","full_name":"Jesse Merritt","title":"PS Implementation Specialist","team":"implementation","avatar_url":null},{"id":"p-patrick","full_name":"Patrick Pusser","title":"Director FMS Operations","team":"fms","avatar_url":null},{"id":"p-cam","full_name":"Cameron Reynolds","title":"FMS Implementation Specialist","team":"fms","avatar_url":null},{"id":"p-jordan","full_name":"Jordan Johnstone","title":"Developer","team":"implementation","avatar_url":null}];
   } else {
     const [pr,proj,task,cust,iss] = await Promise.all([
       db.from('profiles').select('*'),
@@ -1000,13 +996,25 @@ function renderDash() {
   const beh   = S.projects.filter(p=>p.status==='behind').length;
 
   $('content').innerHTML = `
-  <div class="stats">
-    <div class="stat" style="--sc:var(--green)"><div class="stat-n">${ap}</div><div class="stat-l">Active Projects</div></div>
-    <div class="stat" style="--sc:var(--orange)"><div class="stat-n">${risk}</div><div class="stat-l">At Risk</div></div>
-    <div class="stat" style="--sc:var(--red)"><div class="stat-n">${beh}</div><div class="stat-l">Behind</div></div>
-    <div class="stat" style="--sc:var(--red)"><div class="stat-n">${over.length}</div><div class="stat-l">Overdue Tasks</div></div>
-    <div class="stat" style="--sc:var(--yellow)"><div class="stat-n">${tod.length}</div><div class="stat-l">Due Today</div></div>
-    <div class="stat" style="--sc:var(--blue)"><div class="stat-n">${mine.length}</div><div class="stat-l">My Open Tasks</div></div>
+  <div class="stats" style="grid-template-columns:repeat(6,1fr)">
+    <div class="stat" style="--sc:var(--green);cursor:pointer" onclick="navigate('projects')">
+      <div class="stat-n">${ap}</div><div class="stat-l">Active Projects</div>
+    </div>
+    <div class="stat" style="--sc:var(--orange);cursor:pointer" onclick="navigate('projects')">
+      <div class="stat-n">${risk}</div><div class="stat-l">⚠ At Risk</div>
+    </div>
+    <div class="stat" style="--sc:var(--red);cursor:pointer" onclick="navigate('projects')">
+      <div class="stat-n">${beh}</div><div class="stat-l">🔴 Behind</div>
+    </div>
+    <div class="stat" style="--sc:var(--red);cursor:pointer" onclick="navigate('mine')">
+      <div class="stat-n" style="color:${over.length>0?'#f87171':'inherit'}">${over.length}</div><div class="stat-l">Overdue Tasks</div>
+    </div>
+    <div class="stat" style="--sc:var(--yellow);cursor:pointer" onclick="navigate('mine')">
+      <div class="stat-n">${tod.length}</div><div class="stat-l">Due Today</div>
+    </div>
+    <div class="stat" style="--sc:var(--blue);cursor:pointer" onclick="navigate('mine')">
+      <div class="stat-n">${mine.length}</div><div class="stat-l">My Open Tasks</div>
+    </div>
   </div>
   <div class="dash-cols">
     <div class="card"><div class="dash-h">⚠️ Overdue</div><div id="d-over"></div></div>
@@ -1158,19 +1166,29 @@ function renderProjects() {
       const prog=projProgress(p.id);
       const pm=getP(p.pm_id);
       const icons={implementation:'🏗️',training:'🎓',support:'🛠️',rfp:'📄',internal:'⚙️',bug_track:'🐛'};
+      const prods=(p.products||[]).slice(0,5).map(pr=>`<span style="font-size:10px;padding:1px 6px;border-radius:3px;background:rgba(46,127,212,.12);color:var(--bluel);font-weight:600">${pr}</span>`).join(' ');
+      const tasksInProj = S.tasks.filter(t=>t.project_id===p.id&&!t.parent_id);
+      const openTasks = tasksInProj.filter(t=>!['done','na'].includes(t.status)).length;
       return `<div class="proj-row" onclick="openProject('${p.id}')">
-        <span style="font-size:1.3rem">${icons[p.type]||'📁'}</span>
+        <span style="font-size:1.4rem;flex-shrink:0">${icons[p.type]||'📁'}</span>
         <div class="proj-info">
-          <div class="proj-name">${p.name}</div>
-          <div class="proj-meta">${p.customers?.name||'Internal'}${p.customers?.state?' · '+p.customers.state:''}${p.target_date?' · Due '+fmt(p.target_date):''}</div>
-        </div>
-        <div class="proj-right">
-          <span class="psb ${projColor(p.status)}">${projLabel(p.status)}</span>
-          <div>
-            <div class="prog"><div class="prog-fill" style="width:${prog}%"></div></div>
-            <div style="font-size:9px;text-align:right;color:var(--dim);margin-top:1px">${prog}%</div>
+          <div class="proj-name">${p.customers?.name||p.name}</div>
+          <div class="proj-meta" style="font-size:12px;color:var(--muted);margin-top:2px">
+            ${p.customers?.state?`<span style="background:rgba(255,255,255,.07);padding:1px 5px;border-radius:3px;font-size:10px;font-weight:700">${p.customers.state}</span> `:''}<span>${p.name.includes('—')?p.name.split('—').slice(1).join('—').trim():''}</span>
           </div>
-          ${ava(pm,24)}
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">${prods}</div>
+        </div>
+        <div class="proj-right" style="gap:.85rem">
+          <div style="text-align:right">
+            <div style="font-size:11px;color:var(--dim)">Open tasks</div>
+            <div style="font-size:1.1rem;font-weight:700;color:${openTasks>0?'var(--text)':'var(--dim)'}">${openTasks}</div>
+          </div>
+          <div>
+            <div class="prog" style="width:90px"><div class="prog-fill" style="width:${prog}%"></div></div>
+            <div style="font-size:10px;text-align:right;color:var(--muted);margin-top:2px">${prog}% done</div>
+          </div>
+          <span class="psb ${projColor(p.status)}">${projLabel(p.status)}</span>
+          ${p.target_date?`<div style="text-align:right"><div style="font-size:10px;color:var(--dim)">Target</div><div style="font-size:11px;color:var(--text)">${fmt(p.target_date)}</div></div>`:''}
         </div>
       </div>`;
     }).join('');
@@ -1232,13 +1250,32 @@ async function openProject(id) {
       ${secProg.filter(s=>s.tasks.length).map(s=>`<span style="margin-left:.75rem;color:var(--dim)">${s.sec.name}: ${s.pct}%</span>`).join('')}
     </div>
   </div>
-  <div class="tabs">
-    <div class="tab active" data-t="tasks">Tasks</div>
-    <div class="tab" data-t="files">Files</div>
-    <div class="tab" data-t="info">Info</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+    <div class="tabs" style="margin-bottom:0;border:none">
+      <div class="tab active" data-t="tasks">Tasks</div>
+      <div class="tab" data-t="files">Files</div>
+      <div class="tab" data-t="info">Info</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem" id="proj-filters">
+      <select class="fc btn-sm" id="pj-filter-status" style="width:auto;font-size:12px;padding:4px 8px" onchange="filterProjTasks()">
+        <option value="">All Statuses</option>
+        <option value="todo">To Do</option>
+        <option value="assigned">Assigned</option>
+        <option value="inprogress">In Progress</option>
+        <option value="waiting_customer">Awaiting Customer</option>
+        <option value="blocked">Blocked</option>
+        <option value="done">Complete</option>
+        <option value="na">N/A</option>
+      </select>
+      <select class="fc btn-sm" id="pj-filter-assignee" style="width:auto;font-size:12px;padding:4px 8px" onchange="filterProjTasks()">
+        <option value="">All Assignees</option>
+      </select>
+      <button class="btn btn-ghost btn-xs" onclick="clearProjFilters()" id="pj-clear-btn" style="display:none">✕ Clear</button>
+    </div>
   </div>
   <div id="proj-tab"></div>`;
 
+  populateAssigneeFilter(tasks||[]);
   document.querySelectorAll('.tab').forEach(tab=>{
     tab.onclick=()=>{
       document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -1257,7 +1294,12 @@ function renderProjTab(tab, secs, tasks, proj) {
       return;
     }
     c.innerHTML = secs.map(sec=>{
-      const secTasks = (tasks||[]).filter(t=>t.section_id===sec.id && !t.parent_id);
+      let secTasks = (tasks||[]).filter(t=>t.section_id===sec.id && !t.parent_id);
+      if(_projFilterStatus) secTasks = secTasks.filter(t=>{
+        const es=effectiveStatus(t);
+        return _projFilterStatus==='assigned' ? es==='assigned' : t.status===_projFilterStatus;
+      });
+      if(_projFilterAssignee) secTasks = secTasks.filter(t=>t.assignee_name===_projFilterAssignee);
       const done = secTasks.filter(t=>['done','na'].includes(t.status)).length;
       const pct  = secTasks.length ? Math.round(done/secTasks.length*100) : 0;
 
@@ -2140,6 +2182,40 @@ function copyAI(elId, msg) {
 }
 
 
+
+
+// ── TASK FILTERS ───────────────────────────────────────────────
+let _projFilterStatus = '', _projFilterAssignee = '';
+
+function filterProjTasks() {
+  _projFilterStatus   = document.getElementById('pj-filter-status')?.value   || '';
+  _projFilterAssignee = document.getElementById('pj-filter-assignee')?.value || '';
+  const clearBtn = document.getElementById('pj-clear-btn');
+  if(clearBtn) clearBtn.style.display = (_projFilterStatus||_projFilterAssignee) ? '' : 'none';
+  // Re-render tasks tab with filters applied
+  if(S.projId) openProject(S.projId);
+}
+
+function clearProjFilters() {
+  _projFilterStatus = ''; _projFilterAssignee = '';
+  const s = document.getElementById('pj-filter-status');
+  const a = document.getElementById('pj-filter-assignee');
+  if(s) s.value = ''; if(a) a.value = '';
+  const c = document.getElementById('pj-clear-btn');
+  if(c) c.style.display = 'none';
+  if(S.projId) openProject(S.projId);
+}
+
+function populateAssigneeFilter(tasks) {
+  const sel = document.getElementById('pj-filter-assignee');
+  if(!sel) return;
+  const names = [...new Set(tasks.filter(t=>t.assignee_name).map(t=>t.assignee_name))].sort();
+  sel.innerHTML = '<option value="">All Assignees</option>' +
+    names.map(n=>`<option value="${n}"${n===_projFilterAssignee?' selected':''}>${n}</option>`).join('');
+  sel.value = _projFilterAssignee;
+  const status = document.getElementById('pj-filter-status');
+  if(status) status.value = _projFilterStatus;
+}
 
 // ── PORTAL QUICK ACCESS TILES ───────────────────────────────
 const PORTAL_TILES = [
