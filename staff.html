@@ -1623,12 +1623,23 @@ function buildNotifs(){
   }
   return n;
 }
+let _notifSeen=(function(){try{return new Set(JSON.parse(localStorage.getItem('ss-notif-seen')||'[]'));}catch(e){return new Set();}})();
+let _notifDismissed=(function(){try{return new Set(JSON.parse(localStorage.getItem('ss-notif-dismissed')||'[]'));}catch(e){return new Set();}})();
+let _notifList=[];
+function notifKey(x){ return (x.icon||'')+'|'+(x.text||''); }
+function saveNotifSeen(){ try{ localStorage.setItem('ss-notif-seen', JSON.stringify([..._notifSeen])); }catch(e){} }
+function saveNotifDismissed(){ try{ localStorage.setItem('ss-notif-dismissed', JSON.stringify([..._notifDismissed])); }catch(e){} }
+function markNotifsRead(){ _notifList.forEach(x=>_notifSeen.add(notifKey(x))); saveNotifSeen(); renderNotifs(); toast('Notifications cleared'); }
+function dismissNotif(i){ const x=_notifList[i]; if(!x) return; _notifDismissed.add(notifKey(x)); _notifSeen.add(notifKey(x)); saveNotifDismissed(); saveNotifSeen(); renderNotifs(); }
 function renderNotifs(){
-  const list=buildNotifs();
-  const badge=$('notif-badge'); if(badge){ badge.style.display=list.length?'':'none'; badge.textContent=list.length; }
+  const list=buildNotifs().filter(x=>!_notifDismissed.has(notifKey(x)));
+  _notifList=list;
+  const unseen=list.filter(x=>!_notifSeen.has(notifKey(x)));
+  const badge=$('notif-badge'); if(badge){ badge.style.display=unseen.length?'':'none'; badge.textContent=unseen.length; }
   const panel=$('notif-panel'); if(!panel) return;
-  panel.innerHTML=`<div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;padding:8px 10px">Notifications</div>`+
-    (list.length? list.map(x=>`<div onclick="closeNotifs();${x.action}" style="display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border-radius:9px;cursor:pointer" onmouseover="this.style.background='#ffffff08'" onmouseout="this.style.background='transparent'"><div style="font-size:15px">${x.icon}</div><div style="flex:1;min-width:0"><div style="font-size:13px;color:#e2e8f0">${x.text}</div><div style="font-size:11px;color:${x.color}">${x.sub}</div></div></div>`).join('')
+  const header=`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px"><span style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b">Notifications</span>${(list.length&&unseen.length)?`<button onclick="event.stopPropagation();markNotifsRead()" class="btn btn-ghost btn-xs" style="font-size:11px">Mark all read</button>`:''}</div>`;
+  panel.innerHTML=header+
+    (list.length? list.map((x,i)=>{const nu=!_notifSeen.has(notifKey(x));return `<div style="display:flex;gap:8px;align-items:flex-start;padding:9px 10px;border-radius:9px" onmouseover="this.style.background='#ffffff08'" onmouseout="this.style.background='transparent'"><div onclick="closeNotifs();${x.action}" style="display:flex;gap:10px;align-items:flex-start;flex:1;min-width:0;cursor:pointer"><div style="font-size:15px;position:relative">${x.icon}${nu?'<span style="position:absolute;top:-2px;right:-4px;width:7px;height:7px;border-radius:50%;background:#3b82f6;border:1px solid #0f172a"></span>':''}</div><div style="flex:1;min-width:0"><div style="font-size:13px;color:#e2e8f0">${x.text}</div><div style="font-size:11px;color:${x.color}">${x.sub}</div></div></div><button onclick="event.stopPropagation();dismissNotif(${i})" title="Dismiss" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:15px;line-height:1;padding:0 2px" onmouseover="this.style.color='#e2e8f0'" onmouseout="this.style.color='#64748b'">×</button></div>`;}).join('')
     : `<div style="padding:20px 10px;text-align:center;color:#64748b;font-size:13px">🎉 You're all caught up</div>`);
 }
 function closeNotifs(){ const p=$('notif-panel'); if(p) p.style.display='none'; }
