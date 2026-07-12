@@ -265,14 +265,33 @@ textarea.fc{resize:vertical;min-height:72px}
   border-bottom:1px solid rgba(255,255,255,.03)}
 .task-item:hover{background:rgba(255,255,255,.04)}
 .task-item.has-subs{font-weight:600}
-.task-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border2);
-  flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;
-  transition:all var(--tr);cursor:pointer;flex-shrink:0}
+/* ClickUp-style circle checkboxes */
+.task-check{
+  width:18px;height:18px;border-radius:50%;
+  border:2px solid var(--border2);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;
+  transition:all var(--tr);cursor:pointer;
+}
+.task-check:hover{border-color:var(--green);color:var(--green)}
+/* Empty circle for todo/assigned — just the ring */
+.task-check[data-s="todo"],
+.task-check[data-s="assigned"]{
+  background:transparent;border-color:var(--border2);color:transparent;
+}
+.task-check[data-s="todo"]:hover,
+.task-check[data-s="assigned"]:hover{border-color:var(--green);color:var(--green)}
+/* Filled green circle for done */
 .task-check[data-s="done"]{background:var(--green);border-color:var(--green);color:#fff}
-.task-check[data-s="na"]{background:var(--dim);border-color:var(--dim);color:#fff;opacity:.6}
-.task-check[data-s="inprogress"]{background:var(--blue);border-color:var(--blue);color:#fff}
-.task-check[data-s="waiting_customer"],.task-check[data-s="waiting_vendor"]{background:var(--orange);border-color:var(--orange);color:#fff}
-.task-check[data-s="blocked"]{background:var(--red);border-color:var(--red);color:#fff}
+/* Blue circle for in progress */
+.task-check[data-s="inprogress"]{background:rgba(46,127,212,.2);border-color:var(--blue);color:var(--blue)}
+/* Yellow for waiting */
+.task-check[data-s="waiting_customer"],
+.task-check[data-s="waiting_vendor"]{background:rgba(245,158,11,.15);border-color:var(--orange);color:var(--orange)}
+/* Red for blocked */
+.task-check[data-s="blocked"]{background:rgba(239,68,68,.15);border-color:var(--red);color:var(--red)}
+/* Gray for N/A */
+.task-check[data-s="na"]{background:rgba(74,106,138,.2);border-color:var(--dim);color:var(--dim)}
 .task-title{flex:1;font-size:13.5px;color:var(--text)}
 .task-title.done{text-decoration:line-through;color:var(--dim)}
 .task-title.na{color:var(--dim);opacity:.6}
@@ -1046,7 +1065,7 @@ function renderMine() {
       gt.forEach(t=>{
         const proj=S.projects.find(p=>p.id===t.project_id);
         html+=`<div class="my-task-row" onclick="openPanel('${t.id}')">
-          <div class="task-check" data-s="${t.status}">${t.status==='done'?'✓':t.status==='na'?'—':''}</div>
+          <div class="task-check" data-s="${t.status}">${{done:'✓',na:'—',inprogress:'◑',blocked:'✕',waiting_customer:'⏳',waiting_vendor:'⏳'}[t.status]||''}</div>
           <div class="mt-title">${t.title}</div>
           <span class="mt-proj">${proj?.customers?.name||proj?.name||''}</span>
           ${dueTag(t.due_date)}
@@ -1269,7 +1288,7 @@ function renderProjTab(tab, secs, tasks, proj) {
           const subDue = sub.due_date ? new Date(sub.due_date+'T12:00:00').toLocaleDateString('en-US',{month:'numeric',day:'numeric',year:'2-digit'}) : '—';
           const subDueClass = !sub.due_date?'':isOver(sub.due_date)?'over':isToday(sub.due_date)?'today':'';
           return `<div class="sub-task-item" data-task-id="${sub.id}">
-            <div class="task-check" data-s="${sub.status}" onclick="event.stopPropagation();cycleStatus('${sub.id}','${sub.status}')">${sub.status==='done'?'✓':sub.status==='na'?'—':''}</div>
+            <div class="task-check" data-s="${sub.status}" onclick="event.stopPropagation();cycleStatus('${sub.id}','${sub.status}')">${{done:'✓',na:'—',inprogress:'◑',blocked:'✕',waiting_customer:'⏳',waiting_vendor:'⏳'}[sub.status]||''}</div>
             <div class="sub-task-title ${['done','na'].includes(sub.status)?sub.status:''}" onclick="openPanel('${sub.id}')">${sub.title}</div>
             ${subAva}
             ${subChip}
@@ -1279,7 +1298,7 @@ function renderProjTab(tab, secs, tasks, proj) {
         }).join('');
 
         return `<div class="task-item${subs.length?' has-subs':''}" data-task-id="${t.id}">
-          <div class="task-check" data-s="${t.status}" onclick="event.stopPropagation();cycleStatus('${t.id}','${t.status}')">${t.status==='done'?'✓':t.status==='na'?'—':''}</div>
+          <div class="task-check" data-s="${t.status}" onclick="event.stopPropagation();cycleStatus('${t.id}','${t.status}')">${{done:'✓',na:'—',inprogress:'◑',blocked:'✕',waiting_customer:'⏳',waiting_vendor:'⏳'}[t.status]||''}</div>
           <div class="task-title ${['done','na'].includes(t.status)?t.status:''}" onclick="openPanel('${t.id}')">${t.title}${subs.length?` <span style="font-size:10px;color:var(--dim);margin-left:5px">⌄ ${subsDone}/${subs.length}</span>`:''}</div>
           ${assigneeHtml}
           ${statusChip}
@@ -1309,7 +1328,7 @@ function renderProjTab(tab, secs, tasks, proj) {
     }).join('');// Tasks without a section
     const nosec = tasks.filter(t=>!t.section_id && !t.parent_id);
     if(nosec.length){
-      c.innerHTML += `<div class="section-block"><div class="section-hdr" onclick="toggleSec('sec-none')">
+      c.innerHTML += `<div class="section-block"><div class="section-hdr" onclick="toggleSec('sec-body-none','chev-none')">
         <span class="section-chevron open" id="chev-none">▶</span>
         <span class="section-name">General</span>
         <span class="section-prog">${nosec.filter(t=>t.status==='done').length}/${nosec.length}</span>
@@ -1317,7 +1336,7 @@ function renderProjTab(tab, secs, tasks, proj) {
         ${nosec.map(t=>{
           const a=getP(t.assignee_id);
           return `<div class="task-item" onclick="openPanel('${t.id}')">
-            <div class="task-check" data-s="${t.status}" onclick="event.stopPropagation();cycleStatus('${t.id}','${t.status}')">${t.status==='done'?'✓':t.status==='na'?'—':''}</div>
+            <div class="task-check" data-s="${t.status}" onclick="event.stopPropagation();cycleStatus('${t.id}','${t.status}')">${{done:'✓',na:'—',inprogress:'◑',blocked:'✕',waiting_customer:'⏳',waiting_vendor:'⏳'}[t.status]||''}</div>
             <div class="task-title ${['done','na'].includes(t.status)?t.status:''}">${t.title}</div>
             <div class="task-meta">${ava(a,20)}${dueTag(t.due_date)}</div>
           </div>`;
