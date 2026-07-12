@@ -555,7 +555,25 @@ const SB_ANON = 'YOUR_SUPABASE_ANON_KEY';
 const DOMAIN  = 'southernsoftware.com';
 
 const {createClient} = supabase;
-const db = createClient(SB_URL, SB_ANON);
+let db;
+try { db = createClient(SB_URL, SB_ANON); } catch(e) { db = null; }
+
+// Safe db wrapper — returns empty data if db not configured
+const safeDb = {
+  from: (table) => ({
+    select: (cols) => ({
+      eq: () => ({ data:[], error:null }),
+      order: () => ({ data:[], error:null }),
+      then: (r) => Promise.resolve({data:[],error:null}),
+    }),
+    insert: (d) => ({ select: () => ({ single: () => Promise.resolve({data:{id:'preview-'+Date.now(),...d},error:null}) }), execute: () => Promise.resolve({data:[],error:null}) }),
+    update: (d) => ({ eq: () => Promise.resolve({data:[],error:null}) }),
+    execute: () => Promise.resolve({data:[],error:null}),
+  }),
+  auth: { getSession: () => Promise.resolve({data:{session:null}}), onAuthStateChange: ()=>{}, signOut: ()=>Promise.resolve() },
+  channel: () => ({ on: function(){ return this; }, subscribe: ()=>{} }),
+  storage: { from: () => ({ upload: ()=>Promise.resolve({error:null}), createSignedUrl: ()=>Promise.resolve({data:{signedUrl:'#'}}) }) },
+};
 
 // ── STATUS CONFIG ─────────────────────────────────────────────
 const STATUS = {
@@ -667,13 +685,13 @@ $('sb-signout').onclick = () => {
 
 // ── DATA ──────────────────────────────────────────────────────
 async function reload() {
-  // Preview mode: use anon key, no auth session needed
+  const _db = (SB_URL === 'YOUR_SUPABASE_URL') ? safeDb : db;
   const [pr,proj,task,cust,iss] = await Promise.all([
-    db.from('profiles').select('*'),
-    db.from('projects').select('*, customers(name,state)').order('updated_at',{ascending:false}),
-    db.from('tasks').select('*').order('sort_order'),
-    db.from('customers').select('*').order('name'),
-    db.from('issues').select('*').order('created_at',{ascending:false}),
+    _db.from('profiles').select('*'),
+    _db.from('projects').select('*, customers(name,state)').order('updated_at',{ascending:false}),
+    _db.from('tasks').select('*').order('sort_order'),
+    _db.from('customers').select('*').order('name'),
+    _db.from('issues').select('*').order('created_at',{ascending:false}),
   ]);
   S.profiles  = pr.data   || [];
   S.projects  = proj.data || [];
