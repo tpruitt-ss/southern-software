@@ -2075,7 +2075,7 @@ function confDated(c){ return /^\d{4}-\d{2}-\d{2}$/.test((c&&c.begin)||''); }
 function confAvatars(c){ return (c.assigned||[]).map(n=>avaByName(n,22)).join(''); }
 function confRange(c){ if(!confDated(c)) return c.begin||'TBD'; const b=fmt(c.begin); const e=/^\d{4}-\d{2}-\d{2}$/.test(c.end||'')?fmt(c.end):''; return (e&&e!==b)?b+'–'+e:b; }
 function renderConferences(){
-  $('topbar-actions').innerHTML=`<button class="btn ${_conf.mode==='list'?'btn-primary':'btn-ghost'} btn-sm" onclick="confMode('list')">☰ List</button><button class="btn ${_conf.mode==='cal'?'btn-primary':'btn-ghost'} btn-sm" onclick="confMode('cal')">📅 Calendar</button>`;
+  $('topbar-actions').innerHTML=`<button class="btn ${_conf.mode==='list'?'btn-primary':'btn-ghost'} btn-sm" onclick="confMode('list')">☰ List</button><button class="btn ${_conf.mode==='cal'?'btn-primary':'btn-ghost'} btn-sm" onclick="confMode('cal')">📅 Calendar</button><button class="btn btn-primary btn-sm" onclick="showConfForm()">+ New Conference</button>`;
   const t0=today();
   const up=CONFERENCES.filter(c=>confDated(c)&&c.begin>=t0).sort((a,b)=>a.begin.localeCompare(b.begin));
   const next=up[0];
@@ -2130,7 +2130,7 @@ function confDetail(i){
     <div class="fg"><label class="fl">Assigned staff</label>${staff}</div>
     ${noteEditorHtml(c)}
   </div>`;
-  showModal('📅 '+c.name, body, `<button class="btn btn-primary btn-sm" onclick="closeModal()">Done</button>`);
+  showModal('📅 '+c.name, body, `<button class="btn btn-ghost btn-sm" onclick="closeModal();showConfForm(${i})">✏️ Edit</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Done</button>`);
 }
 function toggleConfStaff(i,name){ const c=CONFERENCES[i]; c.assigned=c.assigned||[]; const k=c.assigned.indexOf(name); if(k>=0)c.assigned.splice(k,1); else c.assigned.push(name); if(typeof stampNow==='function')c.updated=stampNow()+' — '+((S.user&&S.user.email)?S.user.email.split('@')[0]:'you'); confDetail(i); if($('conf-list'))confDrawList(); }
 function confAISearch(i){ const c=CONFERENCES[i]; if(typeof aiCall==='function' && typeof SB_URL!=='undefined' && SB_URL!=='YOUR_SUPABASE_URL'){ toast('AI is researching this conference…'); } else { toast('AI research activates at go-live — opening the conference site'); if(c.website) window.open(c.website,'_blank','noopener'); } }
@@ -2469,21 +2469,83 @@ function renderMasterSearch(){
 }
 
 // ── KB CREATE ARTICLE (demo form, not persisted) ───────────────
-function renderKBCreate(){
-  $('topbar-actions').innerHTML='';
-  $('content').innerHTML=`<div style="max-width:720px;margin:0 auto;padding:14px 6px">
-    <div style="font-size:11px;color:#64748b;margin-bottom:12px">Publishes to the Knowledge Base once the backend is wired.</div>
-    <div class="fstack">
-      <div class="fg"><label class="fl">Title *</label><input class="fc" id="kc-title" placeholder="e.g. How to reset a dispatcher password"></div>
-      <div class="fg2">
-        <div class="fg"><label class="fl">Product</label><select class="fc" id="kc-ps"><option>Public Safety</option><option>FMS</option></select></div>
-        <div class="fg"><label class="fl">Visibility</label><select class="fc"><option>Public</option><option>Internal</option></select></div>
-      </div>
-      <div class="fg"><label class="fl">Category</label><input class="fc" placeholder="e.g. CAD, RMS, Utility Billing"></div>
-      <div class="fg"><label class="fl">Article body</label><textarea class="fc" rows="8" placeholder="Write the article…"></textarea></div>
-      <div class="fg"><label class="fl">Video link (optional)</label><input class="fc" placeholder="https://…"></div>
-      <button class="btn btn-primary" onclick="toast('Demo only — article not saved'); navigate('kb')">Save Article</button>
-    </div></div>`;
+function renderKBCreate(){ S.view='kb'; renderKB({browse:true}); showKBForm(); }
+
+// ── KB / TRAINING / CONFERENCE EDITING ─────────────────────────
+function showKBForm(id){
+  const arts=(typeof KB_ARTICLES!=='undefined'?KB_ARTICLES:[]);
+  const a=id!=null?arts.find(x=>x.id===id):null;
+  const cats=[...new Set(arts.map(x=>x.cat).filter(Boolean))].sort();
+  showModal(a?'Edit Article':'New KB Article',`<div class="fstack">
+    <div class="fg"><label class="fl">Title *</label><input class="fc" id="kf-title" value="${a?escH(a.title):''}"></div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">Product</label><select class="fc" id="kf-ps"><option value="PS"${a&&a.ps==='PS'?' selected':''}>Public Safety</option><option value="FMS"${a&&a.ps==='FMS'?' selected':''}>FMS</option></select></div>
+      <div class="fg"><label class="fl">Category</label><input class="fc" id="kf-cat" list="kf-cats" value="${a?escH(a.cat):''}"><datalist id="kf-cats">${cats.map(c=>`<option value="${escH(c)}">`).join('')}</datalist></div>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">Visibility</label><select class="fc" id="kf-int"><option value="">Public</option><option value="1"${a&&a.internal?' selected':''}>Internal</option></select></div>
+      <div class="fg"><label class="fl">Has video</label><select class="fc" id="kf-vid"><option value="">No</option><option value="1"${a&&a.video?' selected':''}>Yes</option></select></div>
+    </div>
+    <div class="fg"><label class="fl">Keywords</label><input class="fc" id="kf-kw" value="${a?escH(a.keywords||''):''}"></div>
+    <div class="fg"><label class="fl">Article body</label><textarea class="fc" id="kf-desc" rows="6">${a?escH(a.desc||''):''}</textarea></div>
+  </div>`,`${a?`<button class="btn btn-ghost btn-sm" onclick="deleteKB('${a.id}')">🗑 Delete</button>`:''}<button class="btn btn-primary btn-sm" onclick="saveKBForm(${a?`'${a.id}'`:'null'})">${a?'Save':'Create'}</button>`);
+}
+function saveKBForm(id){
+  const t=$('kf-title').value.trim(); if(!t){toast('Title required');return;}
+  const rec={title:t,ps:$('kf-ps').value,cat:$('kf-cat').value||'General',internal:!!$('kf-int').value,video:!!$('kf-vid').value,keywords:$('kf-kw').value,desc:$('kf-desc').value,status:'Published',updated:today()};
+  if(id){ Object.assign(KB_ARTICLES.find(x=>x.id===id),rec); } else { KB_ARTICLES.unshift(Object.assign({id:'kb-'+Date.now(),views:0},rec)); }
+  closeModal(); toast('Article saved'); S.view='kb'; renderKB({browse:true});
+}
+function deleteKB(id){ const i=KB_ARTICLES.findIndex(x=>x.id===id); if(i>=0)KB_ARTICLES.splice(i,1); closeModal(); toast('Article deleted'); S.view='kb'; renderKB({browse:true}); }
+
+function showClassForm(idx){
+  const T=(typeof TRAINING!=='undefined'?TRAINING:{classes:[],tracks:[]}); const c=idx!=null?T.classes[idx]:null;
+  showModal(c?'Edit Virtual Class':'New Virtual Class',`<div class="fstack">
+    <div class="fg"><label class="fl">Class name *</label><input class="fc" id="cf-name" value="${c?escH(c.name):''}"></div>
+    <div class="fg2"><div class="fg"><label class="fl">Product / Module</label><input class="fc" id="cf-prod" value="${c?escH(c.product):''}" placeholder="CAD, RMS, Utility Billing…"></div><div class="fg"><label class="fl">Side</label><select class="fc" id="cf-ps"><option value="PS"${c&&c.ps==='PS'?' selected':''}>Public Safety</option><option value="FMS"${c&&c.ps==='FMS'?' selected':''}>FMS</option></select></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">Date</label><input class="fc" type="date" id="cf-date" value="${c?c.date:''}"></div><div class="fg"><label class="fl">Time</label><input class="fc" id="cf-time" value="${c?escH(c.time):''}" placeholder="10:00 AM CT"></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">Seats</label><input class="fc" type="number" min="0" id="cf-seats" value="${c?c.seats:''}"></div><div class="fg"><label class="fl">Registered</label><input class="fc" type="number" min="0" id="cf-reg" value="${c?c.registered:0}"></div></div>
+    <div class="fg"><label class="fl">Instructor</label><input class="fc" id="cf-inst" value="${c?escH(c.instructor||''):''}"></div>
+  </div>`,`${c?`<button class="btn btn-ghost btn-sm" onclick="TRAINING.classes.splice(${idx},1);closeModal();toast('Class removed');renderTraining()">🗑 Delete</button>`:''}<button class="btn btn-primary btn-sm" onclick="saveClassForm(${idx==null?'null':idx})">Save</button>`);
+}
+function saveClassForm(idx){
+  const n=$('cf-name').value.trim(); if(!n){toast('Name required');return;}
+  const rec={name:n,product:$('cf-prod').value,ps:$('cf-ps').value,date:$('cf-date').value,time:$('cf-time').value,seats:+$('cf-seats').value||0,registered:+$('cf-reg').value||0,instructor:$('cf-inst').value};
+  if(idx!=null)Object.assign(TRAINING.classes[idx],rec); else TRAINING.classes.push(rec);
+  closeModal();toast('Class saved');renderTraining();
+}
+function showTrackForm(idx){
+  const T=(typeof TRAINING!=='undefined'?TRAINING:{classes:[],tracks:[]}); const t=idx!=null?T.tracks[idx]:null;
+  showModal(t?'Edit Learning Track':'New Learning Track',`<div class="fstack">
+    <div class="fg"><label class="fl">Track name *</label><input class="fc" id="tf-name" value="${t?escH(t.track):''}"></div>
+    <div class="fg2"><div class="fg"><label class="fl">Product</label><input class="fc" id="tf-prod" value="${t?escH(t.product):''}"></div><div class="fg"><label class="fl">Side</label><select class="fc" id="tf-ps"><option value="PS"${t&&t.ps==='PS'?' selected':''}>Public Safety</option><option value="FMS"${t&&t.ps==='FMS'?' selected':''}>FMS</option></select></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">Level</label><select class="fc" id="tf-lvl"><option${t&&t.level==='Beginner'?' selected':''}>Beginner</option><option${t&&t.level==='Intermediate'?' selected':''}>Intermediate</option><option${t&&t.level==='Advanced'?' selected':''}>Advanced</option></select></div><div class="fg"><label class="fl">Lessons</label><input class="fc" type="number" min="0" id="tf-lessons" value="${t?t.lessons:''}"></div></div>
+    <div class="fg"><label class="fl">Description</label><textarea class="fc" id="tf-desc" rows="3">${t?escH(t.desc||''):''}</textarea></div>
+  </div>`,`${t?`<button class="btn btn-ghost btn-sm" onclick="TRAINING.tracks.splice(${idx},1);closeModal();toast('Track removed');renderTraining()">🗑 Delete</button>`:''}<button class="btn btn-primary btn-sm" onclick="saveTrackForm(${idx==null?'null':idx})">Save</button>`);
+}
+function saveTrackForm(idx){
+  const n=$('tf-name').value.trim(); if(!n){toast('Name required');return;}
+  const rec={track:n,product:$('tf-prod').value,ps:$('tf-ps').value,level:$('tf-lvl').value,lessons:+$('tf-lessons').value||0,desc:$('tf-desc').value};
+  if(idx!=null)Object.assign(TRAINING.tracks[idx],rec); else TRAINING.tracks.push(rec);
+  closeModal();toast('Track saved');renderTraining();
+}
+function showConfForm(idx){
+  const c=idx!=null?CONFERENCES[idx]:null;
+  const lvls=['Standard','Premium','Platinum','Gold','Silver']; if(c&&c.level&&!lvls.includes(c.level))lvls.unshift(c.level);
+  showModal(c?'Edit Conference':'New Conference',`<div class="fstack">
+    <div class="fg"><label class="fl">Conference name *</label><input class="fc" id="xf-name" value="${c?escH(c.name):''}"></div>
+    <div class="fg2"><div class="fg"><label class="fl">Start date</label><input class="fc" type="date" id="xf-begin" value="${c&&c.begin?c.begin:''}"></div><div class="fg"><label class="fl">End date</label><input class="fc" type="date" id="xf-end" value="${c&&c.end?c.end:''}"></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">State</label><input class="fc" id="xf-state" value="${c?escH(c.state||''):''}" maxlength="4"></div><div class="fg"><label class="fl">Sponsorship level</label><select class="fc" id="xf-level">${lvls.map(l=>`<option${c&&c.level===l?' selected':''}>${l}</option>`).join('')}</select></div></div>
+    <div class="fg"><label class="fl">Venue</label><input class="fc" id="xf-venue" value="${c?escH(c.venue||''):''}"></div>
+    <div class="fg2"><div class="fg"><label class="fl">Registration cost</label><input class="fc" id="xf-cost" value="${c?escH(c.cost||''):''}"></div><div class="fg"><label class="fl">Booth</label><input class="fc" id="xf-booth" value="${c?escH(c.booth||''):''}"></div></div>
+    <div class="fg"><label class="fl">Website</label><input class="fc" id="xf-web" value="${c?escH(c.website||''):''}"></div>
+  </div>`,`${c?`<button class="btn btn-ghost btn-sm" onclick="CONFERENCES.splice(${idx},1);closeModal();toast('Conference removed');navigate('conf')">🗑 Delete</button>`:''}<button class="btn btn-primary btn-sm" onclick="saveConfForm(${idx==null?'null':idx})">Save</button>`);
+}
+function saveConfForm(idx){
+  const n=$('xf-name').value.trim(); if(!n){toast('Name required');return;}
+  const rec={name:n,begin:$('xf-begin').value,end:$('xf-end').value,state:$('xf-state').value,level:$('xf-level').value,venue:$('xf-venue').value,cost:$('xf-cost').value,booth:$('xf-booth').value,website:$('xf-web').value};
+  if(idx!=null)Object.assign(CONFERENCES[idx],rec); else CONFERENCES.push(Object.assign({month:'',assigned:[],notes:'',payment:'',sponsorship:''},rec));
+  closeModal();toast('Conference saved');navigate('conf');
 }
 
 // ── CUSTOMER MAP (real lat/long, no external tiles) ────────────
@@ -2634,7 +2696,7 @@ function renderKB(extra){
   extra=extra||{};
   const arts=(typeof KB_ARTICLES!=='undefined'?KB_ARTICLES:[]);
   const isList = extra.ps || extra.browse || extra.internalMode || extra.cat;
-  $('topbar-actions').innerHTML='<button class="btn btn-primary btn-sm" onclick="navigate(\'kbcreate\')">+ New Article</button>';
+  $('topbar-actions').innerHTML='<button class="btn btn-primary btn-sm" onclick="showKBForm()">+ New Article</button>';
   if(!isList){
     // ── "Choose Your Product" landing ──
     const count=ps=>arts.filter(a=>a.ps===ps).length;
@@ -2708,7 +2770,7 @@ function kbDetail(i){
     <div class="fg"><label class="fl">Article</label><p style="color:var(--muted);white-space:pre-wrap">${escH(a.desc||'No summary on file.')}</p></div>
     ${a.keywords?`<div class="fg"><label class="fl">Keywords</label><p>${escH(a.keywords)}</p></div>`:''}
     <div class="fg2"><div class="fg"><label class="fl">Views</label><p>${a.views||0}</p></div><div class="fg"><label class="fl">Updated</label><p>${a.updated?fmt(a.updated):'—'}</p></div></div>
-  </div>`,'');
+  </div>`,`<button class="btn btn-ghost btn-sm" onclick="closeModal();showKBForm('${a.id}')">✏️ Edit</button>`);
 }
 
 // ── TRAINING (internal) ────────────────────────────────────────
@@ -2716,7 +2778,7 @@ function renderTraining(extra){
   extra=extra||{}; const pPs=extra.ps||'';
   const T=(typeof TRAINING!=='undefined'?TRAINING:{tracks:[],classes:[]});
   const prods=[...new Set([...T.tracks,...T.classes].map(x=>x.product))].sort();
-  $('topbar-actions').innerHTML='';
+  $('topbar-actions').innerHTML='<button class="btn btn-ghost btn-sm" onclick="showTrackForm()">+ Track</button><button class="btn btn-primary btn-sm" onclick="showClassForm()">+ Virtual Class</button>';
   $('content').innerHTML=`
   <div class="toolbar">
     <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="tr-s" placeholder="Search training…" style="width:240px"></div>
@@ -2728,12 +2790,12 @@ function renderTraining(extra){
     const q=$('tr-s').value.toLowerCase(), ps=$('tr-ps').value, pf=$('tr-prod').value;
     const fc=T.classes.filter(c=>(!ps||c.ps===ps)&&(!pf||c.product===pf)&&(!q||c.name.toLowerCase().includes(q)||c.instructor.toLowerCase().includes(q)));
     const ft=T.tracks.filter(t=>(!ps||t.ps===ps)&&(!pf||t.product===pf)&&(!q||t.track.toLowerCase().includes(q)||t.desc.toLowerCase().includes(q)));
-    const cls=fc.map(c=>{const full=c.registered>=c.seats;return `<div class="proj-row" style="cursor:default">
+    const cls=fc.map(c=>{const full=c.registered>=c.seats;const ci=T.classes.indexOf(c);return `<div class="proj-row" onclick="showClassForm(${ci})" title="Edit class">
         <span style="font-size:1.2rem">💻</span>
         <div class="proj-info"><div class="proj-name">${escH(c.name)}</div><div class="proj-meta">${escH(c.product)} · ${escH(c.ps)} · ${escH(c.instructor)}</div></div>
         <div class="proj-right"><span style="font-size:12px;color:#e2e8f0">${fmt(c.date)} · ${escH(c.time)}</span><span style="font-size:11px;color:${full?'#f87171':'#4ade80'}">${c.registered}/${c.seats} seats${full?' · Full':''}</span></div>
       </div>`;}).join('')||'<div style="color:#64748b;font-size:13px;padding:8px 4px">No upcoming classes match.</div>';
-    const trk=ft.map(t=>`<div class="stat" style="--sc:var(--blue);padding:1rem">
+    const trk=ft.map(t=>`<div class="stat" style="--sc:var(--blue);padding:1rem;cursor:pointer" onclick="showTrackForm(${T.tracks.indexOf(t)})" title="Edit track">
         <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem"><span style="font-size:1.4rem">🎓</span>
         <div><div style="font-weight:600;font-size:14px;color:var(--white)">${escH(t.track)}</div><div style="font-size:11px;color:var(--muted)">${escH(t.product)} · ${escH(t.ps)} · ${escH(t.level)}</div></div></div>
         <div style="font-size:12px;color:#cbd5e1;margin-bottom:.5rem">${escH(t.desc)}</div>
@@ -3761,31 +3823,36 @@ function renderTeam(){
   const dir=(typeof STAFF_DIR!=='undefined'&&STAFF_DIR.length)?STAFF_DIR:S.profiles.map(p=>({name:p.full_name,title:p.title,roles:[],ext:'',phone:'',email:''}));
   const roleSet=[...new Set(dir.flatMap(d=>d.roles||[]))].sort();
   const initials=n=>n.split(/\s+/).filter(w=>/[A-Za-z]/.test(w)).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  $('topbar-actions').innerHTML='';
   $('content').innerHTML=`
   <div class="toolbar">
-    <div class="search-wrap"><span class="search-i">\uD83D\uDD0D</span><input class="search-fc" id="tm-s" placeholder="Search staff, title, ext…" style="width:250px"></div>
+    <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="tm-s" placeholder="Search staff, title, ext…" style="width:250px"></div>
     <select class="fc" id="tm-role" style="width:auto;padding:6px 10px"><option value="">All Roles</option>${roleSet.map(r=>`<option>${r}</option>`).join('')}</select>
     <span id="tm-count" style="font-size:12px;color:#64748b;align-self:center"></span>
   </div>
-  <div class="stats" id="team-list"></div>`;
+  <div id="team-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;align-items:start"></div>`;
   const openFor=nm=>S.tasks.filter(t=>!['done','na'].includes(t.status)&&(t.assignee_name||'').toLowerCase()===nm.toLowerCase()).length;
   const roleColor={Admin:'#f59e0b',PM:'#3b82f6',Sales:'#22c55e','KB Editor':'#a855f7'};
   const draw=()=>{
     const q=$('tm-s').value.toLowerCase(), rf=$('tm-role').value;
     const f=dir.filter(d=>(!rf||(d.roles||[]).includes(rf))&&(!q||[d.name,d.title,d.ext,d.email].join(' ').toLowerCase().includes(q)));
     $('tm-count').textContent=`${f.length} staff`;
-    $('team-list').innerHTML=f.map(d=>{const open=openFor(d.name);return `<div class="stat" style="--sc:var(--blue);padding:1rem">
-        <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.6rem">
-          <div class="ava" style="width:38px;height:38px;font-size:13px;background:#334155;color:#e2e8f0">${initials(d.name)}</div>
-          <div style="min-width:0"><div style="font-weight:600;font-size:14px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(d.name)}</div>
-          <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(d.title||'')}</div></div>
+    $('team-list').innerHTML=f.map(d=>{const open=openFor(d.name);const tel=(d.phone||'').replace(/[^0-9+]/g,'');return `
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0">
+        <div style="display:flex;align-items:center;gap:11px;min-width:0">
+          <div class="ava" style="width:42px;height:42px;min-width:42px;font-size:14px;background:#334155;color:#e2e8f0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700">${initials(d.name)}</div>
+          <div style="min-width:0;flex:1">
+            <div style="font-weight:600;font-size:14px;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(d.name)}</div>
+            <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(d.title||'—')}</div>
+          </div>
         </div>
-        <div style="font-size:12px;color:#cbd5e1;line-height:1.7">
-          ${d.ext||d.phone?`<div>\u260E\uFE0F ${d.ext?'Ext '+escH(d.ext):''}${d.ext&&d.phone?' · ':''}${d.phone?`<a href="tel:${escH(d.phone.replace(/[^0-9+]/g,''))}" style="color:#60a5fa">${escH(d.phone)}</a>`:''}</div>`:''}
-          ${d.email?`<div><a href="mailto:${escH(d.email)}" style="color:#60a5fa">${escH(d.email)}</a></div>`:''}
+        <div style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:#cbd5e1;border-top:1px solid #ffffff0d;padding-top:9px">
+          ${d.ext?`<div style="display:flex;gap:6px"><span style="color:#64748b;min-width:52px">Ext</span><span>${escH(d.ext)}</span></div>`:''}
+          ${d.phone?`<div style="display:flex;gap:6px"><span style="color:#64748b;min-width:52px">Phone</span><a href="tel:${escH(tel)}" style="color:#60a5fa">${escH(d.phone)}</a></div>`:''}
+          ${d.email?`<div style="display:flex;gap:6px;min-width:0"><span style="color:#64748b;min-width:52px">Email</span><a href="mailto:${escH(d.email)}" style="color:#60a5fa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(d.email)}</a></div>`:''}
         </div>
-        ${(d.roles||[]).length||open?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:.5rem;align-items:center">${(d.roles||[]).map(r=>`<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;color:${roleColor[r]||'#94a3b8'};background:${(roleColor[r]||'#94a3b8')}22">${r}</span>`).join('')}${open?`<span style="font-size:10px;color:#94a3b8;margin-left:auto">${open} open task${open!==1?'s':''}</span>`:''}</div>`:''}
-      </div>`;}).join('')||`<div class="empty"><div class="empty-i">\uD83D\uDC65</div><div class="empty-h">No staff match</div></div>`;
+        ${(d.roles||[]).length||open?`<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;border-top:1px solid #ffffff0d;padding-top:9px">${(d.roles||[]).map(r=>`<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;color:${roleColor[r]||'#94a3b8'};background:${(roleColor[r]||'#94a3b8')}22">${r}</span>`).join('')}${open?`<span style="font-size:10px;color:#94a3b8;margin-left:auto">${open} open task${open!==1?'s':''}</span>`:''}</div>`:''}
+      </div>`;}).join('')||`<div class="empty" style="grid-column:1/-1"><div class="empty-i">👥</div><div class="empty-h">No staff match</div></div>`;
   };
   $('tm-s').oninput=draw; $('tm-role').onchange=draw; draw();
 }
