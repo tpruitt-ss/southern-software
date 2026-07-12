@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SS Staff Portal</title>
+<meta name="robots" content="noindex,nofollow">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#06101f;--bg2:#0b1a2e;--bg3:#0f2040;--card:#111e35;
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);
+  --text:#e8edf5;--muted:#7a9bc0;--dim:#4a6a8a;--white:#fff;
+  --blue:#2e7fd4;--bluel:#5ba3e8;--green:#3ab54a;--red:#e03030;
+  --orange:#f59e0b;--purple:#8b5cf6;--yellow:#ffd700;
+  --fh:'Barlow Condensed',sans-serif;--fb:'Inter',sans-serif;
+  --r:10px;--r2:6px;--tr:140ms ease;--shadow:0 4px 24px rgba(0,0,0,.45);
+}
+html{font-size:15px;color-scheme:dark}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a{color:var(--bluel);text-decoration:none}
+button,select,input,textarea{font-family:var(--fb)}
+button{cursor:pointer}
+
+/* ─── STATUS TOKENS ────────────────────────────────────────── */
+:root{
+  --s-todo:          #7a9bc0;
+  --s-todo-bg:       rgba(122,155,192,.1);
+  --s-inprogress:    #5ba3e8;
+  --s-inprogress-bg: rgba(46,127,212,.15);
+  --s-waiting:       #f59e0b;
+  --s-waiting-bg:    rgba(245,158,11,.12);
+  --s-blocked:       #ef4444;
+  --s-blocked-bg:    rgba(239,68,68,.12);
+  --s-done:          #3ab54a;
+  --s-done-bg:       rgba(58,181,74,.12);
+  --s-na:            #4a6a8a;
+  --s-na-bg:         rgba(74,106,138,.1);
+}
+
+/* ─── LAYOUT ───────────────────────────────────────────────── */
+#login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem}
+#app{display:none;height:100vh;display:none;flex-direction:column}
+.shell{display:grid;grid-template-columns:220px 1fr;height:calc(100vh - 0px);overflow:hidden}
+
+/* ─── SIDEBAR ──────────────────────────────────────────────── */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;position:relative}
+.sb-item.sb-ext::after{content:'↗';font-size:9px;margin-left:auto;color:var(--dim);opacity:.6}
+.sb-item.sb-ext:hover::after{opacity:1}
+.sb-logo{padding:1rem .85rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:9px;flex-shrink:0}
+.sb-logo img{width:28px;height:28px}
+.sb-logo-name{font-family:var(--fh);font-weight:700;font-size:.95rem;color:var(--white);line-height:1}
+.sb-logo-sub{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.sb-nav{flex:1;overflow-y:auto;padding:.4rem 0}
+.sb-label{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--dim);padding:.65rem .85rem .2rem}
+.sb-item{display:flex;align-items:center;gap:9px;padding:.48rem .85rem;
+  font-size:13px;color:var(--muted);border-radius:var(--r2);margin:1px 5px;
+  cursor:pointer;user-select:none;transition:background var(--tr),color var(--tr)}
+.sb-item:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.sb-item.active{background:rgba(46,127,212,.14);color:var(--bluel);font-weight:600}
+.sb-item .i{width:16px;text-align:center;font-size:14px;flex-shrink:0}
+.sb-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;
+  font-weight:700;padding:1px 5px;border-radius:8px;min-width:16px;text-align:center}
+.sb-user{padding:.75rem .85rem;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:.6rem;flex-shrink:0}
+.sb-avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  object-fit:cover;background:var(--blue);display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.sb-uname{font-size:12px;font-weight:600;color:var(--text);flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-uteam{font-size:10px;color:var(--dim)}
+.sb-signout{background:none;border:none;color:var(--dim);font-size:15px;
+  padding:3px;border-radius:3px;transition:color var(--tr)}
+.sb-signout:hover{color:var(--red)}
+
+/* ─── MAIN AREA ────────────────────────────────────────────── */
+.main{display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);
+  height:50px;padding:0 1.25rem;display:flex;align-items:center;gap:.75rem;flex-shrink:0}
+.topbar-title{font-family:var(--fh);font-weight:700;font-size:1.1rem;
+  text-transform:uppercase;letter-spacing:.05em;color:var(--white);flex:1}
+#topbar-actions{display:flex;align-items:center;gap:.5rem}
+.content{flex:1;overflow-y:auto;padding:1.25rem}
+
+/* ─── BUTTONS ──────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;
+  border-radius:var(--r2);font-size:13px;font-weight:600;border:1px solid transparent;
+  transition:all var(--tr);white-space:nowrap}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-primary:hover{background:#2570bf}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--text);border-color:var(--border2)}
+.btn-ghost:hover{background:rgba(255,255,255,.11)}
+.btn-danger{background:rgba(224,48,48,.12);color:#f87171;border-color:rgba(224,48,48,.25)}
+.btn-danger:hover{background:rgba(224,48,48,.2)}
+.btn-sm{padding:4px 9px;font-size:12px}
+.btn-xs{padding:2px 7px;font-size:11px;border-radius:4px}
+.icon-btn{background:none;border:none;padding:5px;border-radius:var(--r2);
+  color:var(--muted);transition:background var(--tr),color var(--tr)}
+.icon-btn:hover{background:rgba(255,255,255,.07);color:var(--text)}
+
+/* ─── STATUS CHIP ──────────────────────────────────────────── */
+.sc{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;
+  border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;border:1px solid transparent;cursor:pointer;
+  transition:opacity var(--tr)}
+.sc:hover{opacity:.8}
+.sc-todo       {color:var(--s-todo);      background:var(--s-todo-bg);      border-color:rgba(122,155,192,.2)}
+.sc-inprogress {color:var(--s-inprogress);background:var(--s-inprogress-bg);border-color:rgba(46,127,212,.25)}
+.sc-waiting_customer,.sc-waiting_vendor
+               {color:var(--s-waiting);   background:var(--s-waiting-bg);   border-color:rgba(245,158,11,.2)}
+.sc-blocked    {color:var(--s-blocked);   background:var(--s-blocked-bg);   border-color:rgba(239,68,68,.25)}
+.sc-done       {color:var(--s-done);      background:var(--s-done-bg);      border-color:rgba(58,181,74,.2)}
+.sc-na         {color:var(--s-na);        background:var(--s-na-bg);        border-color:rgba(74,106,138,.15)}
+
+/* ─── PRIORITY CHIP ────────────────────────────────────────── */
+.pc{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;
+  border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.pc-urgent{background:rgba(220,38,38,.15);color:#f87171;border:1px solid rgba(220,38,38,.25)}
+.pc-high  {background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.2)}
+.pc-medium{background:rgba(99,102,241,.1);color:#a5b4fc;border:1px solid rgba(99,102,241,.15)}
+.pc-low   {background:rgba(74,106,138,.12);color:var(--dim);border:1px solid rgba(74,106,138,.15)}
+
+/* ─── PROJECT STATUS BADGE ─────────────────────────────────── */
+.psb{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:20px}
+.psb-active  {background:rgba(58,181,74,.12);  color:#4ade80; border:1px solid rgba(58,181,74,.2)}
+.psb-at_risk {background:rgba(245,158,11,.12); color:#fbbf24; border:1px solid rgba(245,158,11,.2)}
+.psb-behind  {background:rgba(239,68,68,.12);  color:#f87171; border:1px solid rgba(239,68,68,.2)}
+.psb-on_hold {background:rgba(139,92,246,.1);  color:#c4b5fd; border:1px solid rgba(139,92,246,.2)}
+.psb-complete{background:rgba(74,106,138,.1);  color:var(--dim);border:1px solid rgba(74,106,138,.15)}
+.psb-cancelled{background:rgba(74,106,138,.08);color:var(--dim);border:1px solid rgba(74,106,138,.1)}
+
+/* ─── CARDS ────────────────────────────────────────────────── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem}
+
+/* ─── FORMS ────────────────────────────────────────────────── */
+.fc{background:var(--bg3);border:1px solid var(--border);color:var(--text);
+  border-radius:var(--r2);padding:7px 10px;font-size:14px;width:100%;
+  transition:border-color var(--tr)}
+.fc:focus{outline:none;border-color:var(--blue)}
+.fc::placeholder{color:var(--dim)}
+textarea.fc{resize:vertical;min-height:72px}
+.fl{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:.3rem}
+.fg{display:flex;flex-direction:column;gap:.25rem}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.fstack{display:flex;flex-direction:column;gap:.7rem}
+
+/* ─── MODAL ────────────────────────────────────────────────── */
+.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:400;
+  display:flex;align-items:center;justify-content:center;padding:1rem;
+  opacity:0;pointer-events:none;transition:opacity .18s}
+.modal-wrap.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;
+  width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column;
+  box-shadow:var(--shadow);transform:translateY(16px);transition:transform .18s}
+.modal-wrap.open .modal{transform:none}
+.modal-hdr{padding:1.1rem 1.35rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-title{font-family:var(--fh);font-weight:700;font-size:1rem;
+  text-transform:uppercase;letter-spacing:.05em;color:var(--white)}
+.modal-body{padding:1.35rem;overflow-y:auto;flex:1}
+.modal-foot{padding:.85rem 1.35rem;border-top:1px solid var(--border);
+  display:flex;justify-content:flex-end;gap:.5rem;flex-shrink:0}
+
+/* ─── SIDE PANEL ───────────────────────────────────────────── */
+.panel{position:fixed;right:0;top:0;bottom:0;width:440px;
+  background:var(--bg2);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:300;
+  transform:translateX(100%);transition:transform .22s ease}
+.panel.open{transform:none}
+.panel-hdr{padding:.9rem 1.1rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:.6rem;flex-shrink:0}
+.panel-title{font-size:14px;font-weight:700;color:var(--white);flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.panel-body{flex:1;overflow-y:auto;padding:1.1rem}
+.panel-foot{padding:.75rem 1.1rem;border-top:1px solid var(--border);flex-shrink:0}
+
+/* ─── TOAST ────────────────────────────────────────────────── */
+#toasts{position:fixed;bottom:1.25rem;right:1.25rem;z-index:999;
+  display:flex;flex-direction:column;gap:.4rem;pointer-events:none}
+.toast{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;
+  padding:.55rem .9rem;font-size:13px;color:var(--text);box-shadow:var(--shadow);
+  animation:slideUp .2s ease;max-width:280px;pointer-events:all}
+.toast.ok {border-left:3px solid var(--green)}
+.toast.err{border-left:3px solid var(--red)}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ─── DASHBOARD ────────────────────────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.85rem;margin-bottom:1.25rem}
+.stat{background:var(--card);border:1px solid var(--border);
+  border-left:3px solid var(--sc, var(--blue));
+  border-radius:var(--r);padding:.85rem 1rem}
+.stat-n{font-family:var(--fh);font-weight:900;font-size:2rem;color:var(--white);line-height:1}
+.stat-l{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:.2rem}
+.dash-cols{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.dash-h{font-family:var(--fh);font-size:.9rem;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:.6rem}
+.row{display:flex;align-items:center;gap:.6rem;padding:.45rem .6rem;
+  border-radius:var(--r2);cursor:pointer;transition:background var(--tr)}
+.row:hover{background:rgba(255,255,255,.04)}
+.row-main{flex:1;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-sub{font-size:11px;color:var(--muted);flex-shrink:0}
+.ava{width:22px;height:22px;border-radius:50%;background:var(--blue);
+  display:flex;align-items:center;justify-content:center;font-size:9px;
+  font-weight:700;color:#fff;flex-shrink:0;object-fit:cover}
+
+/* ─── PROJECT LIST ─────────────────────────────────────────── */
+.toolbar{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem}
+.search-wrap{position:relative}
+.search-i{position:absolute;left:8px;top:50%;transform:translateY(-50%);
+  color:var(--dim);font-size:13px;pointer-events:none}
+.search-fc{background:var(--bg3);border:1px solid var(--border);color:var(--text);
+  border-radius:var(--r2);padding:6px 10px 6px 28px;font-size:13px;width:200px;
+  transition:border-color var(--tr)}
+.search-fc:focus{outline:none;border-color:var(--blue)}
+.proj-list{display:flex;flex-direction:column;gap:.45rem}
+.proj-row{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:.85rem 1.1rem;cursor:pointer;display:flex;align-items:center;gap:.85rem;
+  transition:border-color var(--tr),transform var(--tr)}
+.proj-row:hover{border-color:var(--border2);transform:translateX(2px)}
+.proj-info{flex:1;min-width:0}
+.proj-name{font-size:14px;font-weight:600;color:var(--white);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proj-meta{font-size:11px;color:var(--muted);margin-top:1px}
+.proj-right{display:flex;align-items:center;gap:.65rem;flex-shrink:0}
+.prog{width:72px;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:var(--blue);border-radius:3px;transition:width .3s}
+
+/* ─── PROJECT DETAIL ───────────────────────────────────────── */
+.proj-hdr{margin-bottom:1.25rem}
+.proj-h1{font-family:var(--fh);font-weight:900;font-size:1.8rem;
+  text-transform:uppercase;letter-spacing:.03em;color:var(--white);line-height:1}
+.proj-hmeta{display:flex;align-items:center;gap:.85rem;flex-wrap:wrap;margin-top:.5rem}
+.metabit{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted)}
+.prog-full{background:rgba(255,255,255,.07);border-radius:4px;height:8px;
+  max-width:400px;margin-top:.65rem;overflow:hidden}
+.prog-full-fill{height:100%;background:var(--blue);border-radius:4px;transition:width .4s}
+.prog-label{font-size:11px;color:var(--muted);margin-top:.3rem}
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.1rem}
+.tab{padding:.55rem 1rem;font-size:13px;font-weight:600;color:var(--muted);
+  cursor:pointer;border-bottom:2px solid transparent;transition:color var(--tr)}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--bluel);border-bottom-color:var(--bluel)}
+
+/* ─── SECTIONS & TASKS ─────────────────────────────────────── */
+.section-block{margin-bottom:1.25rem}
+.section-hdr{display:flex;align-items:center;gap:.75rem;padding:.5rem .75rem;
+  background:var(--bg2);border-radius:var(--r2);margin-bottom:.4rem;cursor:pointer;
+  border:1px solid var(--border)}
+.section-hdr:hover{border-color:var(--border2)}
+.section-name{font-family:var(--fh);font-weight:700;font-size:.95rem;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--white);flex:1}
+.section-prog{font-size:11px;color:var(--muted)}
+.section-chevron{color:var(--dim);font-size:12px;transition:transform .15s}
+.section-chevron.open{transform:rotate(90deg)}
+.section-body{display:none}
+.section-body.open{display:block}
+.task-item{display:flex;align-items:center;gap:.6rem;padding:.5rem .6rem .5rem 1.85rem;
+  border-radius:var(--r2);cursor:pointer;transition:background var(--tr);
+  border-bottom:1px solid rgba(255,255,255,.03)}
+.task-item:hover{background:rgba(255,255,255,.04)}
+.task-item.has-subs{font-weight:600}
+.task-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border2);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;
+  transition:all var(--tr);cursor:pointer;flex-shrink:0}
+.task-check[data-s="done"]{background:var(--green);border-color:var(--green);color:#fff}
+.task-check[data-s="na"]{background:var(--dim);border-color:var(--dim);color:#fff;opacity:.6}
+.task-check[data-s="inprogress"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.task-check[data-s="waiting_customer"],.task-check[data-s="waiting_vendor"]{background:var(--orange);border-color:var(--orange);color:#fff}
+.task-check[data-s="blocked"]{background:var(--red);border-color:var(--red);color:#fff}
+.task-title{flex:1;font-size:13.5px;color:var(--text)}
+.task-title.done{text-decoration:line-through;color:var(--dim)}
+.task-title.na{color:var(--dim);opacity:.6}
+.task-meta{display:flex;align-items:center;gap:.4rem;flex-shrink:0}
+.due-tag{font-size:10px;padding:2px 6px;border-radius:4px;
+  background:rgba(255,255,255,.06);color:var(--muted)}
+.due-tag.over{background:rgba(239,68,68,.12);color:#f87171}
+.due-tag.today{background:rgba(245,158,11,.12);color:#fbbf24}
+.sub-task-item{display:flex;align-items:center;gap:.6rem;padding:.35rem .6rem .35rem 2.7rem;
+  border-radius:var(--r2);cursor:pointer;transition:background var(--tr);
+  border-bottom:1px solid rgba(255,255,255,.02)}
+.sub-task-item:hover{background:rgba(255,255,255,.03)}
+.sub-task-title{flex:1;font-size:12.5px;color:var(--muted)}
+.sub-task-title.done{text-decoration:line-through;color:var(--dim)}
+.add-task-row{display:flex;align-items:center;gap:.5rem;padding:.35rem .6rem .35rem 1.85rem;
+  opacity:0;transition:opacity var(--tr)}
+.section-body:hover .add-task-row{opacity:1}
+.add-task-input{background:none;border:none;border-bottom:1px solid var(--border);
+  color:var(--text);font-size:13px;flex:1;padding:2px 4px;outline:none}
+.add-task-input:focus{border-bottom-color:var(--blue)}
+
+/* ─── TASK PANEL ───────────────────────────────────────────── */
+.pf{margin-bottom:1rem}
+.pf label{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--dim);margin-bottom:.3rem}
+.pf-val{font-size:13.5px;color:var(--muted);line-height:1.6;white-space:pre-wrap}
+.comment{display:flex;gap:.6rem;margin-bottom:.85rem}
+.c-ava{width:26px;height:26px;border-radius:50%;background:var(--blue);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;color:#fff;object-fit:cover}
+.c-who{font-size:12px;font-weight:700;color:var(--text)}
+.c-when{font-size:10px;color:var(--dim);margin-left:5px}
+.c-body{font-size:13px;color:var(--muted);margin-top:2px;line-height:1.5}
+.c-input{width:100%;background:var(--bg3);border:1px solid var(--border);
+  color:var(--text);border-radius:var(--r2);padding:7px 9px;font-size:13px;
+  resize:none;min-height:56px;transition:border-color var(--tr)}
+.c-input:focus{outline:none;border-color:var(--blue)}
+.attach-item{display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;
+  background:var(--bg3);border-radius:var(--r2);font-size:12px;margin-bottom:.3rem}
+.attach-name{flex:1;color:var(--bluel);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.attach-sz{color:var(--dim);font-size:10px;flex-shrink:0}
+
+/* ─── MY TASKS ─────────────────────────────────────────────── */
+.group-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);padding:.25rem .5rem;background:rgba(255,255,255,.03);
+  border-radius:4px;margin-bottom:.4rem;margin-top:.9rem}
+.my-task-row{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);
+  padding:.6rem .85rem;display:flex;align-items:center;gap:.65rem;cursor:pointer;
+  margin-bottom:.35rem;transition:border-color var(--tr)}
+.my-task-row:hover{border-color:var(--border2)}
+.mt-title{flex:1;font-size:13.5px;color:var(--text)}
+.mt-proj{font-size:11px;color:var(--dim);white-space:nowrap}
+
+/* ─── CALENDAR ─────────────────────────────────────────────── */
+.cal-nav{display:flex;align-items:center;gap:1rem;margin-bottom:.85rem}
+.cal-month{font-family:var(--fh);font-weight:700;font-size:1.2rem;
+  text-transform:uppercase;letter-spacing:.05em;color:var(--white);flex:1;text-align:center}
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
+.cal-dname{font-size:10px;font-weight:700;text-align:center;
+  color:var(--dim);letter-spacing:.05em;text-transform:uppercase}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-cell{min-height:78px;background:var(--bg3);border-radius:var(--r2);
+  padding:4px 5px;border:1px solid var(--border)}
+.cal-cell.today{border-color:var(--blue)}
+.cal-cell.out{opacity:.3}
+.cal-dn{font-size:10px;font-weight:700;color:var(--muted);margin-bottom:2px}
+.cal-cell.today .cal-dn{color:var(--bluel)}
+.cal-chip{font-size:9px;font-weight:600;padding:1px 4px;border-radius:3px;
+  background:rgba(46,127,212,.18);color:var(--bluel);cursor:pointer;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:block;margin-bottom:1px}
+.cal-chip.over{background:rgba(239,68,68,.18);color:#f87171}
+.cal-chip.done{background:rgba(58,181,74,.1);color:#4ade80;text-decoration:line-through}
+
+/* ─── ISSUES ────────────────────────────────────────────────── */
+.issue-row{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);
+  padding:.6rem .85rem;display:flex;align-items:center;gap:.7rem;cursor:pointer;
+  margin-bottom:.35rem;transition:border-color var(--tr)}
+.issue-row:hover{border-color:var(--border2)}
+.issue-title{flex:1;font-size:13.5px;color:var(--text)}
+.issue-meta{font-size:11px;color:var(--muted)}
+
+/* ─── EMPTY / LOADER ───────────────────────────────────────── */
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--muted)}
+.empty-i{font-size:2.2rem;margin-bottom:.6rem}
+.empty-h{font-weight:600;color:var(--text);margin-bottom:.25rem}
+.spin{width:28px;height:28px;border:2.5px solid rgba(255,255,255,.08);
+  border-top-color:var(--blue);border-radius:50%;animation:sp .65s linear infinite;margin:auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+.loader{display:flex;align-items:center;justify-content:center;padding:3rem;
+  flex-direction:column;gap:.75rem;color:var(--muted);font-size:13px}
+
+/* ─── LOGIN ────────────────────────────────────────────────── */
+.login-card{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;
+  padding:2.25rem;width:100%;max-width:360px;text-align:center;box-shadow:var(--shadow)}
+.login-logo{width:52px;height:52px;margin:0 auto .9rem}
+.login-h{font-family:var(--fh);font-weight:900;font-size:1.7rem;
+  text-transform:uppercase;letter-spacing:.04em;color:var(--white);margin-bottom:.2rem}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:1.75rem}
+.g-btn{display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:10px 15px;background:#fff;color:#333;border:none;
+  border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;
+  transition:box-shadow var(--tr),transform var(--tr)}
+.g-btn:hover{box-shadow:0 4px 14px rgba(0,0,0,.3);transform:translateY(-1px)}
+.login-note{font-size:11px;color:var(--dim);margin-top:1rem}
+
+
+/* ─── AI ASSIST ────────────────────────────────────────────── */
+.ai-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;
+  border-radius:var(--r2);font-size:12px;font-weight:600;
+  background:linear-gradient(135deg,#4f46e5,#7c3aed);
+  color:#fff;border:none;cursor:pointer;
+  transition:opacity var(--tr),transform var(--tr)}
+.ai-btn:hover{opacity:.9;transform:translateY(-1px)}
+.ai-btn:disabled{opacity:.5;cursor:wait;transform:none}
+.ai-panel{background:linear-gradient(135deg,rgba(79,70,229,.08),rgba(124,58,237,.08));
+  border:1px solid rgba(124,58,237,.25);border-radius:var(--r);
+  padding:1rem;margin-top:.75rem}
+.ai-panel-title{font-size:11px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:#a78bfa;margin-bottom:.5rem;
+  display:flex;align-items:center;gap:5px}
+.ai-result{font-size:13px;color:var(--text);line-height:1.65;
+  white-space:pre-wrap;max-height:320px;overflow-y:auto}
+.ai-result-actions{display:flex;gap:.5rem;margin-top:.65rem;flex-wrap:wrap}
+.ai-thinking{display:flex;align-items:center;gap:.6rem;
+  color:#a78bfa;font-size:13px}
+.ai-dots span{animation:dot 1.4s infinite both}
+.ai-dots span:nth-child(2){animation-delay:.2s}
+.ai-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dot{0%,80%,100%{opacity:0}40%{opacity:1}}
+.ai-menu{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:.4rem;min-width:240px;position:absolute;
+  z-index:100;right:0;top:calc(100% + 4px)}
+.ai-menu-item{display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;
+  border-radius:var(--r2);cursor:pointer;font-size:13px;color:var(--muted);
+  transition:background var(--tr),color var(--tr)}
+.ai-menu-item:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.ai-menu-item .i{font-size:16px;width:20px;text-align:center}
+.ai-wrap{position:relative;display:inline-block}
+
+/* ─── RESPONSIVE ───────────────────────────────────────────── */
+@media(max-width:800px){
+  .shell{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .dash-cols{grid-template-columns:1fr}
+  .fg2{grid-template-columns:1fr}
+  .panel{width:100vw}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN — TEMP PREVIEW (remove before go-live) -->
+<div id="login-wrap">
+  <div class="login-card">
+    <img src="logo-mark-trans.png" alt="" class="login-logo">
+    <div class="login-h">Staff Portal</div>
+    <div class="login-sub">Southern Software, Inc. — Internal Preview</div>
+    <div class="fg" style="margin-bottom:.75rem">
+      <label class="fl" style="text-align:left">Preview Password</label>
+      <input class="fc" type="password" id="preview-pw" placeholder="Enter preview password"
+        onkeydown="if(event.key==='Enter')doPreviewLogin()">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:10px" onclick="doPreviewLogin()">
+      Enter Portal →
+    </button>
+    <p class="login-note" style="margin-top:.75rem">⚠️ Preview mode — Google login will be enabled at go-live</p>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="app">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sb-logo">
+        <img src="logo-mark-trans.png" alt="SS">
+        <div><div class="sb-logo-name">SS Portal</div><div class="sb-logo-sub">Staff Internal</div></div>
+      </div>
+      <nav class="sb-nav">
+
+        <div class="sb-label">My Work</div>
+        <div class="sb-item active" data-v="dashboard"><span class="i">📊</span>Dashboard</div>
+        <div class="sb-item" data-v="mine"><span class="i">✅</span>My Tasks<span class="sb-badge" id="mine-badge" style="display:none"></span></div>
+        <div class="sb-item" data-v="calendar"><span class="i">📅</span>Calendar</div>
+
+        <div class="sb-label">Projects</div>
+        <div class="sb-item" data-v="projects"><span class="i">📁</span>All Projects</div>
+        <div class="sb-item" data-v="customers"><span class="i">🏛️</span>Customers</div>
+        <div class="sb-item" data-v="issues"><span class="i">🐛</span>Bug Tracker</div>
+        <div class="sb-item" data-v="team"><span class="i">👥</span>Team</div>
+
+        <div class="sb-label">Portal Tools</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/timeoff/users"><span class="i">🏖️</span>Time Off</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/RMS/247SupportCalendar_ReadOnly/"><span class="i">📆</span>After Hours Calendar</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/RMS/agenciessearch"><span class="i">🏛️</span>Customer Search</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/RMS/MasterCustomerSearch"><span class="i">🔍</span>Master Customer Search</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/RMS/agencyheatmap"><span class="i">🗺️</span>Customer Heat Map</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/RMS/hardwarelist"><span class="i">🖥️</span>Hardware</div>
+
+        <div class="sb-label">Knowledge Base</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/KB/PSFrontPage"><span class="i">🚔</span>KB — Public Safety</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/KB/FMSFrontPage"><span class="i">📊</span>KB — FMS</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/KB/PSFrontPage_Internal"><span class="i">🔒</span>KB — PS Internal</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/KB/FMSFrontPage_Internal"><span class="i">🔒</span>KB — FMS Internal</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/KB/CreateArticle"><span class="i">✏️</span>Create KB Article</div>
+
+        <div class="sb-label">Training</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/Training_New/Admin/Conferences/index.php"><span class="i">🎓</span>Conferences & Training</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/Training_New/Admin/Conferences/virtual_classes.php"><span class="i">💻</span>Virtual Classes</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/Tracks/EditTracks_PS"><span class="i">📋</span>Learning Tracks — PS</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/Tracks/EditTracks_FMS"><span class="i">📋</span>Learning Tracks — FMS</div>
+
+        <div class="sb-label">Admin</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/admin/newsletters_v2"><span class="i">📰</span>Newsletters</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/versions/appversions/"><span class="i">📱</span>App Versions</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/admin/editversions/"><span class="i">✏️</span>Edit App Versions</div>
+        <div class="sb-item sb-ext" data-href="https://portal.southernsoftware.com/new/KB/FrontPage/#ui-basic"><span class="i">💼</span>Sales Tools</div>
+        <div class="sb-item" data-v="handbook"><span class="i">📖</span>Employee Handbook</div>
+
+      </nav>
+      <div class="sb-user">
+        <div class="sb-avatar" id="sb-ava">?</div>
+        <div style="flex:1;min-width:0">
+          <div class="sb-uname" id="sb-name">…</div>
+          <div class="sb-uteam" id="sb-team"></div>
+        </div>
+        <button class="sb-signout" id="sb-signout" title="Sign out">⏻</button>
+      </div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div id="topbar-actions"></div>
+      </div>
+      <div class="content" id="content">
+        <div class="loader"><div class="spin"></div>Loading…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TASK PANEL -->
+<div class="panel" id="task-panel">
+  <div class="panel-hdr">
+    <span class="panel-title" id="tp-title">Task</span>
+    <button class="icon-btn" id="tp-close">✕</button>
+  </div>
+  <div class="panel-body" id="tp-body"></div>
+  <div class="panel-foot">
+    <textarea class="c-input" id="c-input" placeholder="Add a comment… (or type rough notes and click AI Polish)" rows="2"></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.4rem">
+      <button class="ai-btn" id="ai-polish-btn" style="font-size:11px;padding:4px 10px"
+        onclick="aiDraftComment(S.taskId, S.tasks.find(t=>t.id===S.taskId)?.project_id, this)">✨ AI Polish</button>
+      <button class="btn btn-primary btn-sm" id="c-submit">Post</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-wrap" id="modal-wrap">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title" id="modal-title">…</span>
+      <button class="icon-btn" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-foot" id="modal-foot"></div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div id="toasts"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  CONFIG — replace with your Supabase project values
+// ══════════════════════════════════════════════════════════════
+const SB_URL  = 'YOUR_SUPABASE_URL';
+const SB_ANON = 'YOUR_SUPABASE_ANON_KEY';
+const DOMAIN  = 'southernsoftware.com';
+
+const {createClient} = supabase;
+const db = createClient(SB_URL, SB_ANON);
+
+// ── STATUS CONFIG ─────────────────────────────────────────────
+const STATUS = {
+  todo:             {label:'To Do',        icon:'○', cls:'sc-todo'},
+  inprogress:       {label:'In Progress',  icon:'◑', cls:'sc-inprogress'},
+  waiting_customer: {label:'Waiting — Customer', icon:'⏳', cls:'sc-waiting_customer'},
+  waiting_vendor:   {label:'Waiting — Vendor',   icon:'⏳', cls:'sc-waiting_vendor'},
+  blocked:          {label:'Blocked',      icon:'⊘', cls:'sc-blocked'},
+  done:             {label:'Done',         icon:'●', cls:'sc-done'},
+  na:               {label:'N/A',          icon:'—', cls:'sc-na'},
+};
+const STATUS_ORDER = ['todo','inprogress','waiting_customer','waiting_vendor','blocked','done','na'];
+
+// ── STATE ─────────────────────────────────────────────────────
+const S = {
+  user:null, profile:null, profiles:[],
+  projects:[], tasks:[], customers:[], issues:[],
+  view:'dashboard', projId:null, taskId:null,
+};
+
+// ── UTILS ─────────────────────────────────────────────────────
+const $  = id => document.getElementById(id);
+const el = (t,c='',h='') => { const e=document.createElement(t); if(c)e.className=c; if(h)e.innerHTML=h; return e; };
+const fmt   = d => d ? new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+const fmtLong = d => d ? new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) : '';
+const today = () => new Date().toISOString().split('T')[0];
+const isOver  = d => d && d < today();
+const isToday = d => d && d === today();
+const initials = n => n ? n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() : '?';
+
+function ava(p, size=22) {
+  if(!p) return `<div class="ava" style="width:${size}px;height:${size}px;font-size:${Math.round(size*.38)}px">?</div>`;
+  if(p.avatar_url) return `<img class="ava" src="${p.avatar_url}" style="width:${size}px;height:${size}px" alt="">`;
+  return `<div class="ava" style="width:${size}px;height:${size}px;font-size:${Math.round(size*.38)}px">${initials(p.full_name)}</div>`;
+}
+
+function toast(msg, type='ok') {
+  const t = el('div','toast '+type, msg);
+  $('toasts').appendChild(t);
+  setTimeout(()=>t.remove(), 3200);
+}
+
+function sc(status) {
+  const s = STATUS[status] || STATUS.todo;
+  return `<span class="sc ${s.cls}">${s.icon} ${s.label}</span>`;
+}
+
+function getP(id) { return S.profiles.find(p=>p.id===id) || null; }
+
+function dueTag(d) {
+  if(!d) return '';
+  if(isToday(d)) return `<span class="due-tag today">Today</span>`;
+  if(isOver(d))  return `<span class="due-tag over">⚠ ${fmt(d)}</span>`;
+  return `<span class="due-tag">${fmt(d)}</span>`;
+}
+
+// ── AUTH — PREVIEW MODE ───────────────────────────────────────
+// ★ TEMP: Simple password login for testing
+// Replace with Google OAuth block before go-live
+const PREVIEW_PASSWORD = 'ss2026preview';  // ← change this to whatever you want
+
+async function doPreviewLogin() {
+  const pw = $('preview-pw')?.value || '';
+  if(pw !== PREVIEW_PASSWORD) {
+    $('preview-pw').style.borderColor = 'var(--red)';
+    $('preview-pw').placeholder = 'Wrong password — try again';
+    $('preview-pw').value = '';
+    return;
+  }
+  // Mock user for preview
+  S.user = {
+    id: 'preview-user-id',
+    email: 'tpruitt@southernsoftware.com',
+  };
+  $('login-wrap').style.display = 'none';
+  $('app').style.display = 'flex';
+  await reload();
+  setupNav();
+  navigate('dashboard');
+}
+
+async function boot() {
+  // Check if already logged in this session
+  const session = sessionStorage.getItem('ss-preview-session');
+  if(session === 'ok') {
+    S.user = JSON.parse(sessionStorage.getItem('ss-preview-user') || '{}');
+    $('login-wrap').style.display = 'none';
+    $('app').style.display = 'flex';
+    await reload();
+    setupNav();
+    navigate('dashboard');
+    return;
+  }
+  showLogin();
+}
+
+function showLogin() {
+  $('login-wrap').style.display = 'flex';
+  $('app').style.display = 'none';
+}
+
+// Save session so refresh doesn't log you out
+const _origDoPreviewLogin = doPreviewLogin;
+async function doPreviewLogin() {
+  const pw = $('preview-pw')?.value || '';
+  if(pw !== PREVIEW_PASSWORD) {
+    const inp = $('preview-pw');
+    inp.style.borderColor = 'var(--red)';
+    inp.placeholder = 'Wrong password — try again';
+    inp.value = '';
+    setTimeout(() => { inp.style.borderColor = ''; inp.placeholder = 'Enter preview password'; }, 2000);
+    return;
+  }
+  S.user = { id: 'preview-user-id', email: 'tpruitt@southernsoftware.com' };
+  sessionStorage.setItem('ss-preview-session', 'ok');
+  sessionStorage.setItem('ss-preview-user', JSON.stringify(S.user));
+  $('login-wrap').style.display = 'none';
+  $('app').style.display = 'flex';
+  await reload();
+  setupNav();
+  navigate('dashboard');
+}
+
+$('sb-signout').onclick = () => {
+  sessionStorage.removeItem('ss-preview-session');
+  sessionStorage.removeItem('ss-preview-user');
+  S.user = null;
+  showLogin();
+};
+
+// ── DATA ──────────────────────────────────────────────────────
+async function reload() {
+  // Preview mode: use anon key, no auth session needed
+  const [pr,proj,task,cust,iss] = await Promise.all([
+    db.from('profiles').select('*'),
+    db.from('projects').select('*, customers(name,state)').order('updated_at',{ascending:false}),
+    db.from('tasks').select('*').order('sort_order'),
+    db.from('customers').select('*').order('name'),
+    db.from('issues').select('*').order('created_at',{ascending:false}),
+  ]);
+  S.profiles  = pr.data   || [];
+  S.projects  = proj.data || [];
+  S.tasks     = task.data || [];
+  S.customers = cust.data || [];
+  S.issues    = iss.data  || [];
+  // Preview mode: use first profile or a stub
+  S.profile = S.profiles.find(p=>p.id===S.user?.id)
+    || S.profiles[0]
+    || { full_name: 'Travis Pruitt', team: 'management', title: 'Director CAD|MDS Operations' };
+
+  const name = S.profile.full_name || S.user?.email?.split('@')[0] || 'Preview User';
+  $('sb-name').textContent = name;
+  $('sb-team').textContent = S.profile.team || '';
+  $('sb-ava').innerHTML = ava(S.profile, 30);
+
+  const myOpen = S.tasks.filter(t=>t.assignee_id===S.user.id && !['done','na'].includes(t.status));
+  const over   = myOpen.filter(t=>isOver(t.due_date));
+  const b = $('mine-badge');
+  if(over.length){ b.textContent=over.length; b.style.display=''; }
+  else b.style.display='none';
+}
+
+// ── NAV ───────────────────────────────────────────────────────
+function setupNav() {
+  document.querySelectorAll('.sb-item[data-v]').forEach(i => i.onclick = () => navigate(i.dataset.v));
+  // External portal links — open in new tab
+  document.querySelectorAll('.sb-item.sb-ext[data-href]').forEach(i => {
+    i.onclick = () => window.open(i.dataset.href, '_blank', 'noopener');
+  });
+  $('tp-close').onclick = closePanel;
+  $('modal-close').onclick = closeModal;
+  $('modal-wrap').onclick = e => { if(e.target===$('modal-wrap')) closeModal(); };
+}
+
+const VIEW_TITLES = { handbook:'Employee Handbook',
+  dashboard:'Dashboard', mine:'My Tasks', calendar:'Calendar',
+  projects:'Projects', customers:'Customers', issues:'Bug & Issue Tracker', team:'Team',
+};
+
+function navigate(v, extra={}) {
+  S.view = v;
+  document.querySelectorAll('.sb-item[data-v]').forEach(i=>i.classList.toggle('active',i.dataset.v===v));
+  $('topbar-title').textContent = VIEW_TITLES[v] || v;
+  $('topbar-actions').innerHTML = '';
+  closePanel();
+  ({dashboard:renderDash, mine:renderMine, calendar:renderCal,
+    projects:renderProjects, customers:renderCustomers,
+    issues:renderIssues, team:renderTeam, handbook:renderHandbook})[v]?.(extra);
+}
+
+
+// ── HANDBOOK ───────────────────────────────────────────────────
+function renderHandbook() {
+  $('topbar-actions').innerHTML = '';
+  $('content').innerHTML = `
+  <div style="max-width:860px;margin:0 auto">
+    <div class="card" style="margin-bottom:1rem;display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem">
+      <span style="font-size:2rem">📖</span>
+      <div style="flex:1">
+        <div style="font-family:var(--fh);font-weight:700;font-size:1.1rem;text-transform:uppercase;letter-spacing:.05em;color:var(--white)">Employee Handbook</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Southern Software, Inc. — Internal Reference</div>
+      </div>
+      <a href="https://www.southernsoftware.com/employeehandbook.pdf" target="_blank" class="btn btn-ghost btn-sm">📄 View Current PDF ↗</a>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <div class="card">
+        <div style="font-family:var(--fh);font-weight:700;font-size:.9rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.75rem">🏢 Company</div>
+        ${[
+          ['Our Mission & Faith','#mission'],
+          ['ESOP — Employee Ownership','#esop'],
+          ['Code of Conduct','#conduct'],
+          ['Confidentiality Policy','#confidentiality'],
+          ['Equal Opportunity','#eeo'],
+        ].map(([label,href])=>`<div class="row" style="padding:.35rem .5rem">
+          <span style="font-size:13px;color:var(--text)">${label}</span>
+        </div>`).join('')}
+      </div>
+      <div class="card">
+        <div style="font-family:var(--fh);font-weight:700;font-size:.9rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.75rem">💼 Employment</div>
+        ${[
+          ['Time Off & PTO Policy','#pto'],
+          ['Remote Work Policy','#remote'],
+          ['Benefits Overview','#benefits'],
+          ['Performance Reviews','#reviews'],
+          ['Expense Reimbursement','#expenses'],
+        ].map(([label])=>`<div class="row" style="padding:.35rem .5rem">
+          <span style="font-size:13px;color:var(--text)">${label}</span>
+        </div>`).join('')}
+      </div>
+      <div class="card">
+        <div style="font-family:var(--fh);font-weight:700;font-size:.9rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.75rem">📁 Project Management</div>
+        ${[
+          ['How Projects Are Created','Using the New Project wizard — pick customer, products, and the implementation template auto-builds all sections.'],
+          ['Project Statuses','Active · At Risk · Behind · On Hold · Complete · Cancelled'],
+          ['Task Statuses','To Do · In Progress · Waiting on Customer · Waiting on Vendor · Blocked · Done · N/A'],
+          ['Implementation Phases','Project Initiation → IT Information → Hardware → [Products] → Conversions → Go Live → Close-Out'],
+          ['Milestones & Notifications','Kickoff, Go Live, and Project Closed trigger automatic email notifications to management and PMs.'],
+          ['AI Features','✉️ Draft Customer Email · ✨ AI Summary · 🚀 Go-Live Checklist · ✨ AI Polish comments'],
+        ].map(([label,desc])=>`<div style="padding:.5rem .5rem;border-bottom:1px solid var(--border)">
+          <div style="font-size:13px;font-weight:600;color:var(--white)">${label}</div>
+          ${desc?`<div style="font-size:12px;color:var(--muted);margin-top:2px">${desc}</div>`:''}
+        </div>`).join('')}
+      </div>
+      <div class="card">
+        <div style="font-family:var(--fh);font-weight:700;font-size:.9rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.75rem">🔗 Quick Links</div>
+        ${[
+          ['🏖️ Time Off Requests','https://portal.southernsoftware.com/new/timeoff/users'],
+          ['📆 After Hours Calendar','https://portal.southernsoftware.com/new/RMS/247SupportCalendar_ReadOnly/'],
+          ['🚔 PS Knowledge Base','https://portal.southernsoftware.com/new/KB/PSFrontPage'],
+          ['📊 FMS Knowledge Base','https://portal.southernsoftware.com/new/KB/FMSFrontPage'],
+          ['🎓 Training & Conferences','https://portal.southernsoftware.com/new/Training_New/Admin/Conferences/index.php'],
+          ['📱 Current App Versions','https://portal.southernsoftware.com/new/versions/appversions/'],
+        ].map(([label,url])=>`<a href="${url}" target="_blank" class="row" style="text-decoration:none;padding:.4rem .5rem">
+          <span style="font-size:13px;color:var(--bluel)">${label}</span>
+          <span style="font-size:10px;color:var(--dim)">↗</span>
+        </a>`).join('')}
+      </div>
+    </div>
+
+    <div class="card" style="border:1px solid rgba(46,127,212,.2);background:rgba(46,127,212,.06)">
+      <div style="font-family:var(--fh);font-weight:700;font-size:.9rem;text-transform:uppercase;letter-spacing:.06em;color:var(--bluel);margin-bottom:.5rem">📝 Handbook Refresh Coming Soon</div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6">The Employee Handbook is being updated to match the Nucleus platform formatting and will include the full Project Management section covering this portal. Until then, refer to the current PDF above.</p>
+    </div>
+  </div>`;
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+function renderDash() {
+  const allTasks = S.tasks.filter(t=>!['done','na'].includes(t.status));
+  const over  = allTasks.filter(t=>isOver(t.due_date));
+  const tod   = allTasks.filter(t=>isToday(t.due_date));
+  const mine  = allTasks.filter(t=>t.assignee_id===(S.profile?.id||S.user?.id));
+  const ap    = S.projects.filter(p=>p.status==='active').length;
+  const risk  = S.projects.filter(p=>p.status==='at_risk').length;
+  const beh   = S.projects.filter(p=>p.status==='behind').length;
+
+  $('content').innerHTML = `
+  <div class="stats">
+    <div class="stat" style="--sc:var(--green)"><div class="stat-n">${ap}</div><div class="stat-l">Active Projects</div></div>
+    <div class="stat" style="--sc:var(--orange)"><div class="stat-n">${risk}</div><div class="stat-l">At Risk</div></div>
+    <div class="stat" style="--sc:var(--red)"><div class="stat-n">${beh}</div><div class="stat-l">Behind</div></div>
+    <div class="stat" style="--sc:var(--red)"><div class="stat-n">${over.length}</div><div class="stat-l">Overdue Tasks</div></div>
+    <div class="stat" style="--sc:var(--yellow)"><div class="stat-n">${tod.length}</div><div class="stat-l">Due Today</div></div>
+    <div class="stat" style="--sc:var(--blue)"><div class="stat-n">${mine.length}</div><div class="stat-l">My Open Tasks</div></div>
+  </div>
+  <div class="dash-cols">
+    <div class="card"><div class="dash-h">⚠️ Overdue</div><div id="d-over"></div></div>
+    <div class="card"><div class="dash-h">📅 Due Today</div><div id="d-tod"></div></div>
+    <div class="card"><div class="dash-h">✅ My Open Tasks</div><div id="d-mine"></div></div>
+    <div class="card"><div class="dash-h">📁 Active Projects</div><div id="d-proj"></div></div>
+  </div>`;
+
+  const taskRows = (tasks, el) => {
+    if(!tasks.length){ el.innerHTML=`<div class="empty" style="padding:1rem"><div class="empty-i">🎉</div><div style="font-size:13px;color:var(--dim)">All clear</div></div>`; return; }
+    tasks.slice(0,7).forEach(t=>{
+      const p=getP(t.assignee_id);
+      const proj=S.projects.find(x=>x.id===t.project_id);
+      const r=document.createElement('div');
+      r.className='row';
+      r.innerHTML=`${ava(p,22)}<div class="row-main">${t.title}</div><span class="row-sub">${proj?.customers?.name||proj?.name||''}</span>${dueTag(t.due_date)}`;
+      r.onclick=()=>openPanel(t.id);
+      el.appendChild(r);
+    });
+  };
+  taskRows(over, $('d-over'));
+  taskRows(tod,  $('d-tod'));
+  taskRows(mine, $('d-mine'));
+
+  const dp=$('d-proj');
+  S.projects.filter(p=>p.status==='active').slice(0,6).forEach(p=>{
+    const r=document.createElement('div');
+    r.className='row';
+    const prog=projProgress(p.id);
+    r.innerHTML=`<span>📁</span><div class="row-main">${p.name}</div><div class="prog" style="width:60px"><div class="prog-fill" style="width:${prog}%"></div></div><span class="row-sub">${prog}%</span>`;
+    r.onclick=()=>openProject(p.id);
+    dp.appendChild(r);
+  });
+  // Portal quick access tiles
+  renderPortalTiles('d-proj');
+}
+
+// ── MY TASKS ──────────────────────────────────────────────────
+function renderMine() {
+  const tasks = S.tasks.filter(t=>t.assignee_id===S.user.id && !['done','na'].includes(t.status));
+  const groups = [
+    {s:'blocked',      label:'🔴 Blocked'},
+    {s:'inprogress',   label:'🔵 In Progress'},
+    {s:'waiting_customer', label:'🟡 Waiting on Customer'},
+    {s:'waiting_vendor',   label:'🟠 Waiting on Vendor'},
+    {s:'todo',         label:'⬜ To Do'},
+  ];
+  let html = '';
+  if(!tasks.length){
+    html=`<div class="empty"><div class="empty-i">✅</div><div class="empty-h">All caught up!</div><div>No open tasks assigned to you.</div></div>`;
+  } else {
+    groups.forEach(g=>{
+      const gt=tasks.filter(t=>t.status===g.s);
+      if(!gt.length) return;
+      html+=`<div class="group-label">${g.label} (${gt.length})</div>`;
+      gt.forEach(t=>{
+        const proj=S.projects.find(p=>p.id===t.project_id);
+        html+=`<div class="my-task-row" onclick="openPanel('${t.id}')">
+          <div class="task-check" data-s="${t.status}">${t.status==='done'?'✓':t.status==='na'?'—':''}</div>
+          <div class="mt-title">${t.title}</div>
+          <span class="mt-proj">${proj?.customers?.name||proj?.name||''}</span>
+          ${dueTag(t.due_date)}
+        </div>`;
+      });
+    });
+  }
+  $('content').innerHTML = html;
+}
+
+// ── CALENDAR ──────────────────────────────────────────────────
+function renderCal() {
+  let yr=new Date().getFullYear(), mo=new Date().getMonth();
+  const draw = () => {
+    const first=new Date(yr,mo,1).getDay(), dim=new Date(yr,mo+1,0).getDate();
+    const mname=new Date(yr,mo).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    const all=S.tasks.filter(t=>t.due_date);
+    let h=`<div class="cal-nav">
+      <button class="btn btn-ghost btn-sm" onclick="calP()">◀</button>
+      <div class="cal-month">${mname}</div>
+      <button class="btn btn-ghost btn-sm" onclick="calN()">▶</button>
+    </div>
+    <div class="cal-head">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-dname">${d}</div>`).join('')}</div>
+    <div class="cal-grid">`;
+    for(let i=0;i<first;i++) h+=`<div class="cal-cell out"></div>`;
+    for(let d=1;d<=dim;d++){
+      const ds=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isT=today()===ds;
+      const dt=all.filter(t=>t.due_date===ds);
+      h+=`<div class="cal-cell${isT?' today':''}">
+        <div class="cal-dn">${d}</div>
+        ${dt.slice(0,3).map(t=>`<div class="cal-chip ${t.status==='done'?'done':isOver(t.due_date)?'over':''}" onclick="openPanel('${t.id}')" title="${t.title}">${t.title}</div>`).join('')}
+        ${dt.length>3?`<div style="font-size:9px;color:var(--dim)">+${dt.length-3} more</div>`:''}
+      </div>`;
+    }
+    const rem=(7-(first+dim)%7)%7;
+    for(let i=0;i<rem;i++) h+=`<div class="cal-cell out"></div>`;
+    h+='</div>';
+    $('content').innerHTML=h;
+  };
+  window.calP=()=>{if(mo===0){mo=11;yr--;}else mo--;draw();};
+  window.calN=()=>{if(mo===11){mo=0;yr++;}else mo++;draw();};
+  draw();
+}
+
+// ── PROJECTS LIST ──────────────────────────────────────────────
+function projProgress(id) {
+  const tasks=S.tasks.filter(t=>t.project_id===id && !t.parent_id);
+  if(!tasks.length) return 0;
+  const done=tasks.filter(t=>['done','na'].includes(t.status)).length;
+  return Math.round(done/tasks.length*100);
+}
+
+function projColor(status) {
+  return {active:'psb-active',at_risk:'psb-at_risk',behind:'psb-behind',
+    on_hold:'psb-on_hold',complete:'psb-complete',cancelled:'psb-cancelled'}[status]||'psb-active';
+}
+function projLabel(s){return{active:'Active',at_risk:'At Risk',behind:'Behind',on_hold:'On Hold',complete:'Complete',cancelled:'Cancelled'}[s]||s;}
+
+function renderProjects() {
+  $('topbar-actions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="showNewProjModal()">+ New Project</button>`;
+  $('content').innerHTML=`
+  <div class="toolbar">
+    <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="ps" placeholder="Search…"></div>
+    <select class="fc" id="pf-status" style="width:auto;padding:6px 10px">
+      <option value="">All Statuses</option>
+      <option value="active">Active</option><option value="at_risk">At Risk</option>
+      <option value="behind">Behind</option><option value="on_hold">On Hold</option>
+      <option value="complete">Complete</option>
+    </select>
+    <select class="fc" id="pf-type" style="width:auto;padding:6px 10px">
+      <option value="">All Types</option>
+      <option value="implementation">Implementation</option>
+      <option value="training">Training</option>
+      <option value="support">Support</option>
+      <option value="internal">Internal</option>
+    </select>
+  </div>
+  <div class="proj-list" id="proj-list"></div>`;
+
+  const draw = () => {
+    const q=$('ps').value.toLowerCase();
+    const st=$('pf-status').value, ty=$('pf-type').value;
+    const projs=S.projects.filter(p=>
+      (!q||p.name.toLowerCase().includes(q)||(p.customers?.name||'').toLowerCase().includes(q))&&
+      (!st||p.status===st)&&(!ty||p.type===ty));
+    const g=$('proj-list');
+    if(!projs.length){g.innerHTML=`<div class="empty"><div class="empty-i">📁</div><div class="empty-h">No projects found</div></div>`;return;}
+    g.innerHTML=projs.map(p=>{
+      const prog=projProgress(p.id);
+      const pm=getP(p.pm_id);
+      const icons={implementation:'🏗️',training:'🎓',support:'🛠️',rfp:'📄',internal:'⚙️',bug_track:'🐛'};
+      return `<div class="proj-row" onclick="openProject('${p.id}')">
+        <span style="font-size:1.3rem">${icons[p.type]||'📁'}</span>
+        <div class="proj-info">
+          <div class="proj-name">${p.name}</div>
+          <div class="proj-meta">${p.customers?.name||'Internal'}${p.customers?.state?' · '+p.customers.state:''}${p.target_date?' · Due '+fmt(p.target_date):''}</div>
+        </div>
+        <div class="proj-right">
+          <span class="psb ${projColor(p.status)}">${projLabel(p.status)}</span>
+          <div>
+            <div class="prog"><div class="prog-fill" style="width:${prog}%"></div></div>
+            <div style="font-size:9px;text-align:right;color:var(--dim);margin-top:1px">${prog}%</div>
+          </div>
+          ${ava(pm,24)}
+        </div>
+      </div>`;
+    }).join('');
+  };
+  $('ps').oninput=draw; $('pf-status').onchange=draw; $('pf-type').onchange=draw;
+  draw();
+}
+
+// ── PROJECT DETAIL ─────────────────────────────────────────────
+async function openProject(id) {
+  S.projId = id;
+  const proj = S.projects.find(p=>p.id===id);
+  if(!proj) return;
+
+  $('topbar-title').textContent = proj.name;
+  $('topbar-actions').innerHTML = `
+    <button class="btn btn-ghost btn-sm" onclick="navigate('projects')">← Back</button>
+    <select class="fc btn-sm" style="width:auto" onchange="updateProjStatus('${id}',this.value)">
+      ${['active','at_risk','behind','on_hold','complete','cancelled'].map(s=>`<option value="${s}"${proj.status===s?' selected':''}>${projLabel(s)}</option>`).join('')}
+    </select>
+    <button class="ai-btn btn-sm" onclick="aiProjectSummary('${id}',this)">✨ AI Summary</button>
+    <button class="ai-btn btn-sm" onclick="aiGoLiveChecklist('${id}',this)">🚀 Go-Live Checklist</button>
+    <button class="btn btn-primary btn-sm" onclick="showAddTaskModal('${id}')">+ Task</button>`;
+
+  // Load sections + tasks fresh
+  const {data:secs}  = await db.from('sections').select('*').eq('project_id',id).order('sort_order');
+  const {data:tasks} = await db.from('tasks').select('*').eq('project_id',id).order('sort_order');
+
+  const top = tasks?.filter(t=>!t.parent_id)||[];
+  const done = top.filter(t=>['done','na'].includes(t.status)).length;
+  const pct = top.length ? Math.round(done/top.length*100) : 0;
+  const pm = getP(proj.pm_id);
+
+  // Per-section progress
+  const secProg = (secs||[]).map(sec=>{
+    const st=tasks?.filter(t=>t.section_id===sec.id&&!t.parent_id)||[];
+    const sd=st.filter(t=>['done','na'].includes(t.status)).length;
+    return {sec, tasks:st, done:sd, pct:st.length?Math.round(sd/st.length*100):0};
+  });
+
+  $('content').innerHTML = `
+  <div class="proj-hdr">
+    <div class="proj-h1">${proj.name}</div>
+    <div class="proj-hmeta">
+      <span class="psb ${projColor(proj.status)}">${projLabel(proj.status)}</span>
+      ${proj.customers?`<span class="metabit">🏛️ ${proj.customers.name}${proj.customers.state?' · '+proj.customers.state:''}</span>`:''}
+      ${proj.target_date?`<span class="metabit">📅 ${fmt(proj.target_date)}</span>`:''}
+      ${pm?`<span class="metabit">${ava(pm,18)} ${pm.full_name||''}</span>`:''}
+    </div>
+    <div class="prog-full"><div class="prog-full-fill" style="width:${pct}%"></div></div>
+    <div class="prog-label">${done} of ${top.length} tasks complete (${pct}%)
+      ${secProg.filter(s=>s.tasks.length).map(s=>`<span style="margin-left:.75rem;color:var(--dim)">${s.sec.name}: ${s.pct}%</span>`).join('')}
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-t="tasks">Tasks</div>
+    <div class="tab" data-t="files">Files</div>
+    <div class="tab" data-t="info">Info</div>
+  </div>
+  <div id="proj-tab"></div>`;
+
+  document.querySelectorAll('.tab').forEach(tab=>{
+    tab.onclick=()=>{
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      renderProjTab(tab.dataset.t, secs||[], tasks||[], proj);
+    };
+  });
+  renderProjTab('tasks', secs||[], tasks||[], proj);
+}
+
+function renderProjTab(tab, secs, tasks, proj) {
+  const c=$('proj-tab');
+  if(tab==='tasks') {
+    if(!secs.length && !tasks.length){
+      c.innerHTML=`<div class="empty"><div class="empty-i">📋</div><div class="empty-h">No tasks yet</div><div><button class="btn btn-primary btn-sm" onclick="showAddSectionModal('${proj.id}')">+ Add Section</button></div></div>`;
+      return;
+    }
+    c.innerHTML = secs.map(sec=>{
+      const secTasks = tasks.filter(t=>t.section_id===sec.id && !t.parent_id);
+      const done = secTasks.filter(t=>['done','na'].includes(t.status)).length;
+      const pct = secTasks.length ? Math.round(done/secTasks.length*100) : 0;
+      return `<div class="section-block">
+        <div class="section-hdr" onclick="toggleSec('sec-${sec.id}')">
+          <span class="section-chevron open" id="chev-${sec.id}">▶</span>
+          <span class="section-name">${sec.name}</span>
+          <span class="section-prog">${done}/${secTasks.length} · ${pct}%</span>
+          <button class="btn btn-xs btn-ghost" onclick="event.stopPropagation();showAddTaskModal('${proj.id}','${sec.id}')">+ Task</button>
+        </div>
+        <div class="section-body open" id="sec-${sec.id}">
+          ${secTasks.map(t=>{
+            const subs=tasks.filter(s=>s.parent_id===t.id);
+            const a=getP(t.assignee_id);
+            const taskHtml = `<div class="task-item${subs.length?' has-subs':''}" onclick="openPanel('${t.id}')">
+              <div class="task-check" data-s="${t.status}" onclick="event.stopPropagation();cycleStatus('${t.id}','${t.status}')">${t.status==='done'?'✓':t.status==='na'?'—':''}</div>
+              <div class="task-title ${['done','na'].includes(t.status)?t.status:''}">${t.title}${subs.length?` <span style="font-size:10px;color:var(--dim)">(${subs.filter(s=>s.status==='done').length}/${subs.length})</span>`:''}</div>
+              <div class="task-meta">${ava(a,20)}${dueTag(t.due_date)}</div>
+            </div>`;
+            const subsHtml = subs.map(sub=>`<div class="sub-task-item" onclick="openPanel('${sub.id}')">
+              <div class="task-check" data-s="${sub.status}" onclick="event.stopPropagation();cycleStatus('${sub.id}','${sub.status}')">${sub.status==='done'?'✓':sub.status==='na'?'—':''}</div>
+              <div class="sub-task-title ${['done','na'].includes(sub.status)?sub.status:''}">${sub.title}</div>
+              <div class="task-meta">${dueTag(sub.due_date)}</div>
+            </div>`).join('');
+            return taskHtml + subsHtml;
+          }).join('')}
+          <div class="add-task-row">
+            <span style="color:var(--dim);font-size:13px">+</span>
+            <input class="add-task-input" placeholder="Add task…"
+              onkeydown="if(event.key==='Enter'&&this.value.trim())quickAddTask('${proj.id}','${sec.id}',this)">
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Tasks without a section
+    const nosec = tasks.filter(t=>!t.section_id && !t.parent_id);
+    if(nosec.length){
+      c.innerHTML += `<div class="section-block"><div class="section-hdr" onclick="toggleSec('sec-none')">
+        <span class="section-chevron open" id="chev-none">▶</span>
+        <span class="section-name">General</span>
+        <span class="section-prog">${nosec.filter(t=>t.status==='done').length}/${nosec.length}</span>
+      </div><div class="section-body open" id="sec-none">
+        ${nosec.map(t=>{
+          const a=getP(t.assignee_id);
+          return `<div class="task-item" onclick="openPanel('${t.id}')">
+            <div class="task-check" data-s="${t.status}" onclick="event.stopPropagation();cycleStatus('${t.id}','${t.status}')">${t.status==='done'?'✓':t.status==='na'?'—':''}</div>
+            <div class="task-title ${['done','na'].includes(t.status)?t.status:''}">${t.title}</div>
+            <div class="task-meta">${ava(a,20)}${dueTag(t.due_date)}</div>
+          </div>`;
+        }).join('')}
+      </div></div>`;
+    }
+  }
+  else if(tab==='files') {
+    c.innerHTML=`<div id="file-zone" style="border:2px dashed var(--border2);border-radius:var(--r);padding:1.5rem;text-align:center;color:var(--muted);cursor:pointer;margin-bottom:.75rem">
+      <div style="font-size:1.8rem">📎</div><div style="font-size:13px">Drop files or click to upload</div>
+      <input type="file" id="file-in" multiple style="display:none">
+    </div><div id="proj-files"></div>`;
+    $('file-zone').onclick=()=>$('file-in').click();
+    $('file-in').onchange=e=>uploadFiles(e.target.files,null,proj.id);
+    loadProjFiles(proj.id);
+  }
+  else {
+    const pm=getP(proj.pm_id);
+    c.innerHTML=`<div class="card" style="max-width:560px"><div class="fstack">
+      ${proj.description?`<div class="fg"><label class="fl">Description</label><p style="color:var(--muted);font-size:14px">${proj.description}</p></div>`:''}
+      <div class="fg2">
+        <div class="fg"><label class="fl">Start Date</label><p style="color:var(--text)">${fmt(proj.start_date)||'—'}</p></div>
+        <div class="fg"><label class="fl">Target Date</label><p style="color:var(--text)">${fmt(proj.target_date)||'—'}</p></div>
+      </div>
+      <div class="fg2">
+        <div class="fg"><label class="fl">Go-Live Date</label><p style="color:var(--text)">${fmt(proj.go_live_date)||'—'}</p></div>
+        <div class="fg"><label class="fl">Project Manager</label><p style="color:var(--text)">${pm?.full_name||'Unassigned'}</p></div>
+      </div>
+      ${proj.products?.length?`<div class="fg"><label class="fl">Products</label><p style="color:var(--text)">${proj.products.join(' · ')}</p></div>`:''}
+    </div></div>`;
+  }
+}
+
+function toggleSec(id) {
+  const body=$(`sec-${id.replace('sec-','')}`)||$(id);
+  const chev=$(id.replace('sec-','chev-'));
+  if(!body) return;
+  body.classList.toggle('open');
+  if(chev) chev.classList.toggle('open');
+}
+
+// ── STATUS CYCLE (click checkbox to cycle) ───────────────────
+const CYCLE = ['todo','inprogress','waiting_customer','done','na'];
+async function cycleStatus(id, current) {
+  const idx = CYCLE.indexOf(current);
+  const next = CYCLE[(idx+1) % CYCLE.length];
+  await db.from('tasks').update({status:next}).eq('id',id);
+  // Update local
+  const t = S.tasks.find(t=>t.id===id);
+  if(t) t.status = next;
+  // Re-render current view
+  if(S.projId) openProject(S.projId);
+  else if(S.view==='mine') renderMine();
+  else renderDash();
+}
+
+// ── QUICK ADD TASK (inline) ───────────────────────────────────
+async function quickAddTask(projId, secId, input) {
+  const title = input.value.trim();
+  if(!title) return;
+  const {error} = await db.from('tasks').insert({
+    project_id:projId, section_id:secId||null,
+    title, created_by:(S.profile?.id||null)
+  });
+  if(error){ toast(error.message,'err'); return; }
+  input.value='';
+  toast('Task added');
+  await reload();
+  openProject(projId);
+}
+
+// ── TASK PANEL ─────────────────────────────────────────────────
+async function openPanel(id) {
+  S.taskId = id;
+  const {data:task}    = await db.from('tasks').select('*').eq('id',id).single();
+  const {data:cmts}    = await db.from('comments').select('*,profiles(full_name,avatar_url)').eq('task_id',id).order('created_at');
+  const {data:attaches}= await db.from('attachments').select('*').eq('task_id',id);
+  const subs = S.tasks.filter(t=>t.parent_id===id);
+  const proj = S.projects.find(p=>p.id===task.project_id);
+
+  $('tp-title').textContent = task.title;
+  $('task-panel').classList.add('open');
+
+  const taskProjId = task.project_id;
+  $('tp-body').innerHTML = `
+  <div class="pf">
+    <label>Status</label>
+    <div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.2rem">
+      ${STATUS_ORDER.map(s=>`<span class="sc ${STATUS[s].cls}${task.status===s?' ring':''}"
+        style="${task.status===s?'outline:2px solid currentColor;outline-offset:2px':''}"
+        onclick="updateTask('${id}','status','${s}')">${STATUS[s].icon} ${STATUS[s].label}</span>`).join('')}
+    </div>
+    ${task.status==='done' ? `
+    <div style="margin-top:.6rem">
+      <button class="ai-btn" style="font-size:11px;padding:4px 10px"
+        onclick="aiDraftEmail('${task.project_id}','${task.title}','ai-email-zone',this)">
+        ✉️ Draft Customer Email
+      </button>
+      <div id="ai-email-zone" style="margin-top:.5rem"></div>
+    </div>` : ''}
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+    <div class="pf">
+      <label>Assignee</label>
+      <select class="fc" onchange="updateTask('${id}','assignee_id',this.value||null)">
+        <option value="">Unassigned</option>
+        ${S.profiles.map(p=>`<option value="${p.id}"${task.assignee_id===p.id?' selected':''}>${p.full_name||p.id}</option>`).join('')}
+      </select>
+    </div>
+    <div class="pf">
+      <label>Due Date</label>
+      <input type="date" class="fc" value="${task.due_date||''}" onchange="updateTask('${id}','due_date',this.value||null)">
+    </div>
+  </div>
+  ${proj?`<div class="pf"><label>Project</label><span class="pf-val" style="cursor:pointer;color:var(--bluel)" onclick="closePanel();openProject('${proj.id}')">${proj.name}</span></div>`:''}
+  ${task.notes?`<div class="pf"><label>Notes</label><p class="pf-val">${task.notes}</p></div>`:''}
+  ${subs.length?`<div class="pf"><label>Sub-steps (${subs.filter(s=>s.status==='done').length}/${subs.length} done)</label>
+    ${subs.map(s=>`<div class="my-task-row" onclick="openPanel('${s.id}')">
+      <div class="task-check" data-s="${s.status}">${s.status==='done'?'✓':''}</div>
+      <div class="mt-title" style="font-size:13px">${s.title}</div>
+      ${sc(s.status)}
+    </div>`).join('')}
+  </div>`:''}
+  <div class="pf">
+    <label>Attachments</label>
+    <div id="tp-attach">${(attaches||[]).map(a=>`<div class="attach-item">
+      <span>📎</span>
+      <span class="attach-name"><a href="#" onclick="dlFile('${a.storage_path}','${a.name}')">${a.name}</a></span>
+      <span class="attach-sz">${a.size_bytes?Math.round(a.size_bytes/1024)+'KB':''}</span>
+    </div>`).join('') || '<span style="font-size:12px;color:var(--dim)">None</span>'}</div>
+    <label class="btn btn-ghost btn-xs" style="margin-top:.4rem;cursor:pointer">
+      📎 Attach<input type="file" multiple style="display:none" onchange="uploadFiles(this.files,'${id}',null)">
+    </label>
+  </div>
+  <div class="pf">
+    <label>Comments (${(cmts||[]).length})</label>
+    <div>${(cmts||[]).map(c=>`<div class="comment">
+      ${ava(c.profiles,26)}
+      <div>
+        <span class="c-who">${c.profiles?.full_name||'?'}</span>
+        <span class="c-when">${new Date(c.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span>
+        <p class="c-body">${c.body}</p>
+      </div>
+    </div>`).join('')}</div>
+  </div>`;
+
+  $('c-submit').onclick = async() => {
+    const body = $('c-input').value.trim();
+    if(!body) return;
+    await db.from('comments').insert({task_id:id,author_id:(S.profile?.id||null),body});
+    $('c-input').value='';
+    toast('Comment posted');
+    openPanel(id);
+  };
+}
+
+function closePanel(){ $('task-panel').classList.remove('open'); S.taskId=null; }
+
+async function updateTask(id, field, value) {
+  const {error}=await db.from('tasks').update({[field]:value||null}).eq('id',id);
+  if(error){toast(error.message,'err');return;}
+  const t=S.tasks.find(t=>t.id===id); if(t) t[field]=value||null;
+  toast('Saved');
+  openPanel(id);
+}
+
+// ── FILES ─────────────────────────────────────────────────────
+async function uploadFiles(files, taskId, projId) {
+  for(const f of files){
+    const path=`${projId||taskId}/${Date.now()}_${f.name}`;
+    const {error:ue}=await db.storage.from('project-files').upload(path,f);
+    if(ue){toast(ue.message,'err');continue;}
+    await db.from('attachments').insert({task_id:taskId,project_id:projId,name:f.name,storage_path:path,size_bytes:f.size,mime_type:f.type,uploaded_by:(S.profile?.id||null)});
+    toast(`${f.name} uploaded`);
+  }
+  if(taskId) openPanel(taskId);
+  else if(projId) loadProjFiles(projId);
+}
+async function dlFile(path,name){
+  const {data}=await db.storage.from('project-files').createSignedUrl(path,60);
+  if(data) window.open(data.signedUrl);
+}
+async function loadProjFiles(projId){
+  const {data}=await db.from('attachments').select('*').eq('project_id',projId).is('task_id',null);
+  const el=$('proj-files');
+  if(!el) return;
+  el.innerHTML=(data||[]).map(a=>`<div class="attach-item">
+    <span>📎</span>
+    <span class="attach-name"><a href="#" onclick="dlFile('${a.storage_path}','${a.name}')">${a.name}</a></span>
+    <span class="attach-sz">${a.size_bytes?Math.round(a.size_bytes/1024)+'KB':''}</span>
+  </div>`).join('')||`<p style="color:var(--dim);font-size:13px">No files</p>`;
+}
+
+// ── UPDATE PROJECT STATUS ──────────────────────────────────────
+async function updateProjStatus(id, status) {
+  await db.from('projects').update({status}).eq('id',id);
+  const p=S.projects.find(p=>p.id===id); if(p) p.status=status;
+  toast('Status updated');
+}
+
+// ── CUSTOMERS ──────────────────────────────────────────────────
+function renderCustomers() {
+  $('topbar-actions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="showNewCustModal()">+ New Customer</button>`;
+  $('content').innerHTML=`
+  <div class="search-wrap" style="margin-bottom:1rem"><span class="search-i">🔍</span><input class="search-fc" id="cs" placeholder="Search customers…" style="width:240px"></div>
+  <div class="proj-list" id="cust-list"></div>`;
+  const draw=()=>{
+    const q=$('cs').value.toLowerCase();
+    const custs=S.customers.filter(c=>!q||c.name.toLowerCase().includes(q)||(c.state||'').toLowerCase().includes(q));
+    const g=$('cust-list');
+    g.innerHTML=custs.map(c=>{
+      const projs=S.projects.filter(p=>p.customer_id===c.id);
+      return `<div class="proj-row" onclick="showCustDetail('${c.id}')">
+        <span style="font-size:1.3rem">🏛️</span>
+        <div class="proj-info">
+          <div class="proj-name">${c.name}</div>
+          <div class="proj-meta">${c.state||''}${c.agency_type?' · '+c.agency_type:''}${c.contact_name?' · '+c.contact_name:''}</div>
+        </div>
+        <div class="proj-right">
+          <span style="font-size:12px;color:var(--muted)">${projs.length} project${projs.length!==1?'s':''}</span>
+          ${c.products?.length?`<span style="font-size:11px;color:var(--dim)">${c.products.slice(0,4).join(' · ')}</span>`:''}
+        </div>
+      </div>`;
+    }).join('')||`<div class="empty"><div class="empty-i">🏛️</div><div class="empty-h">No customers</div></div>`;
+  };
+  $('cs').oninput=draw; draw();
+}
+
+function showCustDetail(id){
+  const c=S.customers.find(x=>x.id===id);
+  if(!c) return;
+  const projs=S.projects.filter(p=>p.customer_id===id);
+  showModal(c.name,`
+  <div class="fstack">
+    <div class="fg2">
+      <div class="fg"><label class="fl">State</label><p>${c.state||'—'}</p></div>
+      <div class="fg"><label class="fl">Agency Type</label><p>${c.agency_type||'—'}</p></div>
+    </div>
+    <div class="fg"><label class="fl">Contact</label><p>${[c.contact_name,c.contact_email,c.contact_phone].filter(Boolean).join(' · ')||'—'}</p></div>
+    ${c.products?.length?`<div class="fg"><label class="fl">Products</label><p>${c.products.join(' · ')}</p></div>`:''}
+    <div class="fg"><label class="fl">Projects (${projs.length})</label>
+      ${projs.map(p=>`<div class="row" onclick="closeModal();openProject('${p.id}')"><span>📁</span><div class="row-main">${p.name}</div><span class="psb ${projColor(p.status)}">${projLabel(p.status)}</span></div>`).join('')||`<p style="color:var(--dim);font-size:13px">None yet</p>`}
+    </div>
+    ${c.notes?`<div class="fg"><label class="fl">Notes</label><p style="color:var(--muted)">${c.notes}</p></div>`:''}
+  </div>`,
+  `<button class="btn btn-primary btn-sm" onclick="showNewProjModal('${id}');closeModal()">+ New Project</button>`);
+}
+
+// ── ISSUES ─────────────────────────────────────────────────────
+function renderIssues() {
+  $('topbar-actions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="showNewIssueModal()">+ Report Issue</button>`;
+  $('content').innerHTML=`
+  <div class="toolbar">
+    <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="is" placeholder="Search…"></div>
+    <select class="fc" id="if-status" style="width:auto;padding:6px 10px">
+      <option value="">All Statuses</option>
+      ${STATUS_ORDER.map(s=>`<option value="${s}">${STATUS[s].label}</option>`).join('')}
+    </select>
+    <select class="fc" id="if-prod" style="width:auto;padding:6px 10px">
+      <option value="">All Products</option>
+      ${['CAD','RMS','JMS','QMS','MDIS','MDS','NMS','PSAware','ICAware','Analytics','Citizen Connect','FMS'].map(p=>`<option>${p}</option>`).join('')}
+    </select>
+  </div>
+  <div id="issue-list"></div>`;
+  const draw=()=>{
+    const q=$('is').value.toLowerCase(), st=$('if-status').value, pr=$('if-prod').value;
+    const items=S.issues.filter(i=>
+      (!q||i.title.toLowerCase().includes(q))&&
+      (!st||i.status===st)&&(!pr||i.product===pr));
+    const g=$('issue-list');
+    g.innerHTML=items.map(i=>{
+      const a=getP(i.assignee_id);
+      const cust=S.customers.find(c=>c.id===i.customer_id);
+      return `<div class="issue-row" onclick="showIssueDetail('${i.id}')">
+        <div style="font-size:16px">${{bug:'🐛',feature:'✨',question:'❓',task:'📋'}[i.type]||'🐛'}</div>
+        <div style="flex:1;min-width:0">
+          <div class="issue-title">${i.title}</div>
+          <div class="issue-meta">${i.product||''}${cust?' · '+cust.name:''}</div>
+        </div>
+        ${sc(i.status)}
+        ${ava(a,22)}
+      </div>`;
+    }).join('')||`<div class="empty"><div class="empty-i">🐛</div><div class="empty-h">No issues found</div></div>`;
+  };
+  $('is').oninput=draw; $('if-status').onchange=draw; $('if-prod').onchange=draw;
+  draw();
+}
+
+function showIssueDetail(id){
+  const i=S.issues.find(x=>x.id===id);
+  if(!i) return;
+  const a=getP(i.assignee_id), cust=S.customers.find(c=>c.id===i.customer_id);
+  showModal(i.title,`
+  <div class="fstack">
+    <div class="fg2">
+      <div class="fg"><label class="fl">Status</label>${sc(i.status)}</div>
+      <div class="fg"><label class="fl">Product</label><p>${i.product||'—'}</p></div>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">Type</label><p style="text-transform:capitalize">${i.type}</p></div>
+      <div class="fg"><label class="fl">Assignee</label><p>${a?.full_name||'Unassigned'}</p></div>
+    </div>
+    ${cust?`<div class="fg"><label class="fl">Customer</label><p>${cust.name}</p></div>`:''}
+    ${i.description?`<div class="fg"><label class="fl">Description</label><p style="color:var(--muted)">${i.description}</p></div>`:''}
+  </div>`,
+  `<select class="fc btn-sm" style="width:auto" onchange="updateIssueStatus('${id}',this.value)">
+    ${STATUS_ORDER.map(s=>`<option value="${s}"${i.status===s?' selected':''}>${STATUS[s].label}</option>`).join('')}
+  </select>`);
+}
+async function updateIssueStatus(id, status){
+  await db.from('issues').update({status}).eq('id',id);
+  const i=S.issues.find(x=>x.id===id); if(i) i.status=status;
+  toast('Status updated'); closeModal(); renderIssues();
+}
+
+// ── TEAM ───────────────────────────────────────────────────────
+function renderTeam(){
+  const html = S.profiles.map(p=>{
+    const open=S.tasks.filter(t=>t.assignee_id===p.id&&!['done','na'].includes(t.status));
+    const over=open.filter(t=>isOver(t.due_date));
+    return `<div class="stat" style="--sc:var(--blue);padding:1rem">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.65rem">
+        ${ava(p,38)}
+        <div><div style="font-weight:600;font-size:14px;color:var(--white)">${p.full_name||'—'}</div>
+        <div style="font-size:11px;color:var(--muted)">${p.title||''}${p.team?' · '+p.team:''}</div></div>
+      </div>
+      <div style="display:flex;gap:1rem">
+        <div><div class="stat-n" style="font-size:1.4rem">${open.length}</div><div class="stat-l">Open</div></div>
+        ${over.length?`<div><div class="stat-n" style="font-size:1.4rem;color:var(--red)">${over.length}</div><div class="stat-l" style="color:#f87171">Overdue</div></div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  $('content').innerHTML=`<div class="stats">${html}</div>`;
+}
+
+// ── MODALS ─────────────────────────────────────────────────────
+function showModal(title,body,foot=''){
+  $('modal-title').textContent=title;
+  $('modal-body').innerHTML=body;
+  $('modal-foot').innerHTML=`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>${foot}`;
+  $('modal-wrap').classList.add('open');
+}
+function closeModal(){ $('modal-wrap').classList.remove('open'); }
+
+const PRODUCTS = ['CAD','RMS','JMS','QMS','MDIS','MDS','NMS','PSAware','ICAware','Analytics','Citizen Connect','Command Center','AVL'];
+
+function showNewProjModal(custId=''){
+  showModal('New Project',`
+  <div class="fstack">
+    <div class="fg"><label class="fl">Project Name *</label><input class="fc" id="np-name" placeholder="e.g. Robeson County Sheriff — Implementation"></div>
+    <div class="fg">
+      <label class="fl">Customer</label>
+      <select class="fc" id="np-cust">
+        <option value="">— Select customer (or leave blank for internal) —</option>
+        ${S.customers.map(c=>`<option value="${c.id}"${c.id===custId?' selected':''}>${c.name}${c.state?' ('+c.state+')':''}</option>`).join('')}
+      </select>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">Type</label>
+        <select class="fc" id="np-type">
+          <option value="implementation">Implementation</option>
+          <option value="training">Training</option>
+          <option value="support">Support</option>
+          <option value="internal">Internal</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Project Manager</label>
+        <select class="fc" id="np-pm">
+          <option value="">Unassigned</option>
+          ${S.profiles.map(p=>`<option value="${p.id}"${p.id===S.user.id?' selected':''}>${p.full_name}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">Start Date</label><input type="date" class="fc" id="np-start"></div>
+      <div class="fg"><label class="fl">Target Go-Live</label><input type="date" class="fc" id="np-target"></div>
+    </div>
+    <div class="fg">
+      <label class="fl">Products in Scope</label>
+      <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.25rem">
+        ${PRODUCTS.map(p=>`<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);cursor:pointer"><input type="checkbox" class="pp" value="${p}"> ${p}</label>`).join('')}
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl" style="display:flex;align-items:center;gap:.5rem">
+        <input type="checkbox" id="np-tpl" checked> Auto-create implementation sections & tasks from template
+      </label>
+    </div>
+    <div class="fg"><label class="fl">Notes</label><textarea class="fc" id="np-desc" placeholder="Optional…"></textarea></div>
+  </div>`,
+  `<button class="btn btn-primary" onclick="createProject()">Create Project</button>`);
+}
+
+async function createProject(){
+  const name=$('np-name').value.trim();
+  if(!name){toast('Name required','err');return;}
+  const products=[...$('modal-body').querySelectorAll('.pp:checked')].map(c=>c.value);
+  const useTpl=$('np-tpl').checked;
+  const {data:proj,error}=await db.from('projects').insert({
+    name, customer_id:$('np-cust').value||null,
+    type:$('np-type').value, pm_id:$('np-pm').value||null,
+    start_date:$('np-start').value||null, target_date:$('np-target').value||null,
+    products:products.length?products:null,
+    description:$('np-desc').value||null,
+    created_by:(S.profile?.id||null)
+  }).select().single();
+  if(error){toast(error.message,'err');return;}
+
+  if(useTpl){
+    // Load template sections filtered by products
+    const {data:tplSecs}=await db.from('tpl_sections').select('*,tpl_tasks(*)').eq('template','implementation').order('sort_order');
+    for(const ts of (tplSecs||[])){
+      // Include section if products is null OR project has at least one matching product
+      const include=!ts.products||ts.products.length===0||
+        ts.products.some(p=>products.includes(p));
+      if(!include) continue;
+      const {data:sec}=await db.from('sections').insert({project_id:proj.id,name:ts.name,sort_order:ts.sort_order}).select().single();
+      const topTasks=(ts.tpl_tasks||[]).filter(t=>!t.parent_id).sort((a,b)=>a.sort_order-b.sort_order);
+      for(const tt of topTasks){
+        const {data:task}=await db.from('tasks').insert({
+          project_id:proj.id,section_id:sec.id,
+          title:tt.title,notes:tt.notes||null,
+          sort_order:tt.sort_order,created_by:(S.profile?.id||null)
+        }).select().single();
+        const subTasks=(ts.tpl_tasks||[]).filter(s=>s.parent_id===tt.id).sort((a,b)=>a.sort_order-b.sort_order);
+        for(const st of subTasks){
+          await db.from('tasks').insert({
+            project_id:proj.id,section_id:sec.id,
+            parent_id:task.id,title:st.title,
+            sort_order:st.sort_order,created_by:(S.profile?.id||null)
+          });
+        }
+      }
+    }
+  }
+  toast('Project created!'); closeModal(); await reload(); openProject(proj.id);
+}
+
+function showAddTaskModal(projId, secId=''){
+  const {data:secs}=db.from('sections').select('*').eq('project_id',projId);
+  showModal('Add Task',`
+  <div class="fstack">
+    <div class="fg"><label class="fl">Title *</label><input class="fc" id="nt-title" placeholder="What needs to be done?"></div>
+    <div class="fg"><label class="fl">Notes</label><textarea class="fc" id="nt-notes" placeholder="Optional details…"></textarea></div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">Assignee</label>
+        <select class="fc" id="nt-a">
+          <option value="">Unassigned</option>
+          ${S.profiles.map(p=>`<option value="${p.id}">${p.full_name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Due Date</label><input type="date" class="fc" id="nt-due"></div>
+    </div>
+  </div>`,
+  `<button class="btn btn-primary" onclick="createTask('${projId}','${secId}')">Add Task</button>`);
+}
+
+async function createTask(projId, secId){
+  const title=$('nt-title').value.trim();
+  if(!title){toast('Title required','err');return;}
+  await db.from('tasks').insert({
+    project_id:projId, section_id:secId||null,
+    title, notes:$('nt-notes').value||null,
+    assignee_id:$('nt-a').value||null,
+    due_date:$('nt-due').value||null, created_by:(S.profile?.id||null)
+  });
+  toast('Task added'); closeModal(); await reload(); openProject(projId);
+}
+
+function showAddSectionModal(projId){
+  showModal('Add Section',`
+  <div class="fg"><label class="fl">Section Name</label><input class="fc" id="ns-name" placeholder="e.g. CAD, RMS, Go Live…"></div>`,
+  `<button class="btn btn-primary" onclick="createSection('${projId}')">Add Section</button>`);
+}
+async function createSection(projId){
+  const name=$('ns-name').value.trim();
+  if(!name){toast('Name required','err');return;}
+  const order=(await db.from('sections').select('sort_order').eq('project_id',projId).order('sort_order',{ascending:false}).limit(1)).data?.[0]?.sort_order+10||10;
+  await db.from('sections').insert({project_id:projId,name,sort_order:order});
+  toast('Section added'); closeModal(); await reload(); openProject(projId);
+}
+
+function showNewCustModal(){
+  showModal('New Customer',`
+  <div class="fstack">
+    <div class="fg"><label class="fl">Agency Name *</label><input class="fc" id="nc-name" placeholder="e.g. Robeson County Sheriff's Office"></div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">State</label>
+        <select class="fc" id="nc-state"><option value="">—</option>
+          ${['NC','SC','VA','TN','GA','AL','TX','AR','FL','MS','KY','WV'].map(s=>`<option>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Agency Type</label>
+        <select class="fc" id="nc-type"><option value="">—</option>
+          ${["Sheriff","Police","County","Municipality","Jail","State Agency","University"].map(t=>`<option>${t}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">Contact Name</label><input class="fc" id="nc-cn"></div>
+      <div class="fg"><label class="fl">Contact Email</label><input class="fc" type="email" id="nc-ce"></div>
+    </div>
+    <div class="fg"><label class="fl">Contact Phone</label><input class="fc" type="tel" id="nc-cp"></div>
+    <div class="fg"><label class="fl">Products</label>
+      <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.25rem">
+        ${PRODUCTS.map(p=>`<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);cursor:pointer"><input type="checkbox" class="cp" value="${p}"> ${p}</label>`).join('')}
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Notes</label><textarea class="fc" id="nc-notes"></textarea></div>
+  </div>`,
+  `<button class="btn btn-primary" onclick="createCust()">Add Customer</button>`);
+}
+async function createCust(){
+  const name=$('nc-name').value.trim();
+  if(!name){toast('Name required','err');return;}
+  const products=[...$('modal-body').querySelectorAll('.cp:checked')].map(c=>c.value);
+  await db.from('customers').insert({
+    name, state:$('nc-state').value||null, agency_type:$('nc-type').value||null,
+    contact_name:$('nc-cn').value||null, contact_email:$('nc-ce').value||null,
+    contact_phone:$('nc-cp').value||null,
+    products:products.length?products:null, notes:$('nc-notes').value||null
+  });
+  toast('Customer added'); closeModal();
+  const {data}=await db.from('customers').select('*').order('name');
+  S.customers=data||[]; renderCustomers();
+}
+
+function showNewIssueModal(){
+  showModal('Report Issue / Bug',`
+  <div class="fstack">
+    <div class="fg"><label class="fl">Title *</label><input class="fc" id="ni-title" placeholder="Brief description of the issue"></div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">Product</label>
+        <select class="fc" id="ni-prod"><option value="">— Select —</option>
+          ${PRODUCTS.map(p=>`<option>${p}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Type</label>
+        <select class="fc" id="ni-type">
+          <option value="bug">🐛 Bug</option>
+          <option value="feature">✨ Feature Request</option>
+          <option value="question">❓ Question</option>
+          <option value="task">📋 Task</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label class="fl">Customer</label>
+        <select class="fc" id="ni-cust"><option value="">— Optional —</option>
+          ${S.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Assignee</label>
+        <select class="fc" id="ni-a"><option value="">Unassigned</option>
+          ${S.profiles.map(p=>`<option value="${p.id}">${p.full_name}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Description</label><textarea class="fc" id="ni-desc" placeholder="Steps to reproduce, expected vs actual behavior…"></textarea></div>
+  </div>`,
+  `<button class="btn btn-primary" onclick="createIssue()">Submit</button>`);
+}
+async function createIssue(){
+  const title=$('ni-title').value.trim();
+  if(!title){toast('Title required','err');return;}
+  const {error}=await db.from('issues').insert({
+    title, product:$('ni-prod').value||null, type:$('ni-type').value,
+    customer_id:$('ni-cust').value||null, assignee_id:$('ni-a').value||null,
+    description:$('ni-desc').value||null, reported_by:(S.profile?.id||null)
+  });
+  if(error){toast(error.message,'err');return;}
+  toast('Issue reported'); closeModal();
+  const {data}=await db.from('issues').select('*').order('created_at',{ascending:false});
+  S.issues=data||[]; renderIssues();
+}
+
+// ── REALTIME ──────────────────────────────────────────────────
+function setupRealtime(){
+  // Realtime disabled in preview mode — refresh manually
+  // Will be re-enabled with Google auth at go-live
+}
+
+// ── EDGE FUNCTION URLS ────────────────────────────────────────
+// Set these after deploying your Supabase edge functions
+const AI_FUNC_URL  = SB_URL.replace('.supabase.co', '.functions.supabase.co') + '/functions/v1/ai-assist';
+const NOTIFY_URL   = SB_URL.replace('.supabase.co', '.functions.supabase.co') + '/functions/v1/notify';
+
+// ── AI ASSIST ─────────────────────────────────────────────────
+async function aiCall(action, payload) {
+  const { data: { session } } = await db.auth.getSession();
+  const res = await fetch(AI_FUNC_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session?.access_token || SB_ANON}`,
+    },
+    body: JSON.stringify({ action, payload }),
+  });
+  return res.json();
+}
+
+// AI button states
+function aiThinking(el) {
+  el.disabled = true;
+  el.innerHTML = '⏳ Thinking…';
+}
+function aiDone(el, label) {
+  el.disabled = false;
+  el.innerHTML = label;
+}
+
+// ── DRAFT CUSTOMER EMAIL ──────────────────────────────────────
+async function aiDraftEmail(projId, taskTitle, containerId, btnEl) {
+  aiThinking(btnEl);
+  const proj = S.projects.find(p => p.id === projId);
+  const pm   = proj?.pm_id ? getP(proj.pm_id) : null;
+  const { draft, error } = await aiCall('draft_customer_email', {
+    task_title:    taskTitle,
+    project_name:  proj?.name || '',
+    customer_name: proj?.customers?.name || '',
+    products:      proj?.products || [],
+    pm_name:       pm?.full_name || '',
+  });
+  aiDone(btnEl, '✨ Re-draft');
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  if (error) { c.innerHTML = `<span style="color:var(--red)">Error: ${error}</span>`; return; }
+  c.innerHTML = `
+    <div class="ai-panel">
+      <div class="ai-panel-title">✨ Draft Email</div>
+      <div class="ai-result" id="ai-draft-text">${draft}</div>
+      <div class="ai-result-actions">
+        <button class="btn btn-primary btn-xs" onclick="copyAI('ai-draft-text','Copied!')">📋 Copy</button>
+        <button class="ai-btn" style="font-size:11px;padding:3px 9px"
+          onclick="aiDraftEmail('${projId}','${taskTitle}','${containerId}',this)">✨ Re-draft</button>
+      </div>
+    </div>`;
+}
+
+// ── PROJECT STATUS SUMMARY ────────────────────────────────────
+async function aiProjectSummary(projId, btnEl) {
+  aiThinking(btnEl);
+  const proj  = S.projects.find(p => p.id === projId);
+  const pm    = proj?.pm_id ? getP(proj.pm_id) : null;
+  const tasks = S.tasks.filter(t => t.project_id === projId && !t.parent_id);
+  const done  = tasks.filter(t => ['done','na'].includes(t.status)).length;
+  const over  = tasks.filter(t => t.due_date && t.due_date < new Date().toISOString().split('T')[0] && !['done','na'].includes(t.status)).length;
+
+  // Get sections for breakdown
+  const { data: secs } = await db.from('sections').select('*').eq('project_id', projId).order('sort_order');
+  const sections = (secs || []).map(s => {
+    const st = tasks.filter(t => t.section_id === s.id);
+    const sd = st.filter(t => ['done','na'].includes(t.status)).length;
+    return { name: s.name, done: sd, total: st.length, pct: st.length ? Math.round(sd/st.length*100) : 0 };
+  });
+
+  const { summary, error } = await aiCall('project_summary', {
+    project_name:  proj?.name || '',
+    customer_name: proj?.customers?.name || '',
+    status:        proj?.status || '',
+    products:      proj?.products || [],
+    sections,
+    overdue_count: over,
+    total_tasks:   tasks.length,
+    done_tasks:    done,
+    pm_name:       pm?.full_name || '',
+    target_date:   proj?.target_date || '',
+  });
+  aiDone(btnEl, '✨ AI Summary');
+  if (error) { toast('AI error: ' + error, 'err'); return; }
+
+  // Show summary in a modal
+  showModal('📊 Project Status Summary', `
+    <div class="ai-panel">
+      <div class="ai-panel-title">✨ AI Generated Summary</div>
+      <div class="ai-result" id="ai-summary-text">${summary}</div>
+      <div class="ai-result-actions">
+        <button class="btn btn-primary btn-xs" onclick="copyAI('ai-summary-text','Copied!')">📋 Copy</button>
+      </div>
+    </div>`,
+    `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>`);
+}
+
+// ── DRAFT TASK COMMENT ────────────────────────────────────────
+async function aiDraftComment(taskId, projId, btnEl) {
+  const raw = document.getElementById('c-input')?.value?.trim();
+  if (!raw) { toast('Type some rough notes first, then click AI Polish', 'err'); return; }
+  aiThinking(btnEl);
+  const task = S.tasks.find(t => t.id === taskId);
+  const proj = S.projects.find(p => p.id === projId);
+  const { note, error } = await aiCall('draft_comment', {
+    task_title:    task?.title || '',
+    project_name:  proj?.name || '',
+    customer_name: proj?.customers?.name || '',
+    current_status: task?.status || '',
+    raw_input:     raw,
+  });
+  aiDone(btnEl, '✨ AI Polish');
+  if (error) { toast('AI error: ' + error, 'err'); return; }
+  const input = document.getElementById('c-input');
+  if (input) input.value = note;
+}
+
+// ── GO-LIVE CHECKLIST ─────────────────────────────────────────
+async function aiGoLiveChecklist(projId, btnEl) {
+  aiThinking(btnEl);
+  const proj = S.projects.find(p => p.id === projId);
+  const cust = proj?.customer_id ? S.customers.find(c => c.id === proj.customer_id) : null;
+  const { checklist, error } = await aiCall('golive_checklist', {
+    project_name:  proj?.name || '',
+    customer_name: proj?.customers?.name || cust?.name || '',
+    products:      proj?.products || [],
+    state:         proj?.customers?.state || cust?.state || '',
+    agency_type:   cust?.agency_type || '',
+  });
+  aiDone(btnEl, '✨ Generate Checklist');
+  if (error) { toast('AI error: ' + error, 'err'); return; }
+  showModal('🚀 Go-Live Readiness Checklist', `
+    <div class="ai-panel">
+      <div class="ai-panel-title">✨ AI Generated for ${proj?.customers?.name || proj?.name}</div>
+      <div class="ai-result" id="ai-checklist-text">${checklist}</div>
+      <div class="ai-result-actions">
+        <button class="btn btn-primary btn-xs" onclick="copyAI('ai-checklist-text','Copied!')">📋 Copy</button>
+      </div>
+    </div>`,
+    `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>`);
+}
+
+// Copy helper
+function copyAI(elId, msg) {
+  const text = document.getElementById(elId)?.innerText || '';
+  navigator.clipboard.writeText(text).then(() => toast(msg));
+}
+
+
+
+// ── PORTAL QUICK ACCESS TILES (added to dashboard) ───────────
+const PORTAL_TILES = [
+  {icon:'🏖️', label:'Time Off',         url:'https://portal.southernsoftware.com/new/timeoff/users'},
+  {icon:'📆', label:'After Hours Cal',   url:'https://portal.southernsoftware.com/new/RMS/247SupportCalendar_ReadOnly/'},
+  {icon:'🏛️', label:'Customer Search',   url:'https://portal.southernsoftware.com/new/RMS/agenciessearch'},
+  {icon:'🔍', label:'Master Search',     url:'https://portal.southernsoftware.com/new/RMS/MasterCustomerSearch'},
+  {icon:'🚔', label:'KB — PS',           url:'https://portal.southernsoftware.com/new/KB/PSFrontPage'},
+  {icon:'📊', label:'KB — FMS',          url:'https://portal.southernsoftware.com/new/KB/FMSFrontPage'},
+  {icon:'✏️', label:'Create Article',    url:'https://portal.southernsoftware.com/new/KB/CreateArticle'},
+  {icon:'🎓', label:'Training',          url:'https://portal.southernsoftware.com/new/Training_New/Admin/Conferences/index.php'},
+  {icon:'💻', label:'Virtual Classes',   url:'https://portal.southernsoftware.com/new/Training_New/Admin/Conferences/virtual_classes.php'},
+  {icon:'📰', label:'Newsletters',       url:'https://portal.southernsoftware.com/new/admin/newsletters_v2'},
+  {icon:'📱', label:'App Versions',      url:'https://portal.southernsoftware.com/new/versions/appversions/'},
+  {icon:'🖥️', label:'Hardware',          url:'https://portal.southernsoftware.com/new/RMS/hardwarelist'},
+];
+function renderPortalTiles(containerId) {
+  const wrap = document.createElement('div');
+  wrap.style.marginTop = '1.25rem';
+  wrap.innerHTML = \`<div class="dash-h" style="margin-bottom:.6rem">🔗 Portal Quick Access</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:.45rem">
+      \${PORTAL_TILES.map(t=>\`
+        <a href="\${t.url}" target="_blank" rel="noopener"
+           style="display:flex;flex-direction:column;align-items:center;gap:.3rem;
+                  padding:.6rem .4rem;background:var(--card);border:1px solid var(--border);
+                  border-radius:var(--r2);text-decoration:none;
+                  transition:border-color var(--tr),transform var(--tr)"
+           onmouseover="this.style.borderColor='var(--border2)';this.style.transform='translateY(-2px)'"
+           onmouseout="this.style.borderColor='';this.style.transform=''">
+          <span style="font-size:1.25rem">\${t.icon}</span>
+          <span style="font-size:10px;font-weight:600;color:var(--muted);text-align:center;line-height:1.2">\${t.label}</span>
+        </a>\`).join('')}
+    </div>\`;
+  const c = document.getElementById(containerId);
+  if(c) c.parentElement.insertBefore(wrap, c.nextSibling);
+}
+// ── BOOT ──────────────────────────────────────────────────────
+boot();
+</script>
+</body>
+</html>
