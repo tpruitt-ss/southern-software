@@ -1873,17 +1873,26 @@ function boardDrawList(){ const {arr,cols}=boardDataset(); const rows=boardApply
   $('bd-count').textContent=rows.length+' record'+(rows.length===1?'':'s');
   $('bd-list').innerHTML=`<table style="width:100%;border-collapse:collapse"><thead><tr>${cols.map(c=>th(c[0])).join('')}</tr></thead><tbody>${body||`<tr><td style="padding:20px;text-align:center;color:#64748b">No matching records</td></tr>`}</tbody></table>`;
 }
+/* ─── APPEND-ONLY NOTE LOG (current note on top, full history kept, stamped who+when) ─── */
+function escH(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function noteStamp(){const d=new Date();let h=d.getHours();const ap=h>=12?'PM':'AM';h=h%12||12;return (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear()+' '+h+':'+String(d.getMinutes()).padStart(2,'0')+' '+ap;}
+function noteUser(){return (S.user&&S.user.email)?S.user.email.split('@')[0]:((S.profile&&S.profile.full_name)||'you');}
+function appendNote(r,txt){txt=(txt||'').trim();if(!txt||!r)return;const entry='• ['+noteStamp()+', '+noteUser()+'] '+txt;r.notes=r.notes?(entry+'\n'+r.notes):entry;r.updated=(typeof stampNow==='function'?stampNow():'')+' — '+noteUser();}
+function noteLines(n){return (n||'').split('\n').map(s=>s.trim()).filter(Boolean);}
+function noteHistoryHtml(n){const L=noteLines(n);return L.length?L.map((l,i)=>`<div style="padding:6px 9px;border-bottom:1px solid #ffffff08;font-size:12px;color:${i===0?'#e2e8f0':'#94a3b8'};${i===0?'font-weight:600;':''}white-space:pre-wrap">${escH(l)}</div>`).join(''):'<div style="color:#64748b;padding:9px;font-size:12px">No notes yet</div>';}
+function noteEditorHtml(r){return `<div class="fg"><label class="fl">Add a note</label><textarea class="fc" id="bd-newnote" rows="2" placeholder="Type a note and click Add — history is kept"></textarea><div style="margin-top:6px"><button class="btn btn-primary btn-sm" onclick="addBoardNote()">+ Add note</button></div></div><div class="fg"><label class="fl" style="display:flex;justify-content:space-between"><span>Note history</span><span style="font-weight:400;color:#64748b;font-size:11px">newest first</span></label><div id="bd-history" style="background:#0b1220;border:1px solid #ffffff0f;border-radius:10px;max-height:210px;overflow:auto">${noteHistoryHtml(r.notes)}</div></div>`;}
+function statusEditorHtml(r){return `<div class="fg"><label class="fl">Status (saving logs the change)</label><input class="fc" id="bd-status" value="${String(r.status||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"></div>`;}
+function addBoardNote(){const e=window._bdEdit;if(!e||!e.rec)return;const t=$('bd-newnote');if(!t)return;const txt=t.value.trim();if(!txt)return;appendNote(e.rec,txt);t.value='';const h=$('bd-history');if(h)h.innerHTML=noteHistoryHtml(e.rec.notes);if(S.view==='board'&&typeof boardDrawList==='function')boardDrawList();toast('Note added');}
+function saveRecordStatus(){const e=window._bdEdit;if(!e||!e.rec)return;const r=e.rec;const s=$('bd-status');if(s){const nv=s.value.trim();if(nv!==(r.status||'')){if(nv)appendNote(r,'Status: "'+(r.status||'')+'" -> "'+nv+'"');r.status=nv;}}r.updated=(typeof stampNow==='function'?stampNow():'')+' — '+noteUser();toast('Saved');closeModal();if(S.view==='board'&&typeof boardDrawList==='function')boardDrawList();}
+
 function boardRowDetail(i){ const {arr}=boardDataset(); const r=arr[i]; if(!r) return;
-  const rowH=(k,v)=>`<div style="display:flex;justify-content:space-between;gap:14px;padding:5px 0;border-bottom:1px solid #ffffff08"><span style="font-size:12px;color:#94a3b8;min-width:120px">${KEY_LABELS[k]||k}</span><span style="font-size:12px;color:#e2e8f0;text-align:right;white-space:pre-wrap">${(''+v)}</span></div>`;
+  const rowH=(k,v)=>`<div style="display:flex;justify-content:space-between;gap:14px;padding:5px 0;border-bottom:1px solid #ffffff08"><span style="font-size:12px;color:#94a3b8;min-width:120px">${KEY_LABELS[k]||k}</span><span style="font-size:12px;color:#e2e8f0;text-align:right;white-space:pre-wrap">${escH(''+v)}</span></div>`;
   const title=r.name||r.agency||'Record';
-  const entries=Object.entries(r).filter(([k,v])=>v!=='' && v!=null && !['status','notes'].includes(k));
-  const body=`<div class="fstack" style="max-height:70vh;overflow:auto"><div style="margin-bottom:4px">${pill2(r.status||'')}</div>${entries.map(([k,v])=>rowH(k,v)).join('')}
-    <div class="fg"><label class="fl">Status</label><input class="fc" id="bd-status" value="${(r.status||'').replace(/"/g,'&quot;')}"></div>
-    <div class="fg"><label class="fl">Notes</label><textarea class="fc" id="bd-notes" rows="4">${r.notes||''}</textarea></div></div>`;
-  window._bdEdit={idx:i};
-  showModal('📋 '+title, body, `<button class="btn btn-primary btn-sm" onclick="saveBoardRow()">Save</button>`);
+  const entries=Object.entries(r).filter(([k,v])=>v!=='' && v!=null && !['status','notes','updated'].includes(k));
+  const body=`<div class="fstack" style="max-height:70vh;overflow:auto"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">${pill2(r.status||'')}<span style="font-size:11px;color:#64748b">Last updated: ${escH(r.updated||'—')}</span></div>${entries.map(([k,v])=>rowH(k,v)).join('')}${statusEditorHtml(r)}${noteEditorHtml(r)}</div>`;
+  window._bdEdit={rec:r};
+  showModal('📋 '+title, body, `<button class="btn btn-primary btn-sm" onclick="saveRecordStatus()">Save & close</button>`);
 }
-function saveBoardRow(){ const e=window._bdEdit; if(!e) return; const {arr}=boardDataset(); const r=arr[e.idx]; if(r){ if($('bd-status'))r.status=$('bd-status').value.trim(); if($('bd-notes'))r.notes=$('bd-notes').value.trim(); r.updated=(typeof stampNow==='function'?stampNow():'')+' — '+(S.profile?.full_name||'you'); toast('Saved'); } closeModal(); if(S.view==='board') boardDrawList(); }
 function renderBoard(){
   const tabs=Object.entries(TAB_DEFS);
   const tabBar=tabs.map(([k,d])=>`<div onclick="boardTab('${k}')" style="padding:7px 14px;border-radius:9px 9px 0 0;cursor:pointer;font-size:13px;font-weight:600;${k===_board.tab?'background:#0f172a;color:#e2e8f0;border:1px solid #ffffff14;border-bottom:none':'color:#64748b'}">${d.label}</div>`).join('');
@@ -1912,18 +1921,19 @@ function boardScope(s){ _board.scope=s; _board.fState='';_board.fStatus=''; rend
 function boardDetail(i){
   const p=PM_BOARD[i];
   const staff=[['Project Manager',p.pm],['IT Staff',p.it],['CAD Trainer',p.cad],['RMS Trainer',p.rms],['JMS Trainer',p.jms],['MDIS Trainer',p.mdis]];
-  const row=(l,v)=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid #ffffff08"><span style="font-size:12px;color:#94a3b8">${l}</span><span style="font-size:12px;color:#e2e8f0;text-align:right">${v||'—'}</span></div>`;
+  const row=(l,v)=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid #ffffff08"><span style="font-size:12px;color:#94a3b8">${l}</span><span style="font-size:12px;color:#e2e8f0;text-align:right">${escH(v||'—')}</span></div>`;
+  window._bdEdit={rec:p};
   const body=`<div class="fstack" style="max-height:70vh;overflow:auto">
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:4px">${bStat(p.status)}${bHw(p.hardware)}<span style="font-size:11px;color:#64748b">${p.state} · ${p.am}</span></div>
-    <div class="fg"><label class="fl">Deliverables</label><p>${p.deliverables}</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:4px">${bStat(p.status)}${bHw(p.hardware)}<span style="font-size:11px;color:#64748b">${p.state} · ${escH(p.am)}</span></div>
+    <div class="fg"><label class="fl">Deliverables</label><p>${escH(p.deliverables)}</p></div>
     <div class="fg"><label class="fl">Date received</label><p>${p.received||'—'}</p></div>
     <div class="fg"><label class="fl">Staffing</label><div>${staff.map(([l,v])=>row(l,v)).join('')}</div></div>
-    <div class="fg"><label class="fl">Notes</label><textarea class="fc" id="bd-notes" rows="4">${p.notes||''}</textarea></div>
-    <div style="font-size:11px;color:#64748b">Last updated: ${p.updated||'—'}</div>
+    ${statusEditorHtml(p)}
+    ${noteEditorHtml(p)}
+    <div style="font-size:11px;color:#64748b">Last updated: ${escH(p.updated||'—')}</div>
   </div>`;
-  showModal('📋 '+p.name, body, `<button class="btn btn-primary btn-sm" onclick="saveBoardNotes(${i})">Save notes</button>`);
+  showModal('📋 '+p.name, body, `<button class="btn btn-primary btn-sm" onclick="saveRecordStatus()">Save & close</button>`);
 }
-function saveBoardNotes(i){ const t=$('bd-notes'); if(t){ PM_BOARD[i].notes=t.value.trim(); PM_BOARD[i].updated=stampNow()+' — '+(S.profile?.full_name||'you'); toast('Saved'); } closeModal(); if(S.view==='board') boardDrawList(); }
 
 function barChart(title,data){
   const max=Math.max(1,...data.map(d=>d.value));
