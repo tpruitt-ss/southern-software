@@ -1357,6 +1357,42 @@ const VIEW_TITLES = { handbook:'Employee Handbook', activity:'Activity Feed', ad
   projects:'Projects', customers:'Customers', issues:'Bug & Issue Tracker', team:'Team',
 };
 
+/* ─── ACTIVITY VIEW (fixes ReferenceError that froze all navigation) ─── */
+function renderActivity(){
+  const byName={}; S.profiles.forEach(p=>byName[p.full_name]=p);
+  const projName={}; S.projects.forEach(p=>projName[p.id]=p.name);
+  const prof=n=>byName[n]||{full_name:n||'Unassigned',avatar_url:null,title:''};
+  const meta={
+    inprogress:{label:'In progress',color:'#3b82f6'},
+    blocked:{label:'Blocked',color:'#ef4444'},
+    waiting_customer:{label:'Waiting on customer',color:'#f59e0b'},
+    done:{label:'Completed',color:'#22c55e'},
+    todo:{label:'To do',color:'#94a3b8'},
+    na:{label:'N/A',color:'#64748b'}
+  };
+  const pill=s=>{const m=meta[s]||{label:s,color:'#64748b'};return `<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;color:${m.color};background:${m.color}22;white-space:nowrap">${m.label}</span>`;};
+  const esc=x=>String(x==null?'':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const row=t=>{
+    const p=prof(t.assignee_name);
+    const pn=projName[t.project_id]||'';
+    const due=t.due_date?' · Due '+esc(t.due_date):'';
+    return `<div onclick="openPanel('${t.id}')" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;cursor:pointer" onmouseover="this.style.background='#ffffff08'" onmouseout="this.style.background='transparent'">${ava(p,34)}<div style="flex:1;min-width:0"><div style="font-size:13px;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.title)}</div><div style="font-size:11px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.full_name)}${pn?' · '+esc(pn):''}${due}</div></div>${pill(t.status)}</div>`;
+  };
+  const groups=[['inprogress','In progress'],['blocked','Blocked'],['waiting_customer','Waiting on customer'],['done','Recently completed']];
+  const section=g=>{
+    const st=g[0],title=g[1];
+    const all=S.tasks.filter(t=>t.status===st);
+    const items=all.slice(0,12);
+    if(!items.length)return '';
+    return `<div style="margin-bottom:26px"><div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin:0 0 8px 4px">${title} <span style="color:#475569">(${all.length})</span></div><div style="background:#0f172a80;border:1px solid #ffffff0f;border-radius:14px;padding:6px">${items.map(row).join('')}</div></div>`;
+  };
+  const c=st=>S.tasks.filter(t=>t.status===st).length;
+  const tile=(n,l,col)=>`<div style="flex:1;min-width:120px;background:#0f172a80;border:1px solid #ffffff0f;border-radius:14px;padding:14px 16px"><div style="font-size:26px;font-weight:800;color:${col}">${n}</div><div style="font-size:12px;color:#94a3b8;margin-top:2px">${l}</div></div>`;
+  const atRisk=S.projects.filter(p=>p.status==='at_risk'||p.status==='behind').length;
+  const html=`<div style="max-width:900px;margin:0 auto;padding:24px 8px"><div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:26px">${tile(c('inprogress'),'In progress','#3b82f6')}${tile(c('blocked'),'Blocked','#ef4444')}${tile(c('waiting_customer'),'Waiting on customer','#f59e0b')}${tile(c('done'),'Completed','#22c55e')}${tile(atRisk,'Projects at risk','#f43f5e')}</div>${groups.map(section).join('')}</div>`;
+  $('content').innerHTML=html;
+}
+
 function navigate(v, extra={}) {
   S.view = v;
   document.querySelectorAll('.sb-item[data-v]').forEach(i=>i.classList.toggle('active',i.dataset.v===v));
