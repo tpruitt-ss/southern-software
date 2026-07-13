@@ -834,7 +834,7 @@ a#skip-link:focus{left:8px}
         </div>
 
         <div class="sb-group" data-g="supportbilling">
-          <div class="sb-label" onclick="toggleGroup('supportbilling')" title="Support renewals & billing (Bobbi) and sales-request processing (Janet)">Support &amp; Billing<span class="sb-chev">▾</span></div>
+          <div class="sb-label" onclick="toggleGroup('supportbilling')" title="Annual support renewals & billing (Bobbi) and sales-request processing (Janet)">Annual Support &amp; Billing<span class="sb-chev">▾</span></div>
           <div class="sb-gitems">
             <div class="sb-item" data-v="supportagr" data-requires="view_reports"><span class="i">📑</span>Support Agreements</div>
             <div class="sb-item" data-v="revenue" data-requires="view_reports"><span class="i">💵</span>Support Revenue</div>
@@ -1105,7 +1105,7 @@ const ROLES = {
   fms:            { label:'FMS',            can:['view_fms','edit_tasks','comment','upload','view_customers','view_projects','kb_view'] },
   support:        { label:'Support',        can:['view_all','comment','edit_bugs','view_customers','view_reports','kb_view'] },
   sales:          { label:'Sales',          can:['view_customers','view_projects','view_sales','kb_view'] },
-  billing:        { label:'Support & Billing (Janet/Bobbi)', can:['view_customers','view_reports','view_sales','edit_reports','process_sales','kb_view'] },
+  billing:        { label:'Annual Support & Billing (Janet/Bobbi)', can:['view_customers','view_reports','view_sales','edit_reports','process_sales','kb_view'] },
   trainer:        { label:'Training/KB',    can:['view_customers','kb_view','kb_edit'] },
   readonly:       { label:'Read Only',      can:['view_all','view_customers','kb_view'] },
 };
@@ -2241,7 +2241,10 @@ function captureSbDefault(){ if(SB_DEFAULT) return; const nav=document.querySele
   SB_DEFAULT={groups:[],order:{}};
   nav.querySelectorAll('.sb-group:not([data-g="pinned"])').forEach(g=>{ SB_DEFAULT.groups.push(g.dataset.g); SB_DEFAULT.order[g.dataset.g]=[...g.querySelectorAll('.sb-item[data-v]')].map(i=>i.dataset.v); });
 }
-function getSbCustom(){ try{ const s=localStorage.getItem('ss-sidebar'); if(s) return JSON.parse(s); }catch(e){} return null; }
+// Bump when the DEFAULT sidebar structure changes (groups added / items moved between groups),
+// so stale saved layouts don't strand items out of their new group. v2 = Annual Support & Billing section.
+const SB_VERSION=2;
+function getSbCustom(){ try{ const s=localStorage.getItem('ss-sidebar'); if(s){ const c=JSON.parse(s); if(c&&c.v===SB_VERSION) return c; localStorage.removeItem('ss-sidebar'); } }catch(e){} return null; }
 function applySidebarCustom(){
   const c=getSbCustom(); if(!c) return; const nav=document.querySelector('.sb-nav'); if(!nav) return;
   (c.groups||[]).forEach(g=>{ const el=nav.querySelector('.sb-group[data-g="'+g+'"]'); if(el&&g!=='pinned') nav.appendChild(el); });
@@ -2251,7 +2254,7 @@ function applySidebarCustom(){
 }
 function saveSbFromDom(){
   const nav=document.querySelector('.sb-nav'); if(!nav) return;
-  const c={groups:[],order:{},hidden:[]};
+  const c={v:SB_VERSION,groups:[],order:{},hidden:[]};
   nav.querySelectorAll('.sb-group:not([data-g="pinned"])').forEach(g=>{ c.groups.push(g.dataset.g); c.order[g.dataset.g]=[...g.querySelectorAll('.sb-item[data-v]')].map(i=>i.dataset.v); });
   c.hidden=[...nav.querySelectorAll('.sb-group:not([data-g="pinned"]) .sb-item.sb-hidden[data-v]')].map(i=>i.dataset.v);
   try{ localStorage.setItem('ss-sidebar',JSON.stringify(c)); }catch(e){}
