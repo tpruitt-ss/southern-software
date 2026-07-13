@@ -802,6 +802,7 @@ a#skip-link:focus{left:8px}
             <div class="sb-item" data-v="projsearch"><span class="i">🔍</span>Projects - Search All</div>
             <div class="sb-item" data-v="projclosed"><span class="i">✅</span>Projects Closed</div>
             <div class="sb-item" data-v="board"><span class="i">📋</span>Status Board</div>
+            <div class="sb-item" data-v="templates"><span class="i">🧩</span>Project Templates</div>
             <div class="sb-item" data-v="alltasks"><span class="i">🗂️</span>All Tasks</div>
             <div class="sb-item" data-v="triage"><span class="i">📥</span>Unassigned<span class="sb-badge" id="triage-badge" style="display:none"></span></div>
             <div class="sb-item" data-v="schedule"><span class="i">🗓️</span>Schedule</div>
@@ -1676,6 +1677,7 @@ const VIEW_TITLES = { handbook:'Employee Handbook', activity:'Activity Feed', ad
   blog:'Company Blog', citizen:'Citizen Connect', myagenda:'My Training',
   prayer:'Prayer List', whatsnew:"What's New",
   supportan:'Support Analytics', revenue:'Support Revenue', reconcile:'Sales / Project Check', collections:'Collections', profile:'My Profile', favorites:'Watched Projects',
+  templates:'Project Templates',
 };
 
 /* ─── ACTIVITY VIEW (fixes ReferenceError that froze all navigation) ─── */
@@ -3275,6 +3277,8 @@ function paletteCommands(){
     ['📣','New Blog Post','Create',()=>{navigate('blog');setTimeout(blogNew,60);}],
     ['🙏','Add Prayer Request','Create',()=>{navigate('prayer');setTimeout(prayNew,60);}],
     ['✨','Capture Notes (meeting → tasks)','Create',()=>captureNotes()],
+    ['🎙️','Add Recording (Plaud / AI)','Create',()=>addRecordingModal({})],
+    ['🧩','Project Templates','Create',()=>navigate('templates')],
   ].map(a=>({icon:a[0],t:a[1],grp:a[2],run:a[3]}));
   const settings=[
     ['🌓',(document.documentElement.getAttribute('data-theme')==='light'?'Switch to dark mode':'Switch to light mode'),()=>toggleTheme()],
@@ -3651,6 +3655,173 @@ function bulkBar(){ const bar=document.getElementById('bulk-bar'); if(!bar)retur
 function bulkSetStatus(st){ if(!_bulkSel.size)return; (S.issues||[]).forEach(i=>{ if(_bulkSel.has(i.id)) i.status=st; }); toast(_bulkSel.size+' issue(s) → '+st); _bulkSel.clear(); if(typeof renderIssues==='function')renderIssues(); }
 function bulkClear(){ _bulkSel.clear(); if(typeof renderIssues==='function')renderIssues(); }
 
+/* ═══════════════════════════════════════════════════════════════════
+   PROJECT TEMPLATES (per product line) + PROJECT RECORDINGS (Plaud/AI)
+   ═══════════════════════════════════════════════════════════════════ */
+// Reusable templates: a Base applied to every project + one per product line.
+// Product phases are inserted right before Go-Live. PMs edit these in the UI.
+let PROJECT_TEMPLATES={
+  Base:{name:'Base — every project',scope:'All projects',phases:[
+    {name:'Project Initiation',tasks:['Kickoff call with the agency','Confirm scope & primary contacts','Build & share the project schedule','Create the project folder']},
+    {name:'IT & Environment',tasks:['Collect server / network details','Confirm hardware requirements','Schedule the install window','Verify remote access (TeamViewer/Bomgar)']},
+    {name:'Go-Live',tasks:['Final data verification','Go-live readiness check','Go-live day support','Confirm live operations']},
+    {name:'Close-Out',tasks:['Post go-live follow-up','Collect customer sign-off','Hand off to Support','Close the project']},
+  ]},
+  CAD:{name:'CAD',scope:'CAD',phases:[
+    {name:'CAD Configuration',tasks:['Install CAD server','Configure call types','Set up units, stations & agencies','Geo / mapping setup','Configure statuses & timers']},
+    {name:'CAD Interfaces',tasks:['E-911 ANI/ALI interface','State / NCIC interface','Paging interface']},
+    {name:'CAD Training',tasks:['Dispatcher training','CAD admin training']},
+    {name:'CAD Go-Live',tasks:['Parallel test','CAD go-live support']},
+  ]},
+  RMS:{name:'RMS',scope:'RMS',phases:[
+    {name:'RMS Configuration',tasks:['Install RMS','Configure incident / offense codes','NIBRS setup','Zones & reporting areas']},
+    {name:'RMS Data Conversion',tasks:['Map legacy data','Convert & validate records']},
+    {name:'RMS Training',tasks:['Records training','Reports & NIBRS training']},
+  ]},
+  JMS:{name:'JMS',scope:'JMS',phases:[
+    {name:'JMS Configuration',tasks:['Install JMS','Booking workflow setup','Housing & classification','Commissary / inmate accounts']},
+    {name:'JMS Training',tasks:['Booking training','JMS admin training']},
+  ]},
+  Mobile:{name:'Mobile (MDS / MDIS)',scope:'MDS, MDIS',phases:[
+    {name:'Mobile Setup',tasks:['Image MDTs','Install MDS / MDIS','Cellular & GPS configuration','In-car testing']},
+    {name:'Mobile Training',tasks:['Field officer training']},
+  ]},
+  QM:{name:'QM',scope:'QMS',phases:[
+    {name:'QM Setup',tasks:['Install QM','Configure evidence / property','QM training']},
+  ]},
+  FMS_UB:{name:'FMS — Utility Billing',scope:'FMS - Utility Billing',phases:[
+    {name:'Utility Billing Setup',tasks:['Install FMS','Rate & meter setup','Invoice Cloud / PSN integration','Bill format design']},
+    {name:'UB Conversion',tasks:['Convert customer & meter data','Test billing run']},
+    {name:'UB Training',tasks:['Billing clerk training']},
+  ]},
+  FMS_GL:{name:'FMS — Financials',scope:'FMS - General Ledger, Payroll',phases:[
+    {name:'Financials Setup',tasks:['Chart of accounts','GL / AP / AR setup','Payroll configuration']},
+    {name:'Financials Training',tasks:['Accounting staff training']},
+  ]},
+};
+const TPL_MAP={CAD:'CAD',RMS:'RMS',JMS:'JMS',MDS:'Mobile',MDIS:'Mobile',QMS:'QM','FMS - Utility Billing':'FMS_UB','FMS - General Ledger':'FMS_GL','FMS - Payroll':'FMS_GL','FMS - Tax':'FMS_GL'};
+try{ const s=localStorage.getItem('ss-templates'); if(s) PROJECT_TEMPLATES=JSON.parse(s); }catch(e){}
+function saveTemplates(){ try{ localStorage.setItem('ss-templates',JSON.stringify(PROJECT_TEMPLATES)); }catch(e){} }
+function _clone(x){ return JSON.parse(JSON.stringify(x)); }
+function templatePhasesFor(products){
+  const base=_clone(PROJECT_TEMPLATES.Base?PROJECT_TEMPLATES.Base.phases:[]);
+  const prod=[]; const used=new Set();
+  (products||[]).forEach(p=>{ const k=TPL_MAP[p]; if(k&&PROJECT_TEMPLATES[k]&&!used.has(k)){ used.add(k); _clone(PROJECT_TEMPLATES[k].phases).forEach(ph=>prod.push(ph)); } });
+  let at=base.findIndex(p=>/go.?live/i.test(p.name)); if(at<0) at=base.length;
+  base.splice(at,0,...prod);
+  return base;
+}
+function npUpdatePreview(){
+  const el=document.getElementById('np-tpl-preview'); if(!el) return;
+  const on=document.getElementById('np-tpl'); if(on&&!on.checked){ el.innerHTML='<div style="font-size:11px;color:var(--v-text4)">No template — you\'ll add phases &amp; tasks manually.</div>'; return; }
+  const products=[...document.querySelectorAll('.pp:checked')].map(c=>c.value);
+  const phases=templatePhasesFor(products);
+  const nTasks=phases.reduce((s,p)=>s+p.tasks.length,0);
+  el.innerHTML=`<div class="ai-box" style="padding:9px 12px"><div style="font-size:11px;color:var(--v-text4);margin-bottom:4px">Will auto-create <b style="color:var(--v-text2)">${phases.length} phases · ${nTasks} tasks</b>${products.length?'':' (Base template — check products to add product phases)'}:</div><div style="display:flex;flex-wrap:wrap;gap:5px">${phases.map(p=>`<span style="font-size:11px;background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:999px;padding:2px 9px;color:var(--v-text2)">${escH(p.name)}</span>`).join('')}</div></div>`;
+}
+// ── TEMPLATE MANAGER ──────────────────────────────────────────
+let _tplOpen=null,_tplEditing=false;
+function renderTemplates(){
+  const canEdit=isAdmin()||isManager()||(typeof can==='function'&&can('add_projects'));
+  $('topbar-actions').innerHTML=canEdit?'<button class="btn btn-ghost btn-sm" onclick="tplNew()">+ New Template</button>':'';
+  const keys=Object.keys(PROJECT_TEMPLATES);
+  $('content').innerHTML=`<div style="max-width:820px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:12px;color:var(--v-text3);margin-bottom:14px">Project managers build a template per product line — the phases and tasks that <b>auto-create</b> when a new project starts. Pick a product line to see or edit its steps.</div>
+    <div id="tpl-list">${keys.map(k=>{const t=PROJECT_TEMPLATES[k];const nTasks=t.phases.reduce((s,p)=>s+p.tasks.length,0);return `<div class="card" style="margin-bottom:10px;padding:0;overflow:hidden">
+      <div onclick="tplToggle('${k}')" style="display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer">
+        <span style="font-size:1.2rem">${k==='Base'?'📋':'🧩'}</span>
+        <div style="flex:1"><div style="font-weight:700;color:var(--v-text)">${escH(t.name)}</div><div style="font-size:11px;color:var(--v-text4)">${t.phases.length} phases · ${nTasks} tasks${t.scope?' · applies to: '+escH(t.scope):''}</div></div>
+        <span style="color:var(--v-text4)">${_tplOpen===k?'▾':'▸'}</span></div>
+      ${_tplOpen===k?tplBody(k,canEdit):''}
+    </div>`;}).join('')}</div>
+    <div style="font-size:11px;color:var(--v-text4);margin-top:6px">When a PM checks products on a new project, the Base template plus each product's template auto-build as phases &amp; tasks. Fewer clicks, consistent every time — and simple enough for anyone to start a project.</div>
+  </div>`;
+}
+function tplToggle(k){ _tplOpen=_tplOpen===k?null:k; _tplEditing=false; renderTemplates(); }
+function tplBody(k,canEdit){
+  const t=PROJECT_TEMPLATES[k];
+  return `<div style="border-top:1px solid var(--v-hair3);padding:8px 14px 14px">
+    ${canEdit?`<div style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:6px"><button class="btn btn-ghost btn-xs" onclick="_tplEditing=${!_tplEditing};renderTemplates()">${_tplEditing?'✓ Done editing':'✏️ Edit'}</button>${k!=='Base'?`<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="tplDelete('${k}')">Delete template</button>`:''}</div>`:''}
+    ${t.phases.map((ph,pi)=>`<div style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--bluel)">${_tplEditing?`<input value="${escH(ph.name)}" onchange="tplRenamePhase('${k}',${pi},this.value)" style="background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:6px;color:var(--v-text);font-size:12px;padding:3px 7px;font-weight:700">`:escH(ph.name)}</span>${_tplEditing?`<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="tplDelPhase('${k}',${pi})">×</button>`:''}</div>
+      <div style="padding-left:6px">${ph.tasks.map((tk,ti)=>`<div class="d-row" style="cursor:default;padding:3px 6px">▪️ <span class="m">${escH(tk)}</span>${_tplEditing?`<button class="btn btn-ghost btn-xs" style="color:var(--red)" onclick="tplDelTask('${k}',${pi},${ti})">×</button>`:''}</div>`).join('')}
+      ${_tplEditing?`<div style="display:flex;gap:6px;margin-top:4px"><input id="tt-${k}-${pi}" placeholder="Add a task…" style="flex:1;background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:6px;color:var(--v-text);font-size:12px;padding:4px 8px"><button class="btn btn-ghost btn-xs" onclick="tplAddTask('${k}',${pi})">Add</button></div>`:''}</div>`).join('')}
+    ${_tplEditing?`<div style="display:flex;gap:6px;margin-top:6px"><input id="tp-${k}" placeholder="Add a phase…" style="flex:1;background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:6px;color:var(--v-text);font-size:12px;padding:5px 9px"><button class="btn btn-primary btn-xs" onclick="tplAddPhase('${k}')">+ Phase</button></div>`:''}</div>`;
+}
+function tplNew(){ const name=prompt&&prompt('New template name (e.g. a product line):'); if(!name)return; const key='T'+Date.now(); PROJECT_TEMPLATES[key]={name:name.trim(),scope:name.trim(),phases:[{name:'Setup',tasks:['First task']}]}; saveTemplates(); _tplOpen=key; _tplEditing=true; renderTemplates(); }
+function tplDelete(k){ if(k==='Base')return; delete PROJECT_TEMPLATES[k]; saveTemplates(); _tplOpen=null; renderTemplates(); toast('Template deleted'); }
+function tplRenamePhase(k,pi,v){ PROJECT_TEMPLATES[k].phases[pi].name=v.trim()||'Phase'; saveTemplates(); }
+function tplDelPhase(k,pi){ PROJECT_TEMPLATES[k].phases.splice(pi,1); saveTemplates(); renderTemplates(); }
+function tplAddPhase(k){ const el=$('tp-'+k); const v=el&&el.value.trim(); if(!v)return; PROJECT_TEMPLATES[k].phases.push({name:v,tasks:[]}); saveTemplates(); renderTemplates(); }
+function tplAddTask(k,pi){ const el=$('tt-'+k+'-'+pi); const v=el&&el.value.trim(); if(!v)return; PROJECT_TEMPLATES[k].phases[pi].tasks.push(v); saveTemplates(); renderTemplates(); }
+function tplDelTask(k,pi,ti){ PROJECT_TEMPLATES[k].phases[pi].tasks.splice(ti,1); saveTemplates(); renderTemplates(); }
+
+// ── PROJECT RECORDINGS (Plaud / AI meeting capture) ───────────
+let RECORDINGS=[
+  {id:'rec1',projectId:(S.projects[0]&&S.projects[0].id)||null,customerId:(S.projects[0]&&S.projects[0].customer_id)||(S.customers[0]&&S.customers[0].id),title:'Kickoff call — implementation scope',kind:'Plaud',date:'2026-07-09',by:'Travis Pruitt',durationMin:34,transcript:'Discussed the CAD and RMS rollout timeline. The agency wants go-live before the new fiscal year. Need to confirm hardware shipment and schedule dispatcher training. Chief asked about the mobile app demo. Action: send the updated project schedule and confirm the NCIC interface contact.',summary:'Kickoff for the CAD/RMS rollout; agency wants go-live before the new fiscal year.',actions:['Send the updated project schedule','Confirm hardware shipment','Schedule dispatcher training','Confirm the NCIC interface contact']},
+];
+const REC_KINDS=['Plaud','Meeting','Site visit','Call'];
+function custRecordingsHTML(custId){
+  const recs=RECORDINGS.filter(r=>r.customerId===custId).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(!recs.length) return `<div style="font-size:13px;color:var(--v-text4);padding:4px 2px">No recordings yet. <a href="javascript:void(0)" onclick="addRecordingModal({customerId:'${custId}'})" style="color:var(--bluel)">Add one →</a></div>`;
+  return recs.map(r=>`<div class="d-row" onclick="recordingDetail('${r.id}')" style="align-items:flex-start"><span>🎙️</span><div class="m" style="white-space:normal"><div style="color:var(--v-text)">${escH(r.title)}</div><div style="font-size:11px;color:var(--v-text4)">${escH(r.kind)} · ${fmtLong(r.date)}${r.durationMin?' · '+r.durationMin+' min':''} · ${escH(r.by||'')}</div></div></div>`).join('')
+    +`<div style="margin-top:6px"><button class="btn btn-ghost btn-xs" onclick="addRecordingModal({customerId:'${custId}'})">🎙️ Add recording</button></div>`;
+}
+function addRecordingModal(opts){
+  opts=opts||{}; const projId=opts.projectId||''; let custId=opts.customerId||'';
+  if(!custId&&projId){ const p=S.projects.find(x=>x.id===projId); if(p)custId=p.customer_id; }
+  const projs=S.projects.filter(p=>!custId||p.customer_id===custId);
+  showModal('🎙️ Add Recording',`<div class="fstack">
+    <div style="font-size:12px;color:var(--v-text3)">Upload a Plaud or AI recording, or paste a transcript. It's documented to the customer's 360 view. Audio transcription runs automatically at go-live; for now paste or type the transcript.</div>
+    <div class="fg2"><div class="fg"><label class="fl">Title</label><input class="fc" id="rec-title" placeholder="e.g. Go-live planning call"></div>
+    <div class="fg"><label class="fl">Type</label><select class="fc" id="rec-kind">${REC_KINDS.map(k=>`<option>${k}</option>`).join('')}</select></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">Customer</label><select class="fc" id="rec-cust">${S.customers.map(c=>`<option value="${c.id}"${c.id===custId?' selected':''}>${escH(c.name)}</option>`).join('')}</select></div>
+    <div class="fg"><label class="fl">Project (optional)</label><select class="fc" id="rec-proj"><option value="">—</option>${projs.map(p=>`<option value="${p.id}"${p.id===projId?' selected':''}>${escH(p.name)}</option>`).join('')}</select></div></div>
+    <div class="fg"><label class="fl">Audio file (Plaud / recording)</label><input type="file" class="fc" id="rec-file" accept="audio/*" onchange="recFilePicked(this)"><div id="rec-fname" style="font-size:11px;color:var(--v-text4);margin-top:3px"></div></div>
+    <div class="fg"><label class="fl">Transcript</label><textarea class="fc" id="rec-txt" rows="5" placeholder="Paste the transcript, or type notes from the recording…"></textarea></div>
+    <div id="rec-ai"></div>
+  </div>`,`<button class="btn btn-ghost btn-sm" onclick="recSummarize()" style="color:var(--bluel)">✨ Summarize</button><button class="btn btn-primary btn-sm" onclick="saveRecording()">Save to customer</button>`);
+}
+function recFilePicked(inp){ const f=inp.files&&inp.files[0]; const el=$('rec-fname'); if(f){ el.textContent='📎 '+f.name+' ('+Math.round(f.size/1024)+' KB) — transcription runs at go-live'; if(!$('rec-title').value) $('rec-title').value=f.name.replace(/\.[^.]+$/,''); } }
+function recSummarize(){
+  const t=($('rec-txt').value||'').trim(); if(!t){ toast('Add a transcript first'); return; }
+  const parts=t.split(/[\n.;]+/).map(s=>s.trim()).filter(Boolean);
+  const re=/\b(action|follow[ -]?up|todo|need to|needs to|schedule|send|call|confirm|email|order|ship|set up|remind|check|review|quote|demo)\b/i;
+  const actions=parts.filter(s=>re.test(s)); const notes=parts.filter(s=>!re.test(s));
+  window._recActions=actions;
+  $('rec-ai').innerHTML=`<div class="ai-box"><div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--v-text4);margin-bottom:3px">Summary</div><div style="font-size:13px;color:var(--v-text2)">${escH(notes.slice(0,3).join('. ')||t.slice(0,180))}.</div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--v-text4);margin:10px 0 3px">Action items (${actions.length})</div>${actions.length?actions.map(a=>`<div style="font-size:13px;color:var(--v-text2)">• ${escH(a)}</div>`).join(''):'<div style="font-size:12px;color:var(--v-text4)">None detected</div>'}
+    <div style="font-size:10px;color:var(--v-text4);margin-top:8px">✨ Preview — a model transcribes audio and writes this automatically at go-live.</div></div>`;
+}
+function saveRecording(){
+  const title=($('rec-title').value||'').trim(); const custId=$('rec-cust').value; const txt=($('rec-txt').value||'').trim();
+  if(!title){ toast('Title required'); return; }
+  const parts=txt.split(/[\n.;]+/).map(s=>s.trim()).filter(Boolean);
+  const re=/\b(action|follow[ -]?up|todo|need to|schedule|send|call|confirm|email|order|ship|set up|remind|check|review|quote|demo)\b/i;
+  const actions=(window._recActions&&window._recActions.length?window._recActions:parts.filter(s=>re.test(s)));
+  const notes=parts.filter(s=>!re.test(s));
+  const rec={id:'rec-'+Math.random().toString(36).slice(2,7),projectId:$('rec-proj').value||null,customerId:custId,title,kind:$('rec-kind').value,date:new Date().toISOString().slice(0,10),by:meName(),durationMin:null,transcript:txt,summary:(notes.slice(0,2).join('. ')||title),actions};
+  RECORDINGS.unshift(rec); window._recActions=null;
+  toast('Recording saved to '+(S.customers.find(c=>c.id===custId)||{}).name); closeModal();
+  if(S.view==='customers'){} showCustDetail(custId);
+}
+function recordingDetail(id){
+  const r=RECORDINGS.find(x=>x.id===id); if(!r)return;
+  showModal('🎙️ '+escH(r.title),`<div class="fstack">
+    <div style="font-size:12px;color:var(--v-text4)">${escH(r.kind)} · ${fmtLong(r.date)}${r.durationMin?' · '+r.durationMin+' min':''} · ${escH(r.by||'')}</div>
+    ${r.summary?`<div class="ai-box"><div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--v-text4);margin-bottom:3px">Summary</div><div style="font-size:13px;color:var(--v-text2)">${escH(r.summary)}</div></div>`:''}
+    ${(r.actions&&r.actions.length)?`<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--v-text4);margin-bottom:4px">Action items</div>${r.actions.map(a=>`<label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--v-text2);padding:2px 0"><input type="checkbox" class="rec-act" checked value="${escH(a)}"> ${escH(a)}</label>`).join('')}<button class="btn btn-ghost btn-xs" style="margin-top:6px" onclick="recActionsToTasks('${r.id}')">➕ Add checked as tasks</button></div>`:''}
+    <div><div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--v-text4);margin-bottom:4px">Transcript</div><div style="font-size:13px;color:var(--v-text2);white-space:pre-wrap;max-height:240px;overflow:auto;background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:8px;padding:10px">${escH(r.transcript||'—')}</div></div>
+  </div>`,`<button class="btn btn-ghost btn-sm" onclick="showCustDetail('${r.customerId}')">← Customer</button>`);
+}
+function recActionsToTasks(id){
+  const r=RECORDINGS.find(x=>x.id===id); if(!r)return;
+  const acts=[...document.querySelectorAll('.rec-act:checked')].map(c=>c.value);
+  const proj=r.projectId?S.projects.find(p=>p.id===r.projectId):S.projects.find(p=>p.customer_id===r.customerId);
+  acts.forEach(a=>S.tasks.unshift({id:'t-rec-'+Math.random().toString(36).slice(2,7),title:a,status:'todo',project_id:proj?proj.id:null,assignee_id:S.profile?.id,assignee_name:S.profile?.full_name,due_date:null}));
+  toast(acts.length+' task'+(acts.length!==1?'s':'')+' created'); closeModal();
+}
+
 function navigate(v, extra={}) {
   S.view = v;
   _mount='content';
@@ -3683,6 +3854,7 @@ function navigate(v, extra={}) {
     blog:renderBlog, citizen:renderCitizen, myagenda:renderMyAgenda,
     prayer:renderPrayer, whatsnew:renderWhatsNew,
     supportan:renderSupportAnalytics, revenue:renderRevenue, reconcile:renderReconcile, collections:renderCollections, profile:renderProfile, favorites:renderFavorites,
+    templates:renderTemplates,
     activity:renderActivity, admin:renderAdmin})[v]?.(extra);
   updateSidebarBadges();
   try{ updatePinBtn(); }catch(e){}
@@ -4800,6 +4972,7 @@ async function openProject(id) {
     <button class="btn btn-ghost btn-sm" onclick="exportProjectPDF()" title="Print/PDF report">🖨️ Report</button>
     <button class="btn btn-ghost btn-sm" onclick="shareStatusLink('${id}')" title="Copy customer-facing status link">🔗 Share</button>
     <button class="btn btn-ghost btn-sm" onclick="showKickoff('${id}')" title="Generate kickoff emails">📧 Kickoff</button>
+    <button class="btn btn-ghost btn-sm" onclick="addRecordingModal({projectId:'${id}'})" title="Upload a Plaud / AI recording" style="color:var(--bluel)">🎙️ Recording</button>
     <button class="btn btn-primary btn-sm" onclick="showAddTaskModal('${id}')">+ Task</button>`;
 
   // Load sections + tasks
@@ -5356,12 +5529,13 @@ function showCustDetail(id){
     ${sec('🐛 Open issues',openIss.length,issHtml,openIss.length>0)}
     ${sec('📁 Projects',projs.length,projHtml,false)}
     ${sec('👤 Contacts',contacts.length,contHtml,false)}
+    ${sec('🎙️ Recordings & meetings',(typeof RECORDINGS!=='undefined'?RECORDINGS.filter(r=>r.customerId===id).length:0),custRecordingsHTML(id),(typeof RECORDINGS!=='undefined'&&RECORDINGS.some(r=>r.customerId===id)))}
     ${sec('🖥️ Hardware',hw.length,hwHtml,false)}
     ${sec('🔑 Licenses',lics.length,licHtml,false)}
     ${sec('📚 Knowledge Base for this site',kbMatch.length,kbHtml,false)}
     ${sec('🎪 Conferences',confs.length,confHtml,false)}
   </div>`,
-  `<button class="btn btn-ghost btn-sm" onclick="aiSummary('${id}')" style="color:var(--bluel)">✨ AI Summary</button><button class="btn btn-ghost btn-sm" onclick="captureNotes('${id}')" style="color:var(--bluel)">✨ Notes</button><button class="btn btn-ghost btn-sm" onclick="manageCustomer('${id}')">✏️ Manage</button><button class="btn btn-ghost btn-sm" onclick="printCustomer('${id}')">🖨️ Print</button><button class="btn btn-primary btn-sm" onclick="showNewProjModal('${id}');closeModal()">+ New Project</button>`);
+  `<button class="btn btn-ghost btn-sm" onclick="aiSummary('${id}')" style="color:var(--bluel)">✨ AI Summary</button><button class="btn btn-ghost btn-sm" onclick="addRecordingModal({customerId:'${id}'})" style="color:var(--bluel)">🎙️ Recording</button><button class="btn btn-ghost btn-sm" onclick="captureNotes('${id}')" style="color:var(--bluel)">✨ Notes</button><button class="btn btn-ghost btn-sm" onclick="manageCustomer('${id}')">✏️ Manage</button><button class="btn btn-primary btn-sm" onclick="showNewProjModal('${id}');closeModal()">+ New Project</button>`);
 }
 
 // ── ISSUES ─────────────────────────────────────────────────────
@@ -5498,7 +5672,7 @@ function showModal(title,body,foot=''){
 }
 function closeModal(){ $('modal-wrap').classList.remove('open'); }
 
-const PRODUCTS = ['CAD','RMS','JMS','QMS','MDIS','MDS','NMS','PSAware','ICAware','Analytics','Citizen Connect','Command Center','AVL'];
+const PRODUCTS = ['CAD','RMS','JMS','QMS','MDIS','MDS','NMS','PSAware','Citizen Connect','FMS - Utility Billing','FMS - General Ledger','FMS - Payroll','FMS - Tax'];
 
 function showNewProjModal(custId=''){
   showModal('New Project',`
@@ -5534,17 +5708,19 @@ function showNewProjModal(custId=''){
     <div class="fg">
       <label class="fl">Products in Scope</label>
       <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.25rem">
-        ${PRODUCTS.map(p=>`<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);cursor:pointer"><input type="checkbox" class="pp" value="${p}"> ${p}</label>`).join('')}
+        ${PRODUCTS.map(p=>`<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);cursor:pointer"><input type="checkbox" class="pp" value="${p}" onchange="npUpdatePreview()"> ${p}</label>`).join('')}
       </div>
     </div>
     <div class="fg">
       <label class="fl" style="display:flex;align-items:center;gap:.5rem">
-        <input type="checkbox" id="np-tpl" checked> Auto-create implementation sections & tasks from template
+        <input type="checkbox" id="np-tpl" checked onchange="npUpdatePreview()"> Auto-build phases &amp; tasks from the product templates
       </label>
+      <div id="np-tpl-preview" style="margin-top:8px"></div>
     </div>
     <div class="fg"><label class="fl">Notes</label><textarea class="fc" id="np-desc" placeholder="Optional…"></textarea></div>
   </div>`,
   `<button class="btn btn-primary" onclick="createProject()">Create Project</button>`);
+  setTimeout(()=>{ try{ npUpdatePreview(); }catch(e){} },20);
 }
 
 async function createProject(){
@@ -5552,6 +5728,20 @@ async function createProject(){
   if(!name){toast('Name required','err');return;}
   const products=[...$('modal-body').querySelectorAll('.pp:checked')].map(c=>c.value);
   const useTpl=$('np-tpl').checked;
+  // PREVIEW: build the project + template phases/tasks in-memory so it works in the demo
+  if(typeof SB_URL!=='undefined' && SB_URL==='YOUR_SUPABASE_URL'){
+    const pid='proj-new-'+Math.random().toString(36).slice(2,7);
+    const custId=$('np-cust').value||null; const cust=S.customers.find(c=>c.id===custId);
+    const pmId=$('np-pm').value||null; const pmNm=(S.profiles.find(p=>p.id===pmId)||{}).full_name||null;
+    const proj={id:pid,name,customer_id:custId,customers:cust?{name:cust.name}:null,type:$('np-type').value,status:'active',pm_id:pmId,start_date:$('np-start').value||null,target_date:$('np-target').value||null,go_live:$('np-target').value||null,products:products.length?products:null,description:$('np-desc').value||null};
+    S.projects.unshift(proj);
+    let nSec=0,nTask=0;
+    if(useTpl){ templatePhasesFor(products).forEach((ph,pi)=>{ const secId=pid+'-s'+pi; S.sections.push({id:secId,project_id:pid,name:ph.name,sort_order:pi}); nSec++; ph.tasks.forEach((tt,ti)=>{ S.tasks.unshift({id:pid+'-t'+pi+'-'+ti,project_id:pid,section_id:secId,parent_id:null,title:(typeof tt==='string'?tt:tt.title),status:'todo',assignee_id:pmId,assignee_name:pmNm,due_date:null,sort_order:ti}); nTask++; }); }); }
+    try{ logActivity('project',null,pid,'created project: '+name); }catch(e){}
+    toast(useTpl?('Project created — '+nSec+' phases, '+nTask+' tasks from template'):'Project created');
+    closeModal(); try{ openProject(pid); }catch(e){ navigate('projects'); }
+    return;
+  }
   const {data:proj,error}=await db.from('projects').insert({
     name, customer_id:$('np-cust').value||null,
     type:$('np-type').value, pm_id:$('np-pm').value||null,
