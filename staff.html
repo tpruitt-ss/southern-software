@@ -96,6 +96,25 @@ button{cursor:pointer}
 .sb-group.collapsed .sb-chev{transform:rotate(-90deg)}
 .sb-group.collapsed .sb-gitems{display:none}
 .sb-gitems{display:flex;flex-direction:column}
+/* command palette */
+.cmdk-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1200;display:none;align-items:flex-start;justify-content:center;padding-top:11vh}
+.cmdk-ov.open{display:flex}
+.cmdk{width:min(580px,92vw);background:var(--card);border:1px solid var(--border2);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;max-height:72vh;display:flex;flex-direction:column}
+.cmdk-in{width:100%;padding:15px 16px;font-size:15px;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);outline:none}
+.cmdk-list{overflow-y:auto;padding:6px}
+.cmdk-item{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--v-text2)}
+.cmdk-item.sel{background:rgba(46,127,212,.16);color:var(--text)}
+.cmdk-item:hover{background:var(--v-hair)}
+.cmdk-item .k{margin-left:auto;font-size:10px;color:var(--v-text4);border:1px solid var(--v-hair3);border-radius:4px;padding:1px 5px}
+.cmdk-grp{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--v-text4);padding:9px 12px 3px}
+/* density */
+[data-density="compact"] .proj-row{padding:6px 10px}
+[data-density="compact"] .sb-item{padding:.3rem .85rem}
+[data-density="compact"] .card{padding:10px 12px}
+[data-density="compact"] .proj-list{gap:4px}
+/* AI accents */
+.ai-box{background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:10px;padding:12px 14px}
+.ai-badge{font-size:10px;color:var(--bluel)}
 .sb-item .i{width:16px;text-align:center;font-size:14px;flex-shrink:0}
 .sb-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;
   font-weight:700;padding:1px 5px;border-radius:8px;min-width:16px;text-align:center}
@@ -842,10 +861,11 @@ a#skip-link:focus{left:8px}
         <div class="topbar-title" id="topbar-title">Dashboard</div>
         <div class="gsearch-wrap" style="margin:0 .75rem">
           <span class="gsearch-icon">🔍</span>
-          <input class="gsearch-input" id="gsearch" placeholder="Search tasks, projects, customers… (⌘K)">
+          <input class="gsearch-input" id="gsearch" placeholder="Search tasks, projects, customers…">
           <div class="gsearch-results" id="gsearch-results"></div>
         </div>
-        <button id="help-btn" class="btn btn-ghost btn-sm" style="margin-right:.4rem" onclick="showTour()" title="Quick-start tour" aria-label="Help / tour">?</button>
+        <button id="create-btn" class="btn btn-primary btn-sm" style="margin-right:.4rem" onclick="openPalette()" title="Create / command palette (⌘K)" aria-label="Create or command palette">＋ Create</button>
+        <button id="help-btn" class="btn btn-ghost btn-sm" style="margin-right:.4rem" onclick="showTour()" title="Quick-start tour" aria-label="Help and quick-start tour">?</button>
         <div id="notif-wrap" style="position:relative;margin-right:.4rem">
           <button id="notif-btn" class="btn btn-ghost btn-sm" style="position:relative" title="Notifications" aria-label="Notifications">🔔<span id="notif-badge" class="sb-badge" style="display:none;position:absolute;top:-5px;right:-5px"></span></button>
           <div id="notif-panel" style="display:none;position:absolute;right:0;top:calc(100% + 6px);width:340px;max-height:440px;overflow:auto;background:var(--v-surface-solid);border:1px solid #ffffff1f;border-radius:12px;box-shadow:0 14px 44px #000b;z-index:400;padding:6px"></div>
@@ -1186,11 +1206,11 @@ function initSearch() {
   document.addEventListener('click', e => {
     if(!e.target.closest('.gsearch-wrap')) closeSearch();
   });
-  // Cmd/Ctrl+K shortcut
+  // Cmd/Ctrl+K → command palette
   document.addEventListener('keydown', e => {
     if((e.metaKey || e.ctrlKey) && e.key === 'k') {
       e.preventDefault();
-      inp.focus(); inp.select();
+      if(typeof openPalette==='function') openPalette();
     }
   });
 }
@@ -2126,6 +2146,7 @@ function renderBoard(){
   const scopeBar=def.scopes?`<div style="display:flex;gap:6px;margin:2px 0 10px">${def.scopes.map(s=>`<button onclick="boardScope('${s[0]}')" class="btn btn-sm ${s[0]===_board.scope?'btn-primary':'btn-ghost'}">${s[1]} (${(TRACKERS[s[2]]||[]).length})</button>`).join('')}</div>`:'<div style="height:8px"></div>';
   const {arr}=boardDataset();
   const stOpts=boardFilterOpts(arr,'state'), statOpts=boardFilterOpts(arr,'status');
+  $('topbar-actions').innerHTML='<button class="btn btn-ghost btn-sm" onclick="boardRisk()" style="color:var(--bluel)">✨ AI Risk</button>';
   $('content').innerHTML=`<div style="max-width:1180px;margin:0 auto;padding:12px 8px">
     <div style="display:flex;gap:4px;border-bottom:1px solid var(--v-hair4);margin-bottom:10px;flex-wrap:wrap">${tabBar}</div>
     ${scopeBar}
@@ -2413,7 +2434,7 @@ function renderSupportAgr(){
         <span style="font-size:1.1rem">📑</span>
         <div class="proj-info"><div class="proj-name">${escH(a.name)} <span style="font-size:12px;color:var(--v-text3)">· ${escH(a.line)}</span></div>
         <div class="proj-meta">${escH(a.state)}${a.owner?' · '+escH(a.owner):''} · ${a.seats} seats · renews ${fmtLong(a.renewal)} (${when})</div></div>
-        <div class="proj-right"><span style="font-size:13px;color:var(--v-text);font-weight:600">${money(a.fee)}</span><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${AST[a.status]};background:${AST[a.status]}22">${a.status}</span></div>
+        <div class="proj-right" onclick="event.stopPropagation()">${a.status!=='Current'?`<button class="btn btn-ghost btn-xs" style="color:var(--bluel)" onclick="agrRenew('${a.id}')" title="Draft renewal email">✨ Renew</button>`:''}<span style="font-size:13px;color:var(--v-text);font-weight:600">${money(a.fee)}</span><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${AST[a.status]};background:${AST[a.status]}22">${a.status}</span></div>
       </div>`;
     }).join('')||`<div class="empty"><div class="empty-i">📑</div><div class="empty-h">No agreements match</div></div>`;
   };
@@ -2467,6 +2488,7 @@ function annShowForm(id){
     </div>
     <div style="display:flex;gap:8px;margin-top:14px">
       <button class="btn btn-primary btn-sm" onclick="annSave(${id})">Save</button>
+      <button class="btn btn-ghost btn-sm" onclick="annDraftAI()" style="color:var(--bluel)">✨ Draft with AI</button>
       <button class="btn btn-ghost btn-sm" onclick="annCancel()">Cancel</button>
     </div>
   </div>`;
@@ -2795,7 +2817,7 @@ function blogNew(){
     <div style="display:flex;gap:10px;flex-wrap:wrap"><div style="flex:2;min-width:180px"><label style="font-size:11px;color:var(--v-text3)">Title</label><input class="fc" id="bg-t" placeholder="Post title"></div>
     <div style="flex:1;min-width:120px"><label style="font-size:11px;color:var(--v-text3)">Tag</label><select class="fc" id="bg-tag">${BLOG_TAGS.map(t=>`<option>${t}</option>`).join('')}</select></div></div>
     <label style="font-size:11px;color:var(--v-text3);display:block;margin-top:10px">Body</label><textarea class="fc" id="bg-b" rows="4" placeholder="Write your post…"></textarea>
-    <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="blogSave()">Publish</button><button class="btn btn-ghost btn-sm" onclick="document.getElementById('blog-form').innerHTML=''">Cancel</button></div></div>`;
+    <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="blogSave()">Publish</button><button class="btn btn-ghost btn-sm" onclick="blogDraftAI()" style="color:var(--bluel)">✨ Draft with AI</button><button class="btn btn-ghost btn-sm" onclick="document.getElementById('blog-form').innerHTML=''">Cancel</button></div></div>`;
 }
 function blogSave(){
   const t=$('bg-t').value.trim(), b=$('bg-b').value.trim(); if(!t){ toast('Title required'); return; }
@@ -3064,6 +3086,188 @@ function aiAsk(id,btn){
   $('ai-ask').innerHTML=`<div style="background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--v-text2)"><b style="color:var(--v-text3)">${escH(q)}</b><br>${a}</div>`;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   PART 2 (UX) — Command Palette · Pinning · Density
+   PART 3 (AI) — KB Assistant · Sales Req autofill · Project risk ·
+                 Comms draft · Renewal outreach
+   ═══════════════════════════════════════════════════════════════════ */
+
+// ── COMMAND PALETTE (⌘K) ──────────────────────────────────────
+let _pal={items:[],sel:0};
+function paletteCommands(){
+  const acts=[
+    ['📥','New Sales Request','Create',()=>showNewSalesReq()],
+    ['🏛️','New Customer','Create',()=>showNewCustModal()],
+    ['📁','New Project','Create',()=>showNewProjModal()],
+    ['🐛','Report Issue / Bug','Create',()=>showNewIssueModal()],
+    ['✏️','New KB Article','Create',()=>showKBForm()],
+    ['🏖️','Request Time Off','Create',()=>{navigate('timeoff');setTimeout(toNew,60);}],
+    ['⏱️','Log Time','Create',()=>{navigate('timesheets');setTimeout(tsNew,60);}],
+    ['📢','Send Notification','Create',()=>{navigate('alerts');setTimeout(alertNew,60);}],
+    ['📣','New Blog Post','Create',()=>{navigate('blog');setTimeout(blogNew,60);}],
+    ['🙏','Add Prayer Request','Create',()=>{navigate('prayer');setTimeout(prayNew,60);}],
+  ].map(a=>({icon:a[0],t:a[1],grp:a[2],run:a[3]}));
+  const settings=[
+    ['🌓',(document.documentElement.getAttribute('data-theme')==='light'?'Switch to dark mode':'Switch to light mode'),()=>toggleTheme()],
+    ['↕️','Toggle compact density',()=>toggleDensity()],
+    ['⭐',(isPinned(S.view)?'Unpin this page':'Pin this page'),()=>togglePin(S.view)],
+    ['👋','Take the quick-start tour',()=>showTour()],
+  ].map(a=>({icon:a[0],t:a[1],grp:'Settings',run:a[2]}));
+  const nav=Object.keys(VIEW_TITLES).map(v=>({icon:'→',t:VIEW_TITLES[v],grp:'Go to',run:()=>navigate(v)}));
+  return [...acts,...settings,...nav];
+}
+function openPalette(){
+  let ov=document.getElementById('cmdk-ov');
+  if(!ov){ ov=document.createElement('div'); ov.id='cmdk-ov'; ov.className='cmdk-ov';
+    ov.innerHTML=`<div class="cmdk"><input class="cmdk-in" id="cmdk-in" placeholder="Type a command or search…  (Esc to close)"><div class="cmdk-list" id="cmdk-list"></div></div>`;
+    document.body.appendChild(ov);
+    ov.addEventListener('click',e=>{ if(e.target===ov) closePalette(); });
+    ov.querySelector('#cmdk-in').addEventListener('input',palFilter);
+    ov.querySelector('#cmdk-in').addEventListener('keydown',palKey);
+  }
+  ov.classList.add('open'); const inp=document.getElementById('cmdk-in'); inp.value=''; _pal.sel=0; palFilter();
+  setTimeout(()=>inp.focus(),30);
+}
+function closePalette(){ const ov=document.getElementById('cmdk-ov'); if(ov) ov.classList.remove('open'); }
+function palFilter(){
+  const q=(document.getElementById('cmdk-in').value||'').toLowerCase().trim();
+  let all=paletteCommands();
+  if(q) all=all.filter(c=>(c.t+' '+c.grp).toLowerCase().includes(q));
+  _pal.items=all.slice(0,40); if(_pal.sel>=_pal.items.length)_pal.sel=0;
+  const grps={}; _pal.items.forEach((c,i)=>{(grps[c.grp]=grps[c.grp]||[]).push({c,i});});
+  const list=document.getElementById('cmdk-list');
+  list.innerHTML=Object.keys(grps).map(g=>`<div class="cmdk-grp">${g}</div>`+grps[g].map(({c,i})=>`<div class="cmdk-item${i===_pal.sel?' sel':''}" data-i="${i}" onclick="palRun(${i})"><span>${c.icon}</span><span>${escH(c.t)}</span></div>`).join('')).join('')||'<div style="padding:20px;text-align:center;color:var(--v-text4);font-size:13px">No matches</div>';
+}
+function palKey(e){
+  if(e.key==='Escape'){ closePalette(); return; }
+  if(e.key==='ArrowDown'){ e.preventDefault(); _pal.sel=Math.min(_pal.items.length-1,_pal.sel+1); palSyncSel(); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); _pal.sel=Math.max(0,_pal.sel-1); palSyncSel(); }
+  else if(e.key==='Enter'){ e.preventDefault(); palRun(_pal.sel); }
+}
+function palSyncSel(){ document.querySelectorAll('.cmdk-item').forEach(el=>el.classList.toggle('sel',+el.dataset.i===_pal.sel)); const s=document.querySelector('.cmdk-item.sel'); if(s)s.scrollIntoView({block:'nearest'}); }
+function palRun(i){ const c=_pal.items[i]; if(!c) return; closePalette(); setTimeout(()=>{ try{ c.run(); }catch(e){ console.warn(e); } },0); }
+
+// ── PINNING ───────────────────────────────────────────────────
+let PINNED=[]; try{ PINNED=JSON.parse(localStorage.getItem('ss-pins')||'[]'); }catch(e){ PINNED=[]; }
+function isPinned(v){ return PINNED.includes(v); }
+function togglePin(v){ if(!v||!VIEW_TITLES[v])return; if(isPinned(v))PINNED=PINNED.filter(x=>x!==v); else PINNED.push(v); try{localStorage.setItem('ss-pins',JSON.stringify(PINNED));}catch(e){} renderPinned(); toast(isPinned(v)?'Pinned to sidebar':'Unpinned'); }
+const PIN_ICON={overview:'📊',customers:'🏛️',supportagr:'📑',saleshub:'💼',projects:'📁',board:'📋',myagenda:'📝',alerts:'🔔',kb:'📚',trainconf:'🎓',timeoff:'🏖️'};
+function renderPinned(){
+  const nav=document.querySelector('.sb-nav'); if(!nav) return;
+  let g=nav.querySelector('.sb-group[data-g="pinned"]');
+  if(!PINNED.length){ if(g)g.remove(); return; }
+  if(!g){ g=document.createElement('div'); g.className='sb-group'; g.dataset.g='pinned'; nav.insertBefore(g,nav.firstChild); }
+  g.innerHTML=`<div class="sb-label" onclick="toggleGroup('pinned')">📌 Pinned<span class="sb-chev">▾</span></div><div class="sb-gitems">${PINNED.map(v=>`<div class="sb-item" data-v="${v}"><span class="i">${PIN_ICON[v]||'⭐'}</span>${escH(VIEW_TITLES[v]||v)}</div>`).join('')}</div>`;
+  g.querySelectorAll('.sb-item[data-v]').forEach(it=>it.onclick=()=>navigate(it.dataset.v));
+}
+
+// ── DENSITY ───────────────────────────────────────────────────
+function toggleDensity(){ const r=document.documentElement; const c=r.getAttribute('data-density')==='compact'; if(c)r.removeAttribute('data-density'); else r.setAttribute('data-density','compact'); try{localStorage.setItem('ss-density',c?'':'compact');}catch(e){} toast(c?'Comfortable density':'Compact density'); }
+function initDensity(){ try{ if(localStorage.getItem('ss-density')==='compact') document.documentElement.setAttribute('data-density','compact'); }catch(e){} }
+
+// ── AI: KB ASSISTANT ──────────────────────────────────────────
+function kbAsk(){
+  showModal('✨ KB Assistant',
+   `<div style="font-size:12px;color:var(--v-text3);margin-bottom:10px">Ask a question and I'll answer from the knowledge base with citations.</div>
+    <input class="fc" id="kba-q" placeholder="e.g. How do I set up Invoice Cloud for utility billing?" onkeydown="if(event.key==='Enter')kbAnswer()">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">${['Set up Invoice Cloud utility billing','CAD login and screen overview','Year-end payroll steps','NIBRS reporting'].map(q=>`<button class="btn btn-ghost btn-xs" onclick="document.getElementById('kba-q').value='${q}';kbAnswer()">${q}</button>`).join('')}</div>
+    <div id="kba-ans" style="margin-top:12px"></div>`,
+   `<button class="btn btn-primary btn-sm" onclick="kbAnswer()">Ask</button>`);
+  setTimeout(()=>{const el=document.getElementById('kba-q');if(el)el.focus();},40);
+}
+function kbAnswer(){
+  const q=(document.getElementById('kba-q').value||'').toLowerCase().trim(); if(!q){ return; }
+  const KBA=(typeof KB_ARTICLES!=='undefined'?KB_ARTICLES:[]);
+  const words=q.replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(w=>w.length>2);
+  const scored=KBA.map((a,idx)=>{ const hay=((a.title||'')+' '+(a.desc||'')+' '+(a.keywords||'')+' '+(a.cat||'')).toLowerCase(); let s=0; words.forEach(w=>{ if(hay.includes(w)) s+= (a.title||'').toLowerCase().includes(w)?3:1; }); return {a,idx,s}; }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,4);
+  const ans=document.getElementById('kba-ans');
+  ans.innerHTML=`<div style="display:flex;align-items:center;gap:8px;color:var(--v-text3);font-size:13px"><div class="spin" style="width:15px;height:15px"></div>Searching ${KBA.length} articles…</div>`;
+  setTimeout(()=>{
+    if(!scored.length){ ans.innerHTML=`<div class="ai-box">I couldn't find a knowledge base article matching that. Try different keywords, or check the product landing pages under Knowledge Base.</div>`; return; }
+    const top=scored[0].a;
+    const summary=`Based on ${scored.length} matching article${scored.length!==1?'s':''}, the most relevant is <b>${escH(top.title)}</b>${top.cat?` (in ${escH(top.cat)})`:''}. ${escH((top.desc||'').slice(0,220))}${(top.desc||'').length>220?'…':''}`;
+    ans.innerHTML=`<div class="ai-box"><div style="font-size:13px;line-height:1.6;color:var(--v-text2)">${summary}</div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--v-text4);margin:12px 0 5px">Sources</div>
+      ${scored.map(x=>`<div onclick="closeModal();navigate('${x.a.ps==='FMS'?'kbfms':'kbps'}');setTimeout(()=>{if(typeof kbDetail==='function')kbDetail(${x.idx});},80)" style="display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:13px" onmouseover="this.style.background='var(--v-hair)'" onmouseout="this.style.background='transparent'"><span>${x.a.video?'🎬':'📄'}</span><span style="color:var(--bluel)">${escH(x.a.title)}</span><span style="margin-left:auto;font-size:11px;color:var(--v-text4)">${escH(x.a.cat||'')}</span></div>`).join('')}
+      <div style="margin-top:10px;font-size:10px;color:var(--v-text4)">✨ Preview — connects to a real model for full semantic answers at go-live.</div></div>`;
+  },600);
+}
+
+// ── AI: SALES REQUEST AUTOFILL ────────────────────────────────
+function srParse(){
+  const t=(document.getElementById('srx-in').value||''); if(!t.trim()){ toast('Paste an email or RFP first'); return; }
+  const setV=(id,v)=>{ const el=document.getElementById(id); if(el&&v){ el.value=v; } };
+  // agency name: the phrase containing agency-like words, trimmed at natural boundaries
+  let line=(t.split(/[\n.]/).map(s=>s.trim()).find(s=>/\b(county|sheriff|police|city of|town of|department|e-?911|marshal|constable)\b/i.test(s))||'');
+  const m=line.match(/([A-Z][A-Za-z.'’&-]+(?:\s+[A-Z][A-Za-z.'’&-]+){0,5}?\s*(?:County(?:\s+Sheriff(?:'s|’s)?(?:\s+Office)?)?|Sheriff(?:'s|’s)?(?:\s+Office)?|Police(?:\s+Department)?|Marshal|Constable|E-?911|City|Town))/);
+  line=(m?m[1]:line.split(/\s+(?:in|needs?|requires?|would|is|has|wants?)\s+/i)[0]).trim().slice(0,70);
+  if(line) setV('nsr-agency',line.replace(/[,.]$/,''));
+  const st=(t.match(/\b(AL|AR|FL|GA|KY|LA|MS|NC|SC|TN|TX|VA|WV|OK|MO)\b/)||[])[1]; if(st) setV('nsr-state',st);
+  // detect products → check matching sr-mod boxes
+  let checked=0;
+  document.querySelectorAll('.sr-mod').forEach(cb=>{ const label=(cb.dataset.label||'').toLowerCase(); const key=label.split(/[\s/–-]/)[0]; if(key&&key.length>2&&t.toLowerCase().includes(key)){ cb.checked=true; checked++; } });
+  // common aliases
+  const alias={cad:'CAD Full',rms:'RMS',jms:'JMS',mobile:'MDS Full',mdis:'MDS Full',payroll:'Payroll','utility billing':'Utility Billing','general ledger':'General Ledger',tax:'Tax Billing'};
+  Object.entries(alias).forEach(([k,lab])=>{ if(t.toLowerCase().includes(k)){ document.querySelectorAll('.sr-mod').forEach(cb=>{ if((cb.dataset.label||'').toLowerCase().includes(lab.toLowerCase())&&!cb.checked){cb.checked=true;checked++;} }); } });
+  const note=document.getElementById('nsr-notes'); if(note&&!note.value) note.value='Drafted from pasted RFP/email — please review.';
+  toast(`Autofilled${line?' agency,':''}${st?' state,':''} ${checked} product${checked!==1?'s':''} — review before submitting`);
+}
+
+// ── AI: PROJECT RISK (Status Board) ───────────────────────────
+function boardRisk(){
+  const flagged=S.projects.map(p=>{
+    const tasks=S.tasks.filter(t=>t.project_id===p.id);
+    const open=tasks.filter(t=>!['done','na'].includes(t.status));
+    const overdue=open.filter(t=>isOver(t.due_date)).length;
+    const waiting=open.filter(t=>t.status==='waiting_customer').length;
+    const go=p.go_live||p.target_date; const days=go?Math.round((new Date(go+'T12:00:00')-new Date())/86400000):null;
+    const reasons=[]; let sev=0;
+    if(['at_risk','behind'].includes(p.status)){ reasons.push('status is '+projLabel(p.status)); sev+=2; }
+    if(overdue){ reasons.push(overdue+' overdue task'+(overdue!==1?'s':'')); sev+=overdue; }
+    if(days!==null&&days>=0&&days<=21&&open.length){ reasons.push('go-live in '+days+'d with '+open.length+' open task'+(open.length!==1?'s':'')); sev+=3; }
+    if(waiting>=2){ reasons.push(waiting+' tasks waiting on customer'); sev+=1; }
+    let step='';
+    if(overdue) step='Clear overdue tasks and reconfirm dates.';
+    else if(days!==null&&days<=21) step='Run a go-live readiness check (hardware, training, conversions).';
+    else if(waiting>=2) step='Follow up with the customer on pending items.';
+    else step='Review status with the PM.';
+    return {p,reasons,sev,step};
+  }).filter(x=>x.reasons.length).sort((a,b)=>b.sev-a.sev).slice(0,12);
+  const cn={}; S.customers.forEach(c=>cn[c.id]=c.name);
+  const body=flagged.length?`<div style="font-size:12px;color:var(--v-text3);margin-bottom:10px">${flagged.length} project${flagged.length!==1?'s':''} flagged, most at-risk first.</div>`+flagged.map(f=>`<div class="ai-box" style="margin-bottom:8px"><div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:${f.sev>=5?'#ef4444':f.sev>=3?'#f59e0b':'#eab308'}"></span><b style="color:var(--v-text);font-size:13px">${escH(f.p.name)}</b><span style="font-size:11px;color:var(--v-text4)">${escH(f.p.customers?.name||cn[f.p.customer_id]||'')}</span></div>
+    <div style="font-size:12px;color:var(--v-text3);margin:5px 0 0 16px">⚠ ${f.reasons.map(escH).join(' · ')}</div>
+    <div style="font-size:12px;color:var(--bluel);margin:3px 0 0 16px">→ ${escH(f.step)}</div></div>`).join(''):'<div class="ai-box">No projects are flagged right now — the portfolio looks healthy. ✓</div>';
+  showModal('✨ AI Risk — Projects needing attention', body+`<div style="margin-top:8px;font-size:10px;color:var(--v-text4)">✨ Preview — heuristic on task, date & status signals; a model would add pattern-based prediction at go-live.</div>`);
+}
+
+// ── AI: COMMS DRAFTS ──────────────────────────────────────────
+function annDraftAI(){
+  const topic=(document.getElementById('nl-topic')?.value||document.getElementById('an-t')?.value||'').trim();
+  const t=document.getElementById('an-t'); const body=document.getElementById('an-b');
+  const subj=topic|| (t&&t.value)||'Update';
+  if(t&&!t.value) t.value=subj;
+  if(body) body.value=`Team — a quick note regarding ${subj.toLowerCase()}. Please review and reach out to your lead with any questions. Thank you for helping keep our customers well supported.`;
+  toast('Draft inserted — edit as needed');
+}
+function blogDraftAI(){
+  const t=(document.getElementById('bg-t')?.value||'').trim(); const tag=document.getElementById('bg-tag')?.value||'Company';
+  const body=document.getElementById('bg-b'); const title=t||'Company Update';
+  if(body) body.value=`${title}\n\nHere's the latest from the ${tag} side of Southern Software. We're continuing to invest in the tools and training that help our public-safety and financial-management customers succeed.\n\nMore details to follow — reach out with questions or feedback.`;
+  toast('Draft inserted — edit as needed');
+}
+
+// ── AI: RENEWAL OUTREACH ──────────────────────────────────────
+function agrRenew(id){
+  const A=(typeof buildAgreements==='function')?buildAgreements():[]; const a=A.find(x=>x.id===id); if(!a) return;
+  const when=a.days<0?`expired ${Math.abs(a.days)} days ago`:`due to renew ${fmtLong(a.renewal)}`;
+  const email=`Subject: Southern Software Support Agreement Renewal — ${a.name}\n\nHello,\n\nI hope this note finds you well. Our records show your ${a.line} support agreement with Southern Software is ${when}. Your current coverage includes ${a.seats} licensed seats at an annual support investment of ${money(a.fee)}.\n\nTo avoid any interruption in support and updates, we'd like to get your renewal in place. I'd be glad to walk through your current coverage and answer any questions.\n\nWhen is a good time this week for a brief call?\n\nThank you for being a valued Southern Software customer.\n\nBest regards,\n${meName()}\nSouthern Software`;
+  showModal('✨ Renewal draft — '+escH(a.name),
+    `<div style="font-size:12px;color:var(--v-text3);margin-bottom:8px">Drafted from this agreement's products, seats, fee and renewal date.</div>
+     <textarea class="fc" id="ren-txt" rows="15" style="font-size:13px;line-height:1.5">${escH(email)}</textarea>
+     <div style="margin-top:8px;font-size:10px;color:var(--v-text4)">✨ Preview — a model would tailor tone and pull the primary contact automatically at go-live.</div>`,
+    `<button class="btn btn-primary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('ren-txt').value).then(()=>toast('Copied'));">📋 Copy</button>`);
+}
+
 function navigate(v, extra={}) {
   S.view = v;
   _mount='content';
@@ -3218,6 +3422,7 @@ function showNewSalesReq(){
   const PS=[['psRMS','RMS'],['psJMS','JMS'],['psMDIS','MDIS'],['psQM','QuarterMaster'],['psClery','Clery'],['psDE','Data Exchange (DE)']];
   showModal('New Sales Request',`<div class="fstack">
     <div style="background:#3b82f618;border:1px solid #3b82f640;border-radius:8px;padding:7px 11px;font-size:12px;color:#93c5fd">→ Routes to <b>Janet Benson</b> (Sales Administrator) for processing into a project.</div>
+    <details style="border:1px solid var(--v-hair3);border-radius:10px;background:var(--v-surface)"><summary style="cursor:pointer;padding:9px 12px;font-size:12px;font-weight:700;color:var(--bluel);list-style:none">✨ Autofill from email / RFP</summary><div style="padding:6px 12px 12px"><textarea class="fc" id="srx-in" rows="4" placeholder="Paste the customer email or RFP text here…"></textarea><button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="srParse()">✨ Parse & fill</button><div style="font-size:10px;color:var(--v-text4);margin-top:6px">Detects agency, state and products and pre-checks the form. Review before submitting.</div></div></details>
     <div class="fg2">
       <div class="fg"><label class="fl">Requested by</label><input class="fc" id="nsr-by" value="${escH(me)}"></div>
       <div class="fg"><label class="fl">FMS or PS *</label><select class="fc" id="nsr-side"><option>Public Safety</option><option>FMS</option><option>Both</option></select></div>
@@ -3666,7 +3871,7 @@ function renderKB(extra){
   extra=extra||{};
   const arts=(typeof KB_ARTICLES!=='undefined'?KB_ARTICLES:[]);
   const isList = extra.ps || extra.browse || extra.internalMode || extra.cat;
-  $('topbar-actions').innerHTML='<button class="btn btn-primary btn-sm" onclick="showKBForm()">+ New Article</button>';
+  $('topbar-actions').innerHTML='<button class="btn btn-ghost btn-sm" onclick="kbAsk()" style="color:var(--bluel)">✨ Ask AI</button><button class="btn btn-primary btn-sm" onclick="showKBForm()">+ New Article</button>';
   if(!isList){
     // ── "Choose Your Product" landing ──
     const count=ps=>arts.filter(a=>a.ps===ps).length;
@@ -5482,9 +5687,11 @@ async function kDrop(e,newStatus){
 // ── BOOT ──────────────────────────────────────────────────────
 initTextSize();
 initTheme();
+initDensity();
 initSidebarGroups();
 boot();
 try{ updateWhatsNewBadge(); }catch(e){}
+try{ renderPinned(); }catch(e){}
 </script>
 </body>
 </html>
