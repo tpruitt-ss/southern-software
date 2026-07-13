@@ -3759,18 +3759,71 @@ const COLLECTIONS=[
   {agency:'Elberta PD',state:'AL',amount:990,days:5,status:'Sent',invoice:'INV-20470'},
   {agency:'Greenbrier PD',state:'AR',amount:3120,days:0,status:'Paid',invoice:'INV-20399'},
 ];
+const COL_CS={Overdue:'#ef4444',Sent:'#f59e0b',Paid:'#22c55e',Partial:'#3b82f6'};
+function colGet(inv){ return COLLECTIONS.find(c=>c.invoice===inv); }
 function renderCollections(){
+  const canEdit=canEditSupport();
   $('topbar-actions').innerHTML='';
-  const CS={Overdue:'#ef4444',Sent:'#f59e0b',Paid:'#22c55e'};
   const out=COLLECTIONS.filter(c=>c.status!=='Paid').reduce((s,c)=>s+c.amount,0);
   $('content').innerHTML=`<div style="max-width:900px;margin:0 auto;padding:12px 6px">
-    <div style="font-size:11px;color:var(--v-text4);margin-bottom:12px">Outstanding invoices (old RMS/collections).</div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">${statTile(money(out),'Outstanding','#ef4444')}${statTile(COLLECTIONS.filter(c=>c.status==='Overdue').length,'Overdue','#f59e0b')}${statTile(COLLECTIONS.filter(c=>c.status==='Paid').length,'Paid','#22c55e')}</div>
-    <div class="proj-list">${COLLECTIONS.map(c=>`<div class="proj-row" style="cursor:default"><span style="font-size:1.1rem">💵</span>
-      <div class="proj-info"><div class="proj-name">${escH(c.agency)} <span style="font-size:12px;color:var(--v-text3)">· ${escH(c.state)}</span></div>
-      <div class="proj-meta">${escH(c.invoice)} · ${c.days?c.days+' days outstanding':'paid'}</div></div>
-      <div class="proj-right"><span style="font-size:13px;font-weight:600;color:var(--v-text)">${money(c.amount)}</span><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${CS[c.status]};background:${CS[c.status]}22">${c.status}</span></div></div>`).join('')}</div>
+    <div style="font-size:11px;color:var(--v-text4);margin-bottom:12px">Outstanding invoices (old RMS/collections).${canEdit?' Record a payment or add a collection note on any invoice.':''}</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px" id="col-stats"></div>
+    <div class="proj-list" id="col-list"></div>
   </div>`;
+  colDraw();
+}
+function colDraw(){
+  const canEdit=canEditSupport();
+  const out=COLLECTIONS.filter(c=>c.status!=='Paid').reduce((s,c)=>s+c.amount,0);
+  if($('col-stats'))$('col-stats').innerHTML=`${statTile(money(out),'Outstanding','#ef4444')}${statTile(COLLECTIONS.filter(c=>c.status==='Overdue').length,'Overdue','#f59e0b')}${statTile(COLLECTIONS.filter(c=>['Paid','Partial'].includes(c.status)).length,'Paid / partial','#22c55e')}`;
+  if($('col-list'))$('col-list').innerHTML=COLLECTIONS.map(c=>{
+    const noteN=(c.notes||[]).length, payN=(c.payments||[]).length;
+    return `<div class="proj-row" style="cursor:pointer" onclick="colDetail('${escH(c.invoice)}')"><span style="font-size:1.1rem">💵</span>
+      <div class="proj-info"><div class="proj-name">${escH(c.agency)} <span style="font-size:12px;color:var(--v-text3)">· ${escH(c.state)}</span>${payN?' <span title="Payments recorded" style="font-size:10px;color:#22c55e">💵'+payN+'</span>':''}${noteN?' <span title="Notes" style="font-size:10px;color:var(--v-text4)">📝'+noteN+'</span>':''}</div>
+      <div class="proj-meta">${escH(c.invoice)} · ${c.status==='Paid'?'paid in full':(c.days?c.days+' days outstanding':'current')}</div></div>
+      <div class="proj-right" onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:6px">
+        ${canEdit&&c.status!=='Paid'?`<button class="btn btn-ghost btn-xs" onclick="colPayModal('${escH(c.invoice)}')" title="Record a payment">💵 Payment</button>`:''}
+        ${canEdit?`<button class="btn btn-ghost btn-xs" onclick="colNoteModal('${escH(c.invoice)}')" title="Add a note">📝 Note</button>`:''}
+        <span style="font-size:13px;font-weight:600;color:var(--v-text)">${money(c.amount)}</span><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${COL_CS[c.status]};background:${COL_CS[c.status]}22">${c.status}</span></div></div>`;
+  }).join('');
+}
+function colPayModal(inv){
+  const c=colGet(inv); if(!c) return;
+  showModal('💵 Record payment — '+escH(c.agency),`<div class="fstack">
+    <div style="font-size:12px;color:var(--v-text3)">${escH(c.invoice)} · outstanding balance <b>${money(c.amount)}</b></div>
+    <div class="fg2"><div class="fg"><label class="fl">Amount received</label><input class="fc" type="number" min="0" step="0.01" id="col-amt" value="${c.amount}"></div>
+      <div class="fg"><label class="fl">Date</label><input class="fc" type="date" id="col-date" value="${today()}"></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">Method</label><select class="fc" id="col-method"><option>Check</option><option>ACH / Wire</option><option>Credit Card</option><option>Cash</option></select></div>
+      <div class="fg"><label class="fl">Reference #</label><input class="fc" id="col-ref" placeholder="Check / confirmation #"></div></div>
+    <div class="fg"><label class="fl">Note (optional)</label><input class="fc" id="col-pnote" placeholder="e.g. Left voicemail, promised payment"></div>
+  </div>`,`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="colRecordPay('${escH(inv)}')">💾 Record payment</button>`);
+}
+function colRecordPay(inv){
+  const c=colGet(inv); if(!c) return;
+  const amt=parseFloat($('col-amt').value)||0; if(amt<=0){ toast('Enter an amount'); return; }
+  c.payments=c.payments||[]; c.payments.push({amt,date:$('col-date').value||today(),method:$('col-method').value,ref:$('col-ref').value.trim(),by:meName(),note:$('col-pnote').value.trim()});
+  c.amount=Math.max(0,Math.round((c.amount-amt)*100)/100);
+  if(c.amount<=0){ c.status='Paid'; c.days=0; } else { c.status='Partial'; }
+  c.notes=c.notes||[]; c.notes.push({date:$('col-date').value||today(),by:meName(),note:`Payment ${money(amt)} (${$('col-method').value})${$('col-ref').value.trim()?' #'+$('col-ref').value.trim():''}`});
+  closeModal(); toast('Payment recorded'+(c.status==='Paid'?' — paid in full ✓':'')); colDraw();
+}
+function colNoteModal(inv){
+  const c=colGet(inv); if(!c) return;
+  showModal('📝 Collection note — '+escH(c.agency),`<div class="fstack">
+    <div style="font-size:12px;color:var(--v-text3)">${escH(c.invoice)} · ${money(c.amount)} outstanding</div>
+    <div class="fg"><label class="fl">Note</label><textarea class="fc" id="col-note" rows="3" placeholder="e.g. Spoke with finance clerk — payment approved, mailing check Friday."></textarea></div>
+  </div>`,`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="colAddNote('${escH(inv)}')">Save note</button>`);
+}
+function colAddNote(inv){ const c=colGet(inv); if(!c) return; const n=$('col-note').value.trim(); if(!n){ toast('Enter a note'); return; } c.notes=c.notes||[]; c.notes.push({date:today(),by:meName(),note:n}); closeModal(); toast('Note added'); colDraw(); }
+function colDetail(inv){
+  const c=colGet(inv); if(!c) return; const canEdit=canEditSupport();
+  const pays=(c.payments||[]).slice().reverse().map(p=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid var(--v-hair2);font-size:12px"><span style="color:var(--v-text2)">${fmt(p.date)} · ${escH(p.method)}${p.ref?' #'+escH(p.ref):''}</span><span style="color:#22c55e;font-weight:600">${money(p.amt)}</span></div>`).join('')||'<div style="font-size:12px;color:var(--v-text4)">No payments recorded.</div>';
+  const notes=(c.notes||[]).slice().reverse().map(n=>`<div style="font-size:12px;color:var(--v-text3);padding:3px 0;border-bottom:1px solid var(--v-hair2)">${fmt(n.date)} — ${escH(n.note)}${n.by?' · '+escH(n.by):''}</div>`).join('')||'<div style="font-size:12px;color:var(--v-text4)">No notes yet.</div>';
+  showModal('💵 '+escH(c.agency)+' — '+escH(c.invoice),`<div class="fstack" style="max-height:70vh;overflow:auto">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">${statTile(money(c.amount),'Outstanding',c.amount>0?'#ef4444':'#22c55e')}${statTile(money((c.payments||[]).reduce((s,p)=>s+p.amt,0)),'Paid to date','#22c55e')}${statTile(c.status,'Status',COL_CS[c.status]||'#64748b')}</div>
+    <div class="fg"><label class="fl">Payments</label>${pays}</div>
+    <div class="fg"><label class="fl">Notes</label>${notes}</div>
+  </div>`,`${canEdit&&c.status!=='Paid'?`<button class="btn btn-ghost btn-sm" onclick="colPayModal('${escH(inv)}')">💵 Record payment</button>`:''}${canEdit?`<button class="btn btn-ghost btn-sm" onclick="colNoteModal('${escH(inv)}')">📝 Add note</button>`:''}<button class="btn btn-primary btn-sm" onclick="closeModal()">Done</button>`);
 }
 
 // ── USER PROFILE ──────────────────────────────────────────────
@@ -4163,21 +4216,36 @@ function renderContacts(){
   $('topbar-actions').innerHTML='';
   const agency=allAgencyContacts();
   const staff=(typeof STAFF_DIR!=='undefined'?STAFF_DIR:[]).map(p=>({name:p.name,role:p.title||'',email:p.email||'',phone:p.phone||'',ext:p.ext||'',agency:'Southern Software',state:'',dept:p.dept||''}));
+  const custById={}; S.customers.forEach(c=>custById[c.id]=c);
+  // classify agency contacts by their customer
+  agency.forEach(ct=>{ const c=custById[ct.cid]; ct.line=c?custLine(c):''; ct.active=c?custActive(c):true; });
+  const isAgency=_contactsMode==='agency';
   $('content').innerHTML=`<div style="max-width:900px;margin:0 auto;padding:12px 6px">
-    <div style="display:flex;gap:6px;margin-bottom:12px"><button class="btn btn-sm ${_contactsMode==='agency'?'btn-primary':'btn-ghost'}" onclick="_contactsMode='agency';renderContacts()">🏛️ Agency (${agency.length})</button><button class="btn btn-sm ${_contactsMode==='staff'?'btn-primary':'btn-ghost'}" onclick="_contactsMode='staff';renderContacts()">👥 Staff (${staff.length})</button></div>
-    <div class="search-wrap" style="margin-bottom:10px"><span class="search-i">🔍</span><input class="search-fc" id="ct-s" placeholder="Search name, agency, role…" style="width:280px"></div>
+    <div style="display:flex;gap:6px;margin-bottom:12px"><button class="btn btn-sm ${isAgency?'btn-primary':'btn-ghost'}" onclick="_contactsMode='agency';renderContacts()">🏛️ Agency (${agency.length})</button><button class="btn btn-sm ${!isAgency?'btn-primary':'btn-ghost'}" onclick="_contactsMode='staff';renderContacts()">👥 Staff (${staff.length})</button></div>
+    <div class="toolbar" style="margin-bottom:10px">
+      <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="ct-s" placeholder="Search name, agency, role…" style="width:240px"></div>
+      ${isAgency?`<select class="fc" id="ct-line" style="width:auto;padding:6px 10px"><option value="">All Products</option><option value="PS">Public Safety</option><option value="FMS">FMS</option></select>
+      <select class="fc" id="ct-status" style="width:auto;padding:6px 10px"><option value="">Active + Inactive</option><option value="Active">Active</option><option value="Inactive">Inactive</option></select>`:''}
+      <span id="ct-count" style="font-size:12px;color:var(--v-text4);align-self:center"></span>
+    </div>
     <div id="ct-list"></div></div>`;
-  const list=_contactsMode==='agency'?agency:staff;
+  const list=isAgency?agency:staff;
   const draw=()=>{
     const q=$('ct-s').value.toLowerCase();
-    const f=list.filter(c=>!q||[c.name,c.role,c.agency,c.state,c.dept].join(' ').toLowerCase().includes(q));
-    $('ct-list').innerHTML=f.map(c=>`<div class="proj-row" style="cursor:${c.cid?'pointer':'default'}" ${c.cid?`onclick="showCustDetail('${c.cid}')"`:''}>
+    const ln=isAgency&&$('ct-line')?$('ct-line').value:'';
+    const stt=isAgency&&$('ct-status')?$('ct-status').value:'';
+    const f=list.filter(c=>(!ln||c.line===ln)&&(!stt||(stt==='Active'?c.active:!c.active))&&(!q||[c.name,c.role,c.agency,c.state,c.dept].join(' ').toLowerCase().includes(q)));
+    if($('ct-count'))$('ct-count').textContent=`${f.length} contact${f.length!==1?'s':''}`;
+    $('ct-list').innerHTML=f.map(c=>{
+      const lineBadge=isAgency&&c.line?`<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;color:${c.line==='FMS'?'#f59e0b':'#3b82f6'};background:${c.line==='FMS'?'#f59e0b22':'#3b82f622'}">${c.line}</span>`:'';
+      const inact=isAgency&&!c.active?' <span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;color:#94a3b8;background:#94a3b822">Inactive</span>':'';
+      return `<div class="proj-row" style="cursor:${c.cid?'pointer':'default'};${isAgency&&!c.active?'opacity:.6':''}" ${c.cid?`onclick="showCustDetail('${c.cid}')"`:''}>
       <div class="sb-avatar" style="width:34px;height:34px;font-size:12px;flex-shrink:0">${_initials(c.name)}</div>
       <div class="proj-info"><div class="proj-name">${escH(c.name)} <span style="font-size:12px;color:var(--v-text4)">${escH(c.role)}</span></div>
-      <div class="proj-meta">${escH(c.agency)}${c.state?' · '+escH(c.state):''}${c.dept?' · '+escH(c.dept):''}</div></div>
-      <div class="proj-right" onclick="event.stopPropagation()" style="display:flex;gap:6px">${c.phone?`<a href="tel:${escH(c.phone)}" class="btn btn-ghost btn-xs">📞</a>`:''}${c.ext?`<span style="font-size:11px;color:var(--v-text4)">x${escH(c.ext)}</span>`:''}${c.email?`<a href="mailto:${escH(c.email)}" class="btn btn-ghost btn-xs">✉️</a>`:''}</div></div>`).join('')||`<div class="empty"><div class="empty-i">👤</div><div class="empty-h">No contacts match</div></div>`;
+      <div class="proj-meta">${escH(c.agency)}${lineBadge?' · '+lineBadge:''}${inact}${c.state?' · '+escH(c.state):''}${c.dept?' · '+escH(c.dept):''}</div></div>
+      <div class="proj-right" onclick="event.stopPropagation()" style="display:flex;gap:6px">${c.phone?`<a href="tel:${escH(c.phone)}" class="btn btn-ghost btn-xs">📞</a>`:''}${c.ext?`<span style="font-size:11px;color:var(--v-text4)">x${escH(c.ext)}</span>`:''}${c.email?`<a href="mailto:${escH(c.email)}" class="btn btn-ghost btn-xs">✉️</a>`:''}</div></div>`;}).join('')||`<div class="empty"><div class="empty-i">👤</div><div class="empty-h">No contacts match</div></div>`;
   };
-  $('ct-s').oninput=draw; draw();
+  $('ct-s').oninput=draw; if($('ct-line'))$('ct-line').onchange=draw; if($('ct-status'))$('ct-status').onchange=draw; draw();
 }
 
 function navigate(v, extra={}) {
@@ -4345,8 +4413,21 @@ function srSave(id){ const r=srGet(id); if(!r) return;
 }
 function srQuick(id,st){ const r=srGet(id); if(!r) return;
   r.status=st; if(!r.assignedTo)r.assignedTo=meName(); r.history=r.history||[];
-  r.history.push({date:today(),by:meName(),note: st==='Approved'?'Approved — converting to a project':'Rejected'});
-  closeModal(); toast('Request '+st.toLowerCase()+(st==='Approved'?' — ready to convert to a project':'')); if(S.view==='salesreq')renderSalesReq(); try{updateApprovalsBadge();}catch(e){}
+  if(st==='Approved'){ srConvert(id); return; }
+  r.history.push({date:today(),by:meName(),note:'Rejected'});
+  closeModal(); toast('Request rejected'); if(S.view==='salesreq')renderSalesReq(); try{updateApprovalsBadge();}catch(e){}
+}
+function srConvert(id){ const r=srGet(id); if(!r) return;
+  r.status='Approved'; if(!r.assignedTo)r.assignedTo=meName(); r.history=r.history||[];
+  r.history.push({date:today(),by:meName(),note:'Approved — converted to a project'}); r.converted=true;
+  const cust=S.customers.find(c=>(c.name||'').toLowerCase()===(r.agency||'').toLowerCase());
+  closeModal(); if(S.view==='salesreq')renderSalesReq(); try{updateApprovalsBadge();}catch(e){}
+  showNewProjModal(cust?cust.id:'', {
+    name:(r.agency||'New Customer')+' — '+(r.product?r.product+' ':'')+'Implementation',
+    product:r.product||'',
+    notes:'Converted from sales request'+(r.id?' '+r.id:'')+(r.requestedBy?' (requested by '+r.requestedBy+')':'')+(r.notes?' — '+r.notes:'')
+  });
+  toast('Approved — starting project'+(cust?'':' (new customer — pick or add on the form)'));
 }
 function showNewSalesReq(){
   const me=(S.profile&&S.profile.full_name)||'Travis Pruitt';
@@ -6412,7 +6493,7 @@ function closeModal(){ $('modal-wrap').classList.remove('open'); }
 
 const PRODUCTS = ['CAD','RMS','JMS','QMS','MDIS','MDS','NMS','PSAware','Citizen Connect','FMS - Utility Billing','FMS - General Ledger','FMS - Payroll','FMS - Tax'];
 
-function showNewProjModal(custId=''){
+function showNewProjModal(custId='', prefill=null){
   showModal('New Project',`
   <div class="fstack">
     <div class="fg"><label class="fl">Project Name *</label><input class="fc" id="np-name" placeholder="e.g. Robeson County Sheriff — Implementation"></div>
@@ -6458,7 +6539,15 @@ function showNewProjModal(custId=''){
     <div class="fg"><label class="fl">Notes</label><textarea class="fc" id="np-desc" placeholder="Optional…"></textarea></div>
   </div>`,
   `<button class="btn btn-primary" onclick="createProject()">Create Project</button>`);
-  setTimeout(()=>{ try{ npUpdatePreview(); }catch(e){} },20);
+  setTimeout(()=>{
+    if(prefill){
+      if(prefill.name&&$('np-name'))$('np-name').value=prefill.name;
+      if(prefill.notes&&$('np-desc'))$('np-desc').value=prefill.notes;
+      if(prefill.product){ const pl=String(prefill.product).toLowerCase();
+        $('modal-body').querySelectorAll('.pp').forEach(cb=>{ const v=cb.value.toLowerCase(); if(v===pl||v.includes(pl)||pl.includes(v.replace(/^fms - /,''))) cb.checked=true; }); }
+    }
+    try{ npUpdatePreview(); }catch(e){}
+  },20);
 }
 
 async function createProject(){
