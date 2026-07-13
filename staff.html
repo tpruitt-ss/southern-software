@@ -1801,6 +1801,20 @@ function seedDemoData(){
     if(c0 && typeof COMMENTS!=='undefined' && !COMMENTS.length){ COMMENTS.push({id:'c1',type:'customer',eid:c0.id,by:'Jennifer Meggs',text:'Confirmed the go-live date with the chief. @'+meNm+' can you check the hardware ship date?',at:'Jul 10'}); }
     if(c0 && typeof FILES!=='undefined' && !FILES.length){ FILES.push({id:'f1',type:'customer',eid:c0.id,name:'Signed Contract.pdf',size:284000,by:'Janet Benson',date:'2026-06-30'},{id:'f2',type:'customer',eid:c0.id,name:'Hardware Spec Sheet.xlsx',size:41000,by:'Joe Sharpe',date:'2026-07-02'}); }
     if(p0 && typeof RECORDINGS!=='undefined' && !RECORDINGS.length){ RECORDINGS.push({id:'rec1',projectId:p0.id,customerId:p0.customer_id,title:'Kickoff call — implementation scope',kind:'Plaud',date:'2026-07-09',by:meNm,durationMin:34,transcript:'Discussed the CAD and RMS rollout timeline. The agency wants go-live before the new fiscal year. Need to confirm hardware shipment and schedule dispatcher training. Chief asked about the mobile app demo. Action: send the updated project schedule and confirm the NCIC interface contact.',summary:'Kickoff for the CAD/RMS rollout; agency wants go-live before the new fiscal year.',actions:['Send the updated project schedule','Confirm hardware shipment','Schedule dispatcher training','Confirm the NCIC interface contact']}); }
+    // example support-fee records so Bobbi's edit screen is populated (24/7 line + an inactive agency)
+    if(typeof AGR_STORE!=='undefined' && S.customers.length>=3){
+      const y=dd(200), y2=dd(300), past=dd(-20);
+      const a=S.customers[1], b=S.customers[2];
+      if(a) AGR_STORE[a.id]={line:'PS',fees:[
+        {id:1,type:'CAD Annual Support',fee:14800,s247:true,active:true,renewal:y},
+        {id:2,type:'RMS Annual Support',fee:9200,s247:false,active:true,renewal:y},
+        {id:3,type:'Mobile (MDS) Support',fee:3600,s247:false,active:true,renewal:y2}],
+        history:[{date:dd(-40),by:'Bobbi',note:'Added 24/7 to CAD support'}]};
+      if(b) AGR_STORE[b.id]={line:'FMS',fees:[
+        {id:1,type:'FMS General Ledger Support',fee:6200,s247:false,active:false,renewal:past},
+        {id:2,type:'Utility Billing Support',fee:5400,s247:false,active:false,renewal:past}],
+        history:[{date:past,by:'Bobbi',note:'All fees marked inactive — agency did not renew'}]};
+    }
   }catch(e){ console.warn('seed:',e); }
 }
 function daysUntil(d){ if(!d) return null; return Math.round((new Date(d+'T12:00:00')-new Date(today()+'T12:00:00'))/86400000); }
@@ -2595,36 +2609,145 @@ function renderPeople(extra){ _tabbed('people',[['workload','Team Workload',rend
 // ── SUPPORT AGREEMENTS / RENEWALS ──────────────────────────────
 function _agrCustList(){ return (S.customers&&S.customers.length)?S.customers:(typeof DUMMY_DATA!=='undefined'?DUMMY_DATA.customers:[]); }
 function _agrHash(s){let h=0;s=String(s);for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0;}return h;}
+// Bobbi's editable support-fee overrides (in-memory in preview; writes to tblSupportFees at go-live).
+// AGR_STORE[custId] = { line?, fees:[{id,type,fee,s247,active,renewal}], history:[{date,by,note}] }
+let AGR_STORE={};
 function buildAgreements(){
   const cx=(typeof CUST_EXTRA!=='undefined')?CUST_EXTRA:{};
   const today=new Date(); today.setHours(0,0,0,0);
+  const todayIso=today.toISOString().slice(0,10);
   return _agrCustList().map(c=>{
     const x=cx[c.id]||{};
     const lic=Array.isArray(x.licenses)?x.licenses:[];
     let org=x.org||'';
     if(org!=='FMS'&&org!=='PS'){ const t=(c.agency_type||'').toLowerCase(); org=/water|sewer|city|town|county|municipal|tax|financ|utility|school|isd/.test(t)?'FMS':'PS'; }
-    const line=org==='FMS'?'FMS':'Public Safety';
     // license "count" is noisy (some rows hold non-seat values); clamp per-row and total to realistic seats
     const raw=lic.reduce((s,l)=>{const n=parseInt(l.count,10)||0; return s+(n>500?0:Math.min(n,60));},0);
     const seats=Math.min(raw||(3+_agrHash(c.id)%18), 220);
     const rate=org==='FMS'?420:365;
-    const fee=Math.max(1500, seats*rate + (_agrHash(c.id+'f')%9)*250);
+    let fee=Math.max(1500, seats*rate + (_agrHash(c.id+'f')%9)*250);
     const h=_agrHash(c.id+'r');
     const rd=new Date(today.getFullYear(), today.getMonth()+((h%12)-3), 1+(h%27));
-    const iso=rd.toISOString().slice(0,10);
-    const days=Math.round((rd-today)/86400000);
-    const status=days<0?'Expired':days<=60?'Expiring':'Current';
-    return {id:c.id,name:c.name||'',state:c.state||'',line,org,seats,fee,renewal:iso,days,status,owner:x.sales_owner||'',type:c.agency_type||''};
+    let iso=rd.toISOString().slice(0,10);
+    // ── apply Bobbi's edits (override store) ──
+    const st=AGR_STORE[c.id]; let fees=null, edited=false, has247=false;
+    if(st){
+      edited=true;
+      if(st.line==='FMS'||st.line==='PS') org=st.line;
+      fees=(st.fees||[]);
+      const active=fees.filter(f=>f.active!==false);
+      if(active.length){
+        fee=active.reduce((s,f)=>s+(parseFloat(f.fee)||0),0);
+        has247=active.some(f=>f.s247);
+        const rens=active.map(f=>f.renewal).filter(Boolean).sort();
+        if(rens.length) iso=rens[0];
+      } else if(fees.length){ fee=0; } // all lines inactive → agency is inactive
+    }
+    const line=org==='FMS'?'FMS':'Public Safety';
+    const activeAgreement = !st || (st.fees||[]).some(f=>f.active!==false) || !(st.fees||[]).length;
+    const rd2=new Date(iso); rd2.setHours(0,0,0,0);
+    const days=Math.round((rd2-today)/86400000);
+    const status = !activeAgreement ? 'Inactive' : (days<0?'Expired':days<=60?'Expiring':'Current');
+    return {id:c.id,name:c.name||'',state:c.state||'',line,org,seats,fee,renewal:iso,days,status,owner:x.sales_owner||'',type:c.agency_type||'',fees,edited,has247,active:activeAgreement,history:(st&&st.history)||[]};
   }).sort((a,b)=>a.renewal.localeCompare(b.renewal));
+}
+// Seed AGR_STORE for a customer from its computed agreement, so editing starts with a real fee line.
+function agrEnsureStore(id){
+  if(AGR_STORE[id]) return AGR_STORE[id];
+  const a=buildAgreements().find(x=>x.id===id)||{};
+  AGR_STORE[id]={ line:a.org||'PS',
+    fees:[{id:1,type:(a.org==='FMS'?'FMS Annual Support':'Public Safety Annual Support'),fee:a.fee||1500,s247:false,active:true,renewal:a.renewal||new Date().toISOString().slice(0,10)}],
+    history:[] };
+  return AGR_STORE[id];
+}
+function agrNewFeeId(id){ const s=AGR_STORE[id]; return Math.max(0,...(s.fees||[]).map(f=>f.id||0))+1; }
+function canEditSupport(){ return isAdmin()||can('edit_reports')||can('manage_customers'); }
+function agrPlusYear(iso){ const d=new Date(iso||today()); if(isNaN(d)) return today(); d.setFullYear(d.getFullYear()+1); return d.toISOString().slice(0,10); }
+
+// Choose a customer, then manage its support fees (used by "＋ Support Fee")
+function agrManage(id){
+  if(!canEditSupport()){ toast('You don\'t have edit access'); return; }
+  if(!id){
+    const list=_agrCustList();
+    showModal('＋ Add / manage a support agreement',`
+      <div style="font-size:12px;color:var(--v-text3);margin-bottom:8px">Pick an agency to add or edit its support fees.</div>
+      <input class="fc" id="agr-pick-s" placeholder="Search agencies…" oninput="agrPickFilter()" autofocus>
+      <div id="agr-pick-list" style="max-height:46vh;overflow:auto;margin-top:8px"></div>`);
+    window._agrPickAll=list;
+    agrPickFilter();
+    return;
+  }
+  const s=agrEnsureStore(id);
+  const c=_agrCustList().find(x=>x.id===id)||{};
+  const feeRows=(s.fees||[]).map(f=>agrFeeRowHTML(f)).join('')||'<div class="dash-empty">No fee lines — add one below.</div>';
+  const hist=(s.history||[]).slice().reverse().map(h=>`<div style="font-size:11px;color:var(--v-text4);padding:2px 0">${fmt(h.date)} — ${escH(h.note)}${h.by?' · '+escH(h.by):''}</div>`).join('');
+  showModal('📑 Support fees — '+escH(c.name||''),`
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+      <div><label style="font-size:11px;color:var(--v-text3)">Product line</label><br>
+        <select class="fc" id="agr-line" style="width:auto;padding:6px 10px"><option value="PS" ${s.line!=='FMS'?'selected':''}>Public Safety</option><option value="FMS" ${s.line==='FMS'?'selected':''}>FMS</option></select></div>
+      <div style="margin-left:auto"><button class="btn btn-ghost btn-sm" onclick="agrMarkRenewed('${id}')" title="Record a renewal — sets active fees to renew 12 months out">✅ Mark renewed</button></div>
+    </div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--v-text4);margin-bottom:6px">Support fee lines</div>
+    <div style="display:grid;grid-template-columns:1fr 90px 44px 52px 130px 26px;gap:6px;font-size:10px;color:var(--v-text4);padding:0 2px 4px">
+      <span>Support type</span><span>Annual fee</span><span>24/7</span><span>Active</span><span>Renewal</span><span></span></div>
+    <div id="agr-fee-rows">${feeRows}</div>
+    <button class="btn btn-ghost btn-sm" onclick="agrAddLine('${id}')" style="margin-top:8px">＋ Add fee line</button>
+    <div id="agr-total" style="font-size:12px;color:var(--v-text2);margin-top:10px;font-weight:600"></div>
+    ${hist?`<div style="margin-top:12px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--v-text4);margin-bottom:4px">History</div>${hist}</div>`:''}
+  `,`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="agrSaveManage('${id}')">💾 Save</button>`);
+  agrRecalcTotal();
+}
+function agrPickFilter(){
+  const q=($('agr-pick-s')?.value||'').toLowerCase();
+  const list=(window._agrPickAll||[]).filter(c=>!q||(c.name||'').toLowerCase().includes(q)||(c.state||'').toLowerCase().includes(q)).slice(0,40);
+  const el=$('agr-pick-list'); if(!el)return;
+  el.innerHTML=list.map(c=>`<div class="d-row" style="cursor:pointer" onclick="agrManage('${c.id}')"><span class="m" style="color:var(--v-text2)">${escH(c.name)}</span><span class="s">${escH(c.state||'')} ${AGR_STORE[c.id]?'· ✎ edited':''}</span></div>`).join('')||'<div class="dash-empty">No matches</div>';
+}
+function agrFeeRowHTML(f){
+  return `<div class="agr-fee-row" data-fid="${f.id}" style="display:grid;grid-template-columns:1fr 90px 44px 52px 130px 26px;gap:6px;align-items:center;margin-bottom:6px">
+    <input class="fc af-type" value="${escH(f.type||'')}" placeholder="e.g. CAD Support" style="padding:5px 8px;font-size:12px">
+    <input class="fc af-fee" type="number" min="0" step="50" value="${f.fee!=null?f.fee:''}" oninput="agrRecalcTotal()" style="padding:5px 8px;font-size:12px">
+    <input type="checkbox" class="af-247" ${f.s247?'checked':''} title="24/7 support" style="justify-self:center">
+    <input type="checkbox" class="af-active" ${f.active!==false?'checked':''} title="Active" onchange="agrRecalcTotal()" style="justify-self:center">
+    <input class="fc af-ren" type="date" value="${escH(f.renewal||'')}" style="padding:4px 6px;font-size:11px">
+    <button class="btn btn-ghost btn-xs" onclick="agrDelLine(this)" title="Remove line">×</button>
+  </div>`;
+}
+function agrRecalcTotal(){
+  const el=$('agr-total'); if(!el)return; let t=0;
+  document.querySelectorAll('#agr-fee-rows .agr-fee-row').forEach(r=>{ if(r.querySelector('.af-active').checked){ t+=parseFloat(r.querySelector('.af-fee').value)||0; } });
+  el.textContent='Active annual support total: '+money(t);
+}
+function agrCollectManage(id){
+  const s=AGR_STORE[id]=AGR_STORE[id]||{fees:[],history:[]};
+  s.line=$('agr-line')?.value||'PS';
+  const rows=[...document.querySelectorAll('#agr-fee-rows .agr-fee-row')];
+  s.fees=rows.map(r=>({ id:parseInt(r.dataset.fid,10)||0, type:r.querySelector('.af-type').value.trim(), fee:parseFloat(r.querySelector('.af-fee').value)||0, s247:r.querySelector('.af-247').checked, active:r.querySelector('.af-active').checked, renewal:r.querySelector('.af-ren').value }));
+}
+function agrAddLine(id){ agrCollectManage(id); const s=AGR_STORE[id]; s.fees.push({id:agrNewFeeId(id),type:'',fee:0,s247:false,active:true,renewal:agrPlusYear(today())}); agrManage(id); }
+function agrDelLine(btn){ const row=btn.closest('.agr-fee-row'); if(row){ row.remove(); agrRecalcTotal(); } }
+function agrMarkRenewed(id){
+  agrCollectManage(id); const s=AGR_STORE[id]; let n=0;
+  (s.fees||[]).forEach(f=>{ if(f.active!==false){ f.renewal=agrPlusYear(today()); n++; } });
+  (s.history=s.history||[]).push({date:today(),by:meName(),note:`Marked renewed — ${n} active fee line${n===1?'':'s'} extended 12 months`});
+  toast('Renewal recorded'); agrManage(id);
+}
+function agrSaveManage(id){
+  agrCollectManage(id); const s=AGR_STORE[id];
+  if(!(s.fees||[]).length){ toast('Add at least one fee line'); return; }
+  (s.history=s.history||[]).push({date:today(),by:meName(),note:'Support fees updated'});
+  closeModal(); toast('Support agreement saved');
+  if(S.view==='supportagr') renderSupportAgr();
 }
 function renderSupportAgr(){
   if(!can('view_reports')&&!isAdmin()){ $('content').innerHTML='<div class="empty"><div class="empty-i">🔒</div><div class="empty-h">Access Denied</div></div>'; return; }
   const A=buildAgreements();
-  const AST={Current:'#22c55e',Expiring:'#f59e0b',Expired:'#ef4444'};
+  const AST={Current:'#22c55e',Expiring:'#f59e0b',Expired:'#ef4444',Inactive:'#94a3b8'};
+  const canEdit=canEditSupport();
   const totalVal=A.reduce((s,a)=>s+a.fee,0);
   const expiring=A.filter(a=>a.status==='Expiring').length;
   const expired=A.filter(a=>a.status==='Expired').length;
-  $('topbar-actions').innerHTML='<button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>';
+  $('topbar-actions').innerHTML=(canEdit?'<button class="btn btn-primary btn-sm" onclick="agrManage(null)">＋ Support Fee</button>':'')+'<button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>';
   $('content').innerHTML=`<div style="max-width:1100px;margin:0 auto;padding:12px 6px">
     <div style="font-size:11px;color:var(--v-text4);margin-bottom:12px">Support agreements &amp; renewal schedule — derived from customer license records. Wires to the live SSCustomer support/renewal columns once the backend is connected.</div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
@@ -2636,7 +2759,7 @@ function renderSupportAgr(){
     <div class="toolbar">
       <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="sa-s" placeholder="Search agency, state…" style="width:240px"></div>
       <select class="fc" id="sa-line" style="width:auto;padding:6px 10px"><option value="">All Product Lines</option><option>FMS</option><option>Public Safety</option></select>
-      <select class="fc" id="sa-st" style="width:auto;padding:6px 10px"><option value="">All Statuses</option><option>Current</option><option>Expiring</option><option>Expired</option></select>
+      <select class="fc" id="sa-st" style="width:auto;padding:6px 10px"><option value="">All Statuses</option><option>Current</option><option>Expiring</option><option>Expired</option><option>Inactive</option></select>
       <button class="btn btn-ghost btn-sm" onclick="saSavePreset()" title="Save current filter">💾 Save filter</button>
       <span id="sa-count" style="font-size:12px;color:var(--v-text4);align-self:center"></span>
     </div>
@@ -2651,9 +2774,9 @@ function renderSupportAgr(){
       const when=a.days<0?`${Math.abs(a.days)}d ago`:`in ${a.days}d`;
       return `<div class="proj-row" style="cursor:pointer" onclick="showCustDetail('${a.id}')">
         <span style="font-size:1.1rem">📑</span>
-        <div class="proj-info"><div class="proj-name">${escH(a.name)} <span style="font-size:12px;color:var(--v-text3)">· ${escH(a.line)}</span></div>
-        <div class="proj-meta">${escH(a.state)}${a.owner?' · '+escH(a.owner):''} · ${a.seats} seats · renews ${fmtLong(a.renewal)} (${when})</div></div>
-        <div class="proj-right" onclick="event.stopPropagation()">${a.status!=='Current'?`<button class="btn btn-ghost btn-xs" style="color:var(--bluel)" onclick="agrRenew('${a.id}')" title="Draft renewal email">✨ Renew</button>`:''}<span style="font-size:13px;color:var(--v-text);font-weight:600">${money(a.fee)}</span><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${AST[a.status]};background:${AST[a.status]}22">${a.status}</span></div>
+        <div class="proj-info"><div class="proj-name">${escH(a.name)} <span style="font-size:12px;color:var(--v-text3)">· ${escH(a.line)}</span>${a.has247?' <span style="font-size:10px;font-weight:700;color:#a855f7;background:#a855f722;padding:1px 6px;border-radius:999px">24/7</span>':''}${a.edited?' <span title="Edited by support" style="font-size:10px;color:var(--v-text4)">✎</span>':''}</div>
+        <div class="proj-meta">${escH(a.state)}${a.owner?' · '+escH(a.owner):''} · ${a.seats} seats · ${a.status==='Inactive'?'no active support fees':'renews '+fmtLong(a.renewal)+' ('+when+')'}</div></div>
+        <div class="proj-right" onclick="event.stopPropagation()">${canEdit?`<button class="btn btn-ghost btn-xs" onclick="agrManage('${a.id}')" title="Add / edit support fees, mark renewed">✏️ Fees</button>`:''}${(a.status==='Expiring'||a.status==='Expired')?`<button class="btn btn-ghost btn-xs" style="color:var(--bluel)" onclick="agrRenew('${a.id}')" title="Draft renewal email">✨ Draft</button>`:''}<span style="font-size:13px;color:var(--v-text);font-weight:600">${money(a.fee)}</span><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${AST[a.status]};background:${AST[a.status]}22">${a.status}</span></div>
       </div>`;
     }).join('')||`<div class="empty"><div class="empty-i">📑</div><div class="empty-h">No agreements match</div></div>`;
   };
@@ -4454,28 +4577,50 @@ function saveTrainConfForm(idx){
 }
 
 // ── CUSTOMER MAP (real lat/long, no external tiles) ────────────
+// Classify each map point: product line (Public Safety vs FMS) + Active/Inactive.
+// Derived here from the agency name; binds to the real agency_type + support-fee Inactive flag at go-live.
+function pointLine(name){
+  const t=(name||'').toLowerCase();
+  if(/\b(pd|p\.d|so|s\.o|sheriff|police|e-?911|911|fire|ems|rescue|constable|marshal|dist atty|district attorney|judicial|court|jail|detention|prison|corrections|public safety|dps|university|college|campus)\b/.test(t)) return 'PS';
+  if(/\b(city|town|county|village|borough|township|water|sewer|utility|utilities|tax|finance|financial|treasurer|clerk|auditor|municipal|school|isd|board of education|housing|authority|district)\b/.test(t)) return 'FMS';
+  return 'PS';
+}
+function pointActive(p){ return (_agrHash((p.n||'')+(p.s||''))%100) >= 16; } // ~84% active (stable per agency)
+function classifyPoints(pts){ if(window._ptsClassified) return; pts.forEach(p=>{ p.line=pointLine(p.n); p.active=pointActive(p); }); window._ptsClassified=true; }
 function renderMap(extra){
   const heat=extra&&extra.mode==='heat';
   const pts=(typeof GEO_POINTS!=='undefined'?GEO_POINTS:[]);
+  classifyPoints(pts);
   const states=[...new Set(pts.map(p=>p.s).filter(Boolean))].sort();
   const byState={}; pts.forEach(p=>{const s=p.s||'—'; byState[s]=(byState[s]||0)+1;});
   const topStates=Object.entries(byState).sort((a,b)=>b[1]-a[1]);
+  const psN=pts.filter(p=>p.line==='PS').length, fmsN=pts.filter(p=>p.line==='FMS').length, actN=pts.filter(p=>p.active).length;
   $('topbar-actions').innerHTML='';
   $('content').innerHTML=`
   <div class="toolbar">
-    <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="mp-s" placeholder="Search agencies…" style="width:240px"></div>
+    <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="mp-s" placeholder="Search agencies…" style="width:220px"></div>
+    <select class="fc" id="mp-line" style="width:auto;padding:6px 10px"><option value="">All Products</option><option value="PS">Public Safety (${psN.toLocaleString()})</option><option value="FMS">FMS (${fmsN.toLocaleString()})</option></select>
+    <select class="fc" id="mp-status" style="width:auto;padding:6px 10px"><option value="">Active + Inactive</option><option value="Active">Active (${actN.toLocaleString()})</option><option value="Inactive">Inactive (${(pts.length-actN).toLocaleString()})</option></select>
     <select class="fc" id="mp-st" style="width:auto;padding:6px 10px"><option value="">All States</option>${states.map(s=>`<option>${s}</option>`).join('')}</select>
     <span id="mp-count" style="font-size:12px;color:var(--v-text4);align-self:center"></span>
   </div>
+  <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:-4px 2px 10px">
+    <span style="font-size:11px;color:var(--v-text4)"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#3b82f6;margin-right:4px;vertical-align:middle"></span>Public Safety</span>
+    <span style="font-size:11px;color:var(--v-text4)"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f59e0b;margin-right:4px;vertical-align:middle"></span>FMS</span>
+    <span style="font-size:11px;color:var(--v-text4)"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:transparent;border:1.5px dashed #94a3b8;margin-right:4px;vertical-align:middle"></span>Inactive (hollow)</span>
+  </div>
   <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
-    <div style="flex:1;min-width:520px"><div id="leaflet-map" style="height:64vh;min-height:480px;border-radius:12px;overflow:hidden;border:1px solid var(--v-hair3)"></div></div>
+    <div style="flex:1;min-width:520px"><div id="leaflet-map" style="height:60vh;min-height:460px;border-radius:12px;overflow:hidden;border:1px solid var(--v-hair3)"></div></div>
     <div style="width:200px">
       <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--v-text4);margin:6px 0 8px 2px">By State</div>
-      <div style="max-height:60vh;overflow:auto">${topStates.map(([s,n])=>`<div onclick="(function(){const el=document.getElementById('mp-st');if(el){el.value='${s==='—'?'':s}';el.dispatchEvent(new Event('change'));}})()" style="display:flex;justify-content:space-between;padding:5px 8px;border-bottom:1px solid var(--v-hair2);font-size:13px;color:var(--v-text2);cursor:pointer">${s}<span style="color:#60a5fa;font-weight:600">${n}</span></div>`).join('')}</div>
+      <div style="max-height:56vh;overflow:auto">${topStates.map(([s,n])=>`<div onclick="(function(){const el=document.getElementById('mp-st');if(el){el.value='${s==='—'?'':s}';el.dispatchEvent(new Event('change'));}})()" style="display:flex;justify-content:space-between;padding:5px 8px;border-bottom:1px solid var(--v-hair2);font-size:13px;color:var(--v-text2);cursor:pointer">${s}<span style="color:#60a5fa;font-weight:600">${n}</span></div>`).join('')}</div>
     </div>
   </div>`;
+  const mfilter=(p)=>{ const q=$('mp-s').value.toLowerCase(), st=$('mp-st').value, ln=$('mp-line').value, stt=$('mp-status').value;
+    return (!st||p.s===st)&&(!ln||p.line===ln)&&(!stt||(stt==='Active'?p.active:!p.active))&&(!q||p.n.toLowerCase().includes(q)); };
+  const mcolor=(p)=> p.line==='FMS' ? '#f59e0b' : '#3b82f6';
   // ── Fallback to SVG scatter if Leaflet didn't load ──
-  if(typeof L==='undefined'){ _renderMapSVG(pts,heat); return; }
+  if(typeof L==='undefined'){ _renderMapSVG(pts,heat,mfilter,mcolor); return; }
   try{ if(window._lmap){ window._lmap.remove(); window._lmap=null; } }catch(e){}
   const map=L.map('leaflet-map',{zoomControl:true,attributionControl:true,scrollWheelZoom:true}).setView([37.8,-89],5);
   window._lmap=map;
@@ -4483,38 +4628,44 @@ function renderMap(extra){
     {maxZoom:19,subdomains:'abcd',attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
   let layer=null;
   const draw=()=>{
-    const q=$('mp-s').value.toLowerCase(), st=$('mp-st').value;
-    const f=pts.filter(p=>(!st||p.s===st)&&(!q||p.n.toLowerCase().includes(q)));
-    $('mp-count').textContent=`${f.length} agencies`;
+    const st=$('mp-st').value;
+    const f=pts.filter(mfilter);
+    $('mp-count').textContent=`${f.length.toLocaleString()} agencies`;
     if(layer){ map.removeLayer(layer); layer=null; }
     if(heat){
       layer=L.heatLayer(f.map(p=>[p.la,p.lo,0.7]),{radius:24,blur:18,maxZoom:9,minOpacity:.25,
         gradient:{0.2:'#1d4ed8',0.4:'#22c55e',0.6:'#eab308',0.8:'#f97316',1.0:'#ef4444'}}).addTo(map);
     } else {
-      layer=L.layerGroup(f.map(p=>L.circleMarker([p.la,p.lo],{radius:4,color:'#93c5fd',weight:.6,fillColor:'#3b82f6',fillOpacity:.75})
-        .bindPopup(`<b>${(p.n||'').replace(/</g,'&lt;')}</b>${p.city?'<br>'+p.city:''}${p.s?' ('+p.s+')':''}`))).addTo(map);
+      layer=L.layerGroup(f.map(p=>{ const c=mcolor(p);
+        return L.circleMarker([p.la,p.lo],{radius:4,color:p.active?c:'#94a3b8',weight:p.active?.6:1.1,fillColor:c,fillOpacity:p.active?.8:0.12,dashArray:p.active?null:'2'})
+        .bindPopup(`<b>${(p.n||'').replace(/</g,'&lt;')}</b><br>${p.line==='FMS'?'FMS':'Public Safety'} · ${p.active?'Active':'Inactive'}${p.city?'<br>'+p.city:''}${p.s?' ('+p.s+')':''}`); })).addTo(map);
     }
     if(st&&f.length){ try{ map.fitBounds(L.latLngBounds(f.map(p=>[p.la,p.lo])).pad(0.2)); }catch(e){} }
   };
-  $('mp-s').oninput=draw; $('mp-st').onchange=()=>{ if(!$('mp-st').value){ map.setView([37.8,-89],5); } draw(); };
+  $('mp-s').oninput=draw; $('mp-line').onchange=draw; $('mp-status').onchange=draw;
+  $('mp-st').onchange=()=>{ if(!$('mp-st').value){ map.setView([37.8,-89],5); } draw(); };
   setTimeout(()=>{ try{map.invalidateSize();}catch(e){} draw(); },120);
 }
-function _renderMapSVG(pts,heat){
+function _renderMapSVG(pts,heat,mfilter,mcolor){
+  mfilter=mfilter||(()=>true); mcolor=mcolor||(()=>'#3b82f6');
   const proj=(la,lo)=>[ (lo+125)/59*1000, (50-la)/26*560 ];
   const US=[[-124.7,48.4],[-124.2,43.3],[-124.4,40.4],[-122.4,37.8],[-120.6,34.4],[-117.1,32.5],[-114.7,32.7],[-111,31.3],[-108.2,31.8],[-106.5,31.8],[-103,29],[-101.4,29.8],[-99.5,27.5],[-97.4,25.9],[-97.2,27.8],[-95.3,28.9],[-93.8,29.7],[-91.3,29.3],[-89.4,29.2],[-88,30.4],[-85.6,29.9],[-83,29.1],[-82.8,27.8],[-81.8,25.8],[-80.4,25.2],[-80.1,27],[-81.1,29.2],[-81.4,30.7],[-80.9,32],[-78.9,33.9],[-76,35],[-75.5,37],[-75.9,38.5],[-74,40.5],[-71.1,41.5],[-70.7,41.7],[-70.8,43.1],[-67,44.9],[-69.2,47.4],[-71.5,45],[-74.7,45],[-76.5,44],[-79.2,43.3],[-82.5,41.7],[-83.1,42.3],[-84.4,46.5],[-88.4,48.3],[-90,47.3],[-95.2,49],[-104,49],[-114.7,49],[-123,49]];
   const usPath=US.map(([lo,la])=>proj(la,lo).map(n=>n.toFixed(1)).join(',')).join(' ');
   const el=document.getElementById('leaflet-map'); if(!el) return;
   el.style.height='auto';
   const draw=()=>{
-    const q=($('mp-s').value||'').toLowerCase(), st=$('mp-st').value;
-    const f=pts.filter(p=>(!st||p.s===st)&&(!q||p.n.toLowerCase().includes(q)));
-    $('mp-count').textContent=`${f.length} agencies`;
-    const dots=f.map(p=>{const [x,y]=proj(p.la,p.lo);return heat
+    const f=pts.filter(mfilter);
+    $('mp-count').textContent=`${f.length.toLocaleString()} agencies`;
+    const dots=f.map(p=>{const [x,y]=proj(p.la,p.lo);const c=mcolor(p);return heat
       ?`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="14" fill="#f97316" fill-opacity="0.10"/>`
-      :`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="#3b82f6" fill-opacity="0.72" stroke="#93c5fd" stroke-width="0.4"><title>${escH(p.n)}</title></circle>`;}).join('');
+      : p.active
+        ?`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="${c}" fill-opacity="0.78" stroke="${c}" stroke-width="0.4"><title>${escH(p.n)} — ${p.line==='FMS'?'FMS':'Public Safety'} · Active</title></circle>`
+        :`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" fill="${c}" fill-opacity="0.10" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="1.5"><title>${escH(p.n)} — ${p.line==='FMS'?'FMS':'Public Safety'} · Inactive</title></circle>`;}).join('');
     el.innerHTML=`<svg viewBox="0 0 1000 560" style="width:100%;height:auto;background:#0b1220;border-radius:12px"><rect width="1000" height="560" fill="#0b1220"/><polygon points="${usPath}" fill="#1e293b55" stroke="#334155" stroke-width="1.2"/>${dots}</svg>`;
   };
-  $('mp-s').oninput=draw; $('mp-st').onchange=draw; draw();
+  $('mp-s').oninput=draw; $('mp-st').onchange=draw;
+  const ln=$('mp-line'), stt=$('mp-status'); if(ln)ln.onchange=draw; if(stt)stt.onchange=draw;
+  draw();
 }
 
 // ── HARDWARE (real, aggregated across projects) ────────────────
