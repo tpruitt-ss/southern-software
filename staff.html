@@ -4876,7 +4876,7 @@ const DASH_DEFAULTS={
 let _dashEdit=false;
 function dashRole(){ return (S.profile&&(S.profile.role||S.profile.team))||'default'; }
 function dashKey(){ return 'ss-dash-'+dashRole(); }
-function getDashLayout(){ try{ const s=localStorage.getItem(dashKey()); if(s){ const a=JSON.parse(s); if(Array.isArray(a)&&a.length) return a.filter(id=>DASH_PANELS[id]); } }catch(e){} return (DASH_DEFAULTS[dashRole()]||DASH_DEFAULTS.default).slice(); }
+function getDashLayout(){ try{ const s=localStorage.getItem(dashKey()); if(s){ const a=JSON.parse(s); if(Array.isArray(a)&&a.length) return a.filter(id=>DASH_PANELS[id]||(typeof CUSTOM_PANELS!=='undefined'&&CUSTOM_PANELS[id])); } }catch(e){} return (DASH_DEFAULTS[dashRole()]||DASH_DEFAULTS.default).slice(); }
 function saveDashLayout(l){ try{ localStorage.setItem(dashKey(),JSON.stringify(l)); }catch(e){} }
 function renderDash(){
   const layout=getDashLayout();
@@ -4886,7 +4886,7 @@ function renderDash(){
     <div style="display:flex;gap:6px">${_dashEdit?`<button class="btn btn-ghost btn-sm" onclick="dashAddPanel()">＋ Add panel</button><button class="btn btn-ghost btn-sm" onclick="dashReset()">Reset</button><button class="btn btn-primary btn-sm" onclick="dashEditDone()">✓ Done</button>`:`<button class="btn btn-primary btn-sm" onclick="dashEdit()" title="Add, remove, and rearrange your dashboard panels">🎛️ Customize dashboard</button>`}</div>
   </div><div class="dash-grid" id="dash-grid"></div>`;
   const grid=$('dash-grid');
-  layout.forEach(id=>{ const p=DASH_PANELS[id]; if(!p) return;
+  layout.forEach(id=>{ const p=getPanel(id); if(!p) return;
     const w=document.createElement('div'); w.className='dash-panel'+(p.size==='full'?' full':'')+(_dashEdit?' edit':''); w.dataset.pid=id; w.draggable=_dashEdit;
     w.innerHTML=`<div class="dash-phdr">${_dashEdit?'<span class="drag">⠿</span>':''}<span>${p.icon} ${esc0(p.title)}</span>${_dashEdit?`<button class="dash-x" onclick="dashRemove('${id}')" title="Remove">×</button>`:''}</div><div class="dash-pbody"></div>`;
     grid.appendChild(w);
@@ -4896,14 +4896,80 @@ function renderDash(){
 }
 function dashEdit(){ _dashEdit=true; renderDash(); }
 function dashEditDone(){ _dashEdit=false; renderDash(); toast('Dashboard saved'); }
-function dashRemove(id){ saveDashLayout(getDashLayout().filter(x=>x!==id)); renderDash(); }
+function dashRemove(id){ saveDashLayout(getDashLayout().filter(x=>x!==id)); if(typeof CUSTOM_PANELS!=='undefined'&&CUSTOM_PANELS[id]){ delete CUSTOM_PANELS[id]; saveCustomPanels(); } renderDash(); }
 function dashReset(){ try{localStorage.removeItem(dashKey());}catch(e){} renderDash(); toast('Reset to role default'); }
 function dashAddPanel(){
   const cur=getDashLayout(); const avail=Object.keys(DASH_PANELS).filter(id=>!cur.includes(id));
-  if(!avail.length){ toast('All panels are already on your dashboard'); return; }
-  showModal('＋ Add a panel',`<div class="fstack" style="gap:6px">${avail.map(id=>`<div onclick="dashAdd('${id}')" style="display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--v-hair3);border-radius:10px;cursor:pointer" onmouseover="this.style.borderColor='#3b82f655'" onmouseout="this.style.borderColor='var(--v-hair3)'"><span style="font-size:1.2rem">${DASH_PANELS[id].icon}</span><span style="font-size:13px;color:var(--v-text2)">${esc0(DASH_PANELS[id].title)}</span><span style="margin-left:auto;color:var(--bluel)">＋ Add</span></div>`).join('')}</div>`);
+  const create=[['📝','Note','Jot anything — a sticky note','dashNewNote()'],['☑️','Checklist','A personal to-do list','dashNewChecklist()'],['🔗','Quick Links','Shortcuts to any screen or a web URL','dashNewLinks()'],['🔎','Any screen','Add any page in the portal as a panel','dashPickView()'],['🔢','Custom metric','Pick a number to keep an eye on','dashPickMetric()']];
+  showModal('＋ Add a panel',`
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--v-text4);margin:2px 0 6px">✨ Create your own</div>
+    <div class="fstack" style="gap:6px;margin-bottom:14px">${create.map(c=>`<div onclick="${c[3]}" style="display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--v-hair3);border-radius:10px;cursor:pointer" onmouseover="this.style.borderColor='#3b82f655'" onmouseout="this.style.borderColor='var(--v-hair3)'"><span style="font-size:1.2rem">${c[0]}</span><div style="min-width:0"><div style="font-size:13px;color:var(--v-text2);font-weight:600">${c[1]}</div><div style="font-size:11px;color:var(--v-text4)">${c[2]}</div></div><span style="margin-left:auto;color:var(--bluel)">＋</span></div>`).join('')}</div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--v-text4);margin-bottom:6px">📦 Built-in panels</div>
+    <div class="fstack" style="gap:6px">${avail.length?avail.map(id=>`<div onclick="dashAdd('${id}')" style="display:flex;gap:10px;align-items:center;padding:9px 12px;border:1px solid var(--v-hair3);border-radius:10px;cursor:pointer" onmouseover="this.style.borderColor='#3b82f655'" onmouseout="this.style.borderColor='var(--v-hair3)'"><span style="font-size:1.1rem">${DASH_PANELS[id].icon}</span><span style="font-size:13px;color:var(--v-text2)">${esc0(DASH_PANELS[id].title)}</span><span style="margin-left:auto;color:var(--bluel)">＋ Add</span></div>`).join(''):'<div class="dash-empty">All built-in panels are already on your dashboard — build a custom one above.</div>'}</div>`);
 }
 function dashAdd(id){ const l=getDashLayout(); if(!l.includes(id)) l.push(id); saveDashLayout(l); closeModal(); renderDash(); }
+
+/* ── CUSTOM DASHBOARD PANELS (build anything) ── */
+let CUSTOM_PANELS={}; try{ CUSTOM_PANELS=JSON.parse(localStorage.getItem('ss-dash-custom')||'{}'); }catch(e){ CUSTOM_PANELS={}; }
+function saveCustomPanels(){ try{ localStorage.setItem('ss-dash-custom',JSON.stringify(CUSTOM_PANELS)); }catch(e){} }
+function getPanel(id){ if(DASH_PANELS[id]) return DASH_PANELS[id]; const c=CUSTOM_PANELS[id]; if(c) return {title:c.title,icon:c.icon||'🧩',size:c.size||'half',render(el){ renderCustomPanel(el,id,c); }}; return null; }
+const DASH_METRICS={
+  my_tasks:{label:'My open tasks',color:'#3b82f6',nav:'mine',calc:()=>S.tasks.filter(t=>isMine(t)&&!['done','na'].includes(t.status)).length},
+  my_overdue:{label:'My overdue tasks',color:'#ef4444',nav:'mine',calc:()=>S.tasks.filter(t=>isMine(t)&&!['done','na'].includes(t.status)&&isOver(t.due_date)).length},
+  open_tasks:{label:'Open tasks (all)',color:'#3b82f6',nav:'alltasks',calc:()=>S.tasks.filter(t=>!['done','na'].includes(t.status)).length},
+  active_projects:{label:'Active projects',color:'#22c55e',nav:'projects',calc:()=>S.projects.filter(p=>p.status==='active').length},
+  atrisk:{label:'At-risk / behind projects',color:'#f59e0b',nav:'projects',calc:()=>S.projects.filter(p=>['at_risk','behind'].includes(p.status)).length},
+  golive30:{label:'Go-lives in 30 days',color:'#a855f7',nav:'board',calc:()=>S.projects.filter(p=>{const d=p.go_live||p.target_date;return d&&d>=today()&&inNextDays(d,30);}).length},
+  open_issues:{label:'Open issues',color:'#ef4444',nav:'issues',calc:()=>(S.issues||[]).filter(i=>!['done','na'].includes(i.status)).length},
+  customers:{label:'Total customers',color:'#a855f7',nav:'customers',calc:()=>S.customers.length},
+  expiring:{label:'Expiring support agreements',color:'#f59e0b',nav:'supportagr',calc:()=>(typeof buildAgreements==='function'?buildAgreements().filter(a=>a.status!=='Current').length:0)},
+  approvals:{label:'Pending approvals',color:'#f59e0b',nav:'approvals',calc:()=>(typeof approvalItems==='function'?approvalItems().length:0)},
+  pipeline:{label:'Open pipeline value',color:'#a855f7',nav:'saleshub',calc:()=>money((typeof SALES_OPPS!=='undefined'?SALES_OPPS:[]).filter(o=>typeof SALES_STAGES!=='undefined'&&SALES_STAGES.includes(o.stage)).reduce((s,o)=>s+o.value,0))},
+};
+function renderCustomPanel(el,id,c){
+  const cfg=c.config||{};
+  if(c.type==='note'){
+    el.innerHTML=`<textarea oninput="dashNoteSave('${id}',this.value)" placeholder="Type a note…" style="width:100%;min-height:74px;background:transparent;border:none;color:var(--v-text2);font-size:13px;line-height:1.5;resize:vertical;outline:none;font-family:inherit">${esc0(cfg.text||'')}</textarea>`;
+  } else if(c.type==='checklist'){
+    const items=cfg.items||[];
+    el.innerHTML=`${items.map((it,i)=>`<label class="d-row" style="cursor:pointer;padding:4px 6px"><input type="checkbox" ${it.done?'checked':''} onchange="dashChkToggle('${id}',${i})"> <span class="m" style="${it.done?'text-decoration:line-through;color:var(--v-text4)':'color:var(--v-text2)'}">${esc0(it.t)}</span><button class="btn btn-ghost btn-xs" onclick="event.preventDefault();dashChkDel('${id}',${i})">×</button></label>`).join('')||'<div class="dash-empty">No items yet.</div>'}
+      <div style="display:flex;gap:6px;margin-top:6px"><input id="chk-${id}" placeholder="Add item…" style="flex:1;background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:6px;color:var(--v-text);font-size:12px;padding:4px 8px" onkeydown="if(event.key==='Enter')dashChkAdd('${id}')"><button class="btn btn-ghost btn-xs" onclick="dashChkAdd('${id}')">Add</button></div>`;
+  } else if(c.type==='links'){
+    const links=cfg.links||[];
+    el.innerHTML=`${links.map((l,i)=>`<div class="d-row" onclick="dashLinkGo('${(l.target||'').replace(/'/g,"\\'")}')"><span>${(l.target||'').startsWith('url:')?'🔗':'➡️'}</span><span class="m">${esc0(l.label)}</span><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();dashLinkDel('${id}',${i})">×</button></div>`).join('')||'<div class="dash-empty">No links yet.</div>'}
+      <div style="display:flex;gap:4px;margin-top:6px"><input id="lnkl-${id}" placeholder="Label" style="flex:1;min-width:0;background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:6px;color:var(--v-text);font-size:12px;padding:4px 6px"><select id="lnkt-${id}" style="max-width:110px;background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:6px;color:var(--v-text);font-size:12px;padding:4px"><option value="">Screen…</option>${Object.keys(VIEW_TITLES).map(v=>`<option value="${v}">${esc0(VIEW_TITLES[v])}</option>`).join('')}</select><button class="btn btn-ghost btn-xs" onclick="dashLinkAdd('${id}')">+</button></div>
+      <div style="font-size:10px;color:var(--v-text4);margin-top:3px">Tip: put a full https:// URL in the label box (leave Screen blank) to add a web link.</div>`;
+  } else if(c.type==='view'){
+    const v=cfg.view;
+    el.innerHTML=`<div class="d-row" onclick="navigate('${v}')" style="justify-content:space-between;padding:10px 8px"><span class="m" style="color:var(--v-text2)">Open ${esc0(VIEW_TITLES[v]||v)}</span><span style="color:var(--bluel)">→</span></div>`;
+  } else if(c.type==='metric'){
+    const m=DASH_METRICS[cfg.metric];
+    const val=m?(()=>{try{return m.calc();}catch(e){return '—';}})():'—';
+    el.innerHTML=`<div style="padding:8px 2px;cursor:pointer" onclick="${m&&m.nav?`navigate('${m.nav}')`:''}"><div style="font-size:30px;font-weight:800;color:${m?m.color:'#3b82f6'}">${val}</div><div style="font-size:12px;color:var(--v-text4);margin-top:2px">${m?esc0(m.label):'Metric'}</div></div>`;
+  } else { el.innerHTML='<div class="dash-empty">—</div>'; }
+}
+let _cpSeq=0;
+function newCustomId(){ return 'cp-'+Date.now().toString(36)+(_cpSeq++); }
+function dashCreate(type,title,icon,config,size){ const id=newCustomId(); CUSTOM_PANELS[id]={type,title,icon,size:size||'half',config:config||{}}; saveCustomPanels(); const l=getDashLayout(); l.push(id); saveDashLayout(l); closeModal(); renderDash(); return id; }
+function dashNewNote(){ dashCreate('note','Note','📝',{text:''}); toast('Note panel added'); }
+function dashNewChecklist(){ dashCreate('checklist','Checklist','☑️',{items:[]}); toast('Checklist added'); }
+function dashNewLinks(){ dashCreate('links','Quick Links','🔗',{links:[]}); toast('Links panel added'); }
+function dashPickView(){ showModal('🔎 Add a screen as a panel',`<div class="fstack" style="gap:4px;max-height:60vh;overflow:auto">${Object.keys(VIEW_TITLES).sort((a,b)=>VIEW_TITLES[a].localeCompare(VIEW_TITLES[b])).map(v=>`<div class="d-row" onclick="dashCreate('view',VIEW_TITLES['${v}'],'🔎',{view:'${v}'});toast('Panel added')" style="cursor:pointer"><span class="m" style="color:var(--v-text2)">${esc0(VIEW_TITLES[v])}</span><span style="color:var(--bluel)">＋</span></div>`).join('')}</div>`); }
+function dashPickMetric(){ showModal('🔢 Add a metric',`<div class="fstack" style="gap:4px;max-height:60vh;overflow:auto">${Object.keys(DASH_METRICS).map(k=>`<div class="d-row" onclick="dashCreate('metric',DASH_METRICS['${k}'].label,'🔢',{metric:'${k}'});toast('Metric added')" style="cursor:pointer"><span class="m" style="color:var(--v-text2)">${esc0(DASH_METRICS[k].label)}</span><span style="color:var(--bluel)">＋</span></div>`).join('')}</div>`); }
+function dashNoteSave(id,v){ if(CUSTOM_PANELS[id]){ CUSTOM_PANELS[id].config.text=v; saveCustomPanels(); } }
+function dashChkToggle(id,i){ const it=CUSTOM_PANELS[id]&&CUSTOM_PANELS[id].config.items[i]; if(it){ it.done=!it.done; saveCustomPanels(); renderDash(); } }
+function dashChkAdd(id){ const el=$('chk-'+id); const v=el&&el.value.trim(); if(!v)return; (CUSTOM_PANELS[id].config.items=CUSTOM_PANELS[id].config.items||[]).push({t:v,done:false}); saveCustomPanels(); renderDash(); }
+function dashChkDel(id,i){ CUSTOM_PANELS[id].config.items.splice(i,1); saveCustomPanels(); renderDash(); }
+function dashLinkGo(t){ if(!t)return; if(t.startsWith('url:'))window.open(t.slice(4),'_blank','noopener'); else navigate(t); }
+function dashLinkAdd(id){ const lab=$('lnkl-'+id).value.trim(); const sel=$('lnkt-'+id).value; let target=sel; let label=lab; if(!sel){ if(/^https?:\/\//i.test(lab)){ target='url:'+lab; label=lab.replace(/^https?:\/\//,'').slice(0,28); } else { toast('Pick a screen or paste an https:// URL'); return; } } if(!label) label=(VIEW_TITLES[sel]||'Link'); (CUSTOM_PANELS[id].config.links=CUSTOM_PANELS[id].config.links||[]).push({label,target}); saveCustomPanels(); renderDash(); }
+function dashLinkDel(id,i){ CUSTOM_PANELS[id].config.links.splice(i,1); saveCustomPanels(); renderDash(); }
+// extra built-in panels
+Object.assign(DASH_PANELS,{
+  approvals:{title:'Approvals',icon:'✔️',size:'half',render(el){ const items=(typeof approvalItems==='function')?approvalItems():[]; el.innerHTML=items.length?items.slice(0,6).map(it=>`<div class="d-row" onclick="navigate('approvals')"><span>${it.icon}</span><span class="m">${esc0(it.who)} · ${esc0(it.kind)}</span></div>`).join(''):'<div class="dash-empty">Nothing to approve ✓</div>'; }},
+  myweek:{title:'This Week',icon:'🗓️',size:'half',render(el){ const t=S.tasks.filter(x=>isMine(x)&&!['done','na'].includes(x.status)&&x.due_date&&inNextDays(x.due_date,7)).slice(0,5); el.innerHTML=t.length?t.map(x=>`<div class="d-row" onclick="openPanel('${x.id}')"><span>✅</span><span class="m">${esc0(x.title)}</span><span class="s">${fmt(x.due_date)}</span></div>`).join('')+`<div class="d-row" onclick="navigate('myweek')" style="color:var(--bluel);font-size:12px">Open My Week →</div>`:'<div class="dash-empty">Nothing due this week</div>'; }},
+  timeoffbal:{title:'My Time Off',icon:'🏖️',size:'half',render(el){ const bal=(typeof TO_BALANCE!=='undefined')?TO_BALANCE:{}; const used={}; (typeof TIME_OFF!=='undefined'?TIME_OFF:[]).filter(t=>t.who===meName()&&t.status==='Approved').forEach(t=>{used[t.type]=(used[t.type]||0)+(parseFloat(t.hours)||0);}); const keys=Object.keys(bal); el.innerHTML=keys.length?keys.map(k=>`<div class="d-row" style="cursor:default"><span class="m">${esc0(k)}</span><span class="s">${(bal[k]-(used[k]||0))}h left</span></div>`).join('')+`<div class="d-row" onclick="navigate('timeoff')" style="color:var(--bluel);font-size:12px">Request time off →</div>`:'<div class="dash-empty">—</div>'; }},
+  recentrec:{title:'Recent Recordings',icon:'🎙️',size:'half',render(el){ const r=(typeof RECORDINGS!=='undefined'?RECORDINGS:[]).slice(0,5); el.innerHTML=r.length?r.map(x=>`<div class="d-row" onclick="recordingDetail('${x.id}')"><span>${(typeof REC_ICON!=='undefined'&&REC_ICON[x.kind])||'🎙️'}</span><span class="m">${esc0(x.title)}</span><span class="s">${esc0(x.kind)}</span></div>`).join(''):'<div class="dash-empty">No recordings yet</div>'; }},
+});
 function dashWireDnD(){
   let src=null;
   document.querySelectorAll('.dash-panel').forEach(el=>{
