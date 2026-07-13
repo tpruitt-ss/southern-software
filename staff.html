@@ -788,6 +788,8 @@ a#skip-link:focus{left:8px}
             <div class="sb-item" data-v="chat"><span class="i">💬</span>Team Chat</div>
             <div class="sb-item" data-v="newsletters"><span class="i">📰</span>NewsLetters</div>
             <div class="sb-item" data-v="blog"><span class="i">📣</span>Company Blog</div>
+            <div class="sb-item" data-v="prayer"><span class="i">🙏</span>Prayer List</div>
+            <div class="sb-item" data-v="whatsnew"><span class="i">🎉</span>What's New<span class="sb-badge" id="whatsnew-badge" style="display:none">•</span></div>
             <div class="sb-item" data-v="activity"><span class="i">📡</span>Activity<span class="sb-badge" id="activity-badge" style="display:none">0</span></div>
           </div>
         </div>
@@ -843,6 +845,7 @@ a#skip-link:focus{left:8px}
           <input class="gsearch-input" id="gsearch" placeholder="Search tasks, projects, customers… (⌘K)">
           <div class="gsearch-results" id="gsearch-results"></div>
         </div>
+        <button id="help-btn" class="btn btn-ghost btn-sm" style="margin-right:.4rem" onclick="showTour()" title="Quick-start tour" aria-label="Help / tour">?</button>
         <div id="notif-wrap" style="position:relative;margin-right:.4rem">
           <button id="notif-btn" class="btn btn-ghost btn-sm" style="position:relative" title="Notifications" aria-label="Notifications">🔔<span id="notif-badge" class="sb-badge" style="display:none;position:absolute;top:-5px;right:-5px"></span></button>
           <div id="notif-panel" style="display:none;position:absolute;right:0;top:calc(100% + 6px);width:340px;max-height:440px;overflow:auto;background:var(--v-surface-solid);border:1px solid #ffffff1f;border-radius:12px;box-shadow:0 14px 44px #000b;z-index:400;padding:6px"></div>
@@ -1391,6 +1394,7 @@ async function doPreviewLogin() {
   try { applyPermissions(); } catch(e) { console.warn("permissions:",e); }
   try { initRolePreview(); } catch(e) { console.warn("rolepreview:",e); }
   navigate('dashboard');
+  try { initTour(); } catch(e) {}
 }
 
 
@@ -1494,6 +1498,7 @@ async function boot() {
     try { applyPermissions(); } catch(e) { console.warn("permissions:",e); }
     try { initRolePreview(); } catch(e) { console.warn("rolepreview:",e); }
     navigate('dashboard');
+    try { initTour(); } catch(e) {}
     return;
   }
   showLogin();
@@ -1580,6 +1585,7 @@ const VIEW_TITLES = { handbook:'Employee Handbook', activity:'Activity Feed', ad
   supportagr:'Support Agreements & Renewals', announce:'Website Announcement', hwspecs:'Update Hardware Specs',
   alerts:'Notifications & Alerts', chat:'Team Chat', empstatus:"Who's In", timesheets:'Time Tracking',
   blog:'Company Blog', citizen:'Citizen Connect', myagenda:'My Training',
+  prayer:'Prayer List', whatsnew:"What's New",
 };
 
 /* ─── ACTIVITY VIEW (fixes ReferenceError that froze all navigation) ─── */
@@ -2900,6 +2906,164 @@ function sessFeedback(id){ _feedbackFor=id; const s=TRAIN_SESSIONS.find(x=>x.id=
 function fbCancel(){ _feedbackFor=null; $('fb-form').innerHTML=''; }
 function fbSave(id){ MY_SESSIONS[id].feedback={overall:+$('fb-overall').value,content:+$('fb-content').value,instructor:+$('fb-instructor').value,pace:+$('fb-pace').value,comments:$('fb-c').value.trim()}; _feedbackFor=null; toast('Thanks for your feedback!'); renderMyAgenda(); }
 
+/* ═══════════════════════════════════════════════════════════════════
+   COMPLETENESS ADD-ONS + AI  — Prayer List · What's New · Quick-Start Tour ·
+   Customer 360 AI Summary. In-memory in preview.
+   ═══════════════════════════════════════════════════════════════════ */
+
+// ── PRAYER LIST (company culture; old portal Group_Prayer) ────
+let PRAYERS=[
+  {id:1,name:'The Johnson Family',request:'Comfort and strength following the loss of a loved one.',by:'HR',date:'2026-07-08',answered:false},
+  {id:2,name:'Marc S.',request:'Safe travels for the install team this week.',by:'T. Pruitt',date:'2026-07-06',answered:false},
+  {id:3,name:'Debbie’s mother',request:'Successful surgery and quick recovery.',by:'Debbie Stevens',date:'2026-06-28',answered:true},
+];
+let _prayEdit=false;
+function renderPrayer(){
+  $('topbar-actions').innerHTML='<button class="btn btn-primary btn-sm" onclick="prayNew()">+ Add Request</button>';
+  const open=PRAYERS.filter(p=>!p.answered), ans=PRAYERS.filter(p=>p.answered);
+  $('content').innerHTML=`<div style="max-width:760px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:11px;color:var(--v-text4);margin-bottom:12px">Southern Software prayer list. Share a request or lift up a praise. 🙏</div>
+    <div id="pray-form"></div>
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--v-text4);margin:4px 0 8px 2px">Current Requests (${open.length})</div>
+    <div id="pray-open" class="proj-list" style="margin-bottom:18px"></div>
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--v-text4);margin:4px 0 8px 2px">Answered 🙌 (${ans.length})</div>
+    <div id="pray-ans" class="proj-list"></div></div>`;
+  const row=p=>`<div class="proj-row" style="cursor:default"><span style="font-size:1.1rem">${p.answered?'🙌':'🙏'}</span>
+    <div class="proj-info"><div class="proj-name">${escH(p.name)}</div><div class="proj-meta">${escH(p.request)}</div>
+    <div class="proj-meta" style="color:var(--v-text4)">${escH(p.by)} · ${fmtLong(p.date)}</div></div>
+    <div class="proj-right">${p.answered?'':`<button class="btn btn-ghost btn-xs" onclick="prayAnswered(${p.id})">Mark answered</button>`}</div></div>`;
+  $('pray-open').innerHTML=open.map(row).join('')||`<div class="empty" style="padding:16px"><div class="empty-h">No open requests</div></div>`;
+  $('pray-ans').innerHTML=ans.map(row).join('')||'';
+  if(_prayEdit) prayShowForm();
+}
+function prayNew(){ _prayEdit=true; renderPrayer(); }
+function prayShowForm(){
+  $('pray-form').innerHTML=`<div class="card" style="margin-bottom:14px;padding:14px"><div class="dash-h" style="margin-bottom:10px">🙏 Add Prayer Request</div>
+    <label style="font-size:11px;color:var(--v-text3)">For (name)</label><input class="fc" id="pr-n" placeholder="Person, family, or situation" style="margin-bottom:8px">
+    <label style="font-size:11px;color:var(--v-text3)">Request</label><textarea class="fc" id="pr-r" rows="2" placeholder="How can we pray?"></textarea>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-primary btn-sm" onclick="praySave()">Share</button><button class="btn btn-ghost btn-sm" onclick="prayCancel()">Cancel</button></div></div>`;
+}
+function prayCancel(){ _prayEdit=false; $('pray-form').innerHTML=''; }
+function praySave(){ const n=$('pr-n').value.trim(), r=$('pr-r').value.trim(); if(!n){ toast('Name required'); return; }
+  PRAYERS.unshift({id:Math.max(0,...PRAYERS.map(p=>p.id))+1,name:n,request:r,by:meName(),date:new Date().toISOString().slice(0,10),answered:false});
+  _prayEdit=false; toast('Added to the prayer list'); renderPrayer(); }
+function prayAnswered(id){ const p=PRAYERS.find(x=>x.id===id); if(p)p.answered=true; toast('Marked answered 🙌'); renderPrayer(); }
+
+// ── WHAT'S NEW / RELEASE NOTES (old ReadReleaseNotes) ─────────
+const RELEASE_NOTES=[
+  {version:'2026.7.3',date:'2026-07-13',title:'Themes, cleaner navigation & AI',items:['Dark / light mode toggle','Reorganized, collapsible sidebar groups','Customer 360 AI Summary (preview)','Prayer List & What’s New added']},
+  {version:'2026.7.2',date:'2026-07-11',title:'Everyday tools',items:['Notifications center + bell','Team Chat','Who’s In status board','Time Tracking','Company Blog & Citizen Connect','Training engine: register → check-in → feedback']},
+  {version:'2026.7.1',date:'2026-07-08',title:'Parity with the old portal',items:['Support Agreements & Renewals','Website Announcement editor','Update Hardware Specs','Role/permission model + “Preview as”','Time-off request & supervisor approval']},
+  {version:'2026.6',date:'2026-06-30',title:'Foundation',items:['Customer 360 field cockpit','Projects, tasks & Status Board','SalesHub + Sales Request → Janet','Knowledge Base, Learning Tracks, Conferences','Customer maps (heat & point)']},
+];
+function renderWhatsNew(){
+  try{ localStorage.setItem('ss-rn-seen', RELEASE_NOTES[0].version); }catch(e){}
+  updateWhatsNewBadge();
+  $('topbar-actions').innerHTML='';
+  $('content').innerHTML=`<div style="max-width:720px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:11px;color:var(--v-text4);margin-bottom:16px">What’s new in the staff portal — most recent first.</div>
+    ${RELEASE_NOTES.map((r,i)=>`<div style="display:flex;gap:14px;margin-bottom:18px">
+      <div style="display:flex;flex-direction:column;align-items:center"><div style="width:12px;height:12px;border-radius:50%;background:${i===0?'#3b82f6':'var(--v-text4)'};margin-top:4px"></div>${i<RELEASE_NOTES.length-1?'<div style="flex:1;width:2px;background:var(--v-hair3);margin:4px 0"></div>':''}</div>
+      <div style="flex:1;padding-bottom:4px"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:15px;font-weight:700;color:var(--v-text)">${escH(r.title)}</span>${i===0?'<span style="font-size:10px;font-weight:700;color:#22c55e;background:#22c55e22;padding:1px 7px;border-radius:999px">NEW</span>':''}<span style="font-size:11px;color:var(--v-text4)">v${r.version} · ${fmtLong(r.date)}</span></div>
+      <ul style="margin:8px 0 0 18px;color:var(--v-text2);font-size:13px;line-height:1.7">${r.items.map(it=>`<li>${escH(it)}</li>`).join('')}</ul></div></div>`).join('')}
+  </div>`;
+}
+function updateWhatsNewBadge(){ try{ const seen=localStorage.getItem('ss-rn-seen'); const el=document.getElementById('whatsnew-badge'); if(el) el.style.display=(seen===RELEASE_NOTES[0].version)?'none':''; }catch(e){} }
+
+// ── QUICK-START TOUR (old Power Tour) ─────────────────────────
+function showTour(){
+  const steps=[
+    ['🏛️','Customer 360','Open any customer for the full field cockpit — projects, licenses, hardware, open issues, contacts with tap-to-call, and real site history.','navigate(\'customers\')'],
+    ['✨','AI Summary','Inside a customer, click <b>AI Summary</b> for a plain-English pre-call brief generated from their whole history.','navigate(\'customers\')'],
+    ['📑','Support Agreements','Track renewals and support value; filter to what’s expiring.','navigate(\'supportagr\')'],
+    ['💼','Sales → Janet','SalesHub pipeline, and New Sales Request routes straight to Janet.','navigate(\'saleshub\')'],
+    ['🎓','Training','Register for sessions, check in with the room code, leave feedback.','navigate(\'myagenda\')'],
+    ['🌙','Make it yours','Toggle light/dark (footer), resize text, collapse sidebar groups, and “Preview as” any role.','navigate(\'overview\')'],
+  ];
+  const body=`<div class="fstack" style="gap:10px">${steps.map(s=>`<div onclick="closeModal();${s[3]}" style="display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border:1px solid var(--v-hair3);border-radius:10px;cursor:pointer" onmouseover="this.style.borderColor='#3b82f655'" onmouseout="this.style.borderColor='var(--v-hair3)'">
+    <span style="font-size:1.4rem;flex-shrink:0">${s[0]}</span>
+    <div><div style="font-size:14px;font-weight:700;color:var(--v-text)">${s[1]}</div><div style="font-size:12px;color:var(--v-text3);margin-top:2px">${s[2]}</div></div>
+    <span style="margin-left:auto;color:var(--v-text4);align-self:center">→</span></div>`).join('')}</div>`;
+  showModal('👋 Welcome to the SS Staff Portal', body, `<button class="btn btn-primary btn-sm" onclick="closeModal()">Start exploring</button>`);
+  try{ localStorage.setItem('ss-tour-seen','1'); }catch(e){}
+}
+function initTour(){ try{ if(!localStorage.getItem('ss-tour-seen')) setTimeout(showTour,700); }catch(e){} }
+
+// ── CUSTOMER 360 — AI SUMMARY ─────────────────────────────────
+function aiGather(id){
+  const c=S.customers.find(x=>x.id===id); if(!c) return null;
+  const ex=(typeof CUST_EXTRA!=='undefined'&&CUST_EXTRA[id])||{};
+  const site=(typeof SITE_PROJECTS!=='undefined'?SITE_PROJECTS:[]);
+  const PE=i=>((typeof PROJ_EXTRA!=='undefined'&&PROJ_EXTRA[i])||{});
+  const seen={}; const projs=[...S.projects.filter(p=>p.customer_id===id),...site.filter(p=>p.customer_id===id)].filter(p=>seen[p.id]?false:(seen[p.id]=true));
+  const active=projs.filter(p=>!['complete','cancelled'].includes(p.status));
+  const done=projs.filter(p=>p.status==='complete');
+  const ids=projs.map(p=>p.id);
+  const openTasks=S.tasks.filter(t=>ids.includes(t.project_id)&&!['done','na'].includes(t.status));
+  const overdue=openTasks.filter(t=>isOver(t.due_date));
+  const issues=(S.issues||[]).filter(i=>i.customer_id===id&&!['done','na'].includes(i.status));
+  const nextGo=projs.map(p=>p.go_live||p.target_date).filter(Boolean).filter(d=>d>=today()).sort()[0];
+  const lics=ex.licenses||[]; const products=[...new Set(lics.map(l=>l.product||l.type).filter(Boolean))];
+  const seats=Math.min(lics.reduce((s,l)=>{const n=parseInt(l.count,10)||0;return s+(n>500?0:Math.min(n,60));},0),220);
+  let hist=[]; projs.forEach(p=>(PE(p.id).history||[]).forEach(h=>hist.push({...h,proj:p.name})));
+  hist.sort((a,b)=>(b.when||'').localeCompare(a.when||''));
+  let hw=[]; projs.forEach(p=>(PE(p.id).hardware||[]).forEach(h=>hw.push(h)));
+  const pendingHw=hw.filter(h=>!h.received);
+  const org=ex.org==='FMS'?'Financial Management (FMS)':ex.org==='PS'?'Public Safety':(/(water|sewer|city|town|county|municipal|tax|financ|utility|school)/i.test(c.agency_type||'')?'Financial Management (FMS)':'Public Safety');
+  return {c,ex,projs,active,done,openTasks,overdue,issues,nextGo,lics,products,seats,hist,pendingHw,org};
+}
+function aiSummary(id){
+  const d=aiGather(id); if(!d) return;
+  showModal('✨ AI Summary — '+escH(d.c.name),
+    `<div id="ai-body" style="min-height:220px"><div style="display:flex;align-items:center;gap:10px;color:var(--v-text3);padding:30px 6px"><div class="spin" style="width:18px;height:18px"></div>Reading ${d.projs.length} projects, ${d.lics.length} licenses, ${d.issues.length} open issues and ${d.hist.length} site notes…</div></div>`,
+    `<button class="btn btn-ghost btn-sm" onclick="showCustDetail('${id}')">← Back</button><button class="btn btn-ghost btn-sm" onclick="aiCopy()">📋 Copy</button><button class="btn btn-primary btn-sm" onclick="aiSummary('${id}')">↻ Regenerate</button>`);
+  setTimeout(()=>aiRender(id,d),850);
+}
+window._aiText='';
+function aiRender(id,d){
+  const c=d.c, ex=d.ex;
+  const owner=ex.sales_owner?('Sales owner is '+ex.sales_owner+'.'):'';
+  const prodTxt=d.products.length?`They run ${d.products.length} Southern Software product${d.products.length!==1?'s':''} — ${d.products.slice(0,5).join(', ')}${d.products.length>5?', and more':''}${d.seats?` (~${d.seats} licensed seats)`:''}.`:'No licensed products are on file yet.';
+  const projTxt=`There ${d.active.length===1?'is':'are'} ${d.active.length} active project${d.active.length!==1?'s':''}${d.done.length?` and ${d.done.length} completed`:''}.`+(d.nextGo?` The next go-live is ${fmtLong(d.nextGo)}.`:'');
+  const workTxt=(d.openTasks.length?`${d.openTasks.length} open task${d.openTasks.length!==1?'s':''}${d.overdue.length?`, of which ${d.overdue.length} ${d.overdue.length!==1?'are':'is'} overdue`:''}.`:'No open tasks.');
+  const issueTxt=d.issues.length?`${d.issues.length} open issue${d.issues.length!==1?'s':''}: ${d.issues.slice(0,3).map(i=>i.title).join('; ')}${d.issues.length>3?'…':''}.`:'No open issues.';
+  const lastNote=d.hist[0]?`Most recent site note (${fmt(d.hist[0].when)}): “${d.hist[0].text.slice(0,160)}${d.hist[0].text.length>160?'…':''}”`:'';
+  // flags & next steps
+  const flags=[]; const steps=[];
+  if(d.overdue.length){ flags.push(`${d.overdue.length} overdue task${d.overdue.length!==1?'s':''}`); steps.push(`Clear the ${d.overdue.length} overdue task${d.overdue.length!==1?'s':''} — pull them up on the project board.`); }
+  if(d.issues.length){ flags.push(`${d.issues.length} unresolved issue${d.issues.length!==1?'s':''}`); steps.push(`Review open issue “${d.issues[0].title}” before the next customer touchpoint.`); }
+  if(d.nextGo){ const days=Math.round((new Date(d.nextGo+'T12:00:00')-new Date())/86400000); if(days<=30) { flags.push(`go-live in ${days} day${days!==1?'s':''}`); steps.push(`Confirm readiness for the ${fmtLong(d.nextGo)} go-live (hardware, training, conversions).`);} }
+  if(d.pendingHw.length){ flags.push(`${d.pendingHw.length} hardware item${d.pendingHw.length!==1?'s':''} not yet received`); steps.push(`Check the status of ${d.pendingHw.length} pending hardware item${d.pendingHw.length!==1?'s':''}.`); }
+  if(!steps.length) steps.push('Account looks healthy — a routine check-in call is all that’s needed.');
+  const headline=`${c.name} is a ${c.agency_type||'customer'}${c.state?' in '+c.state:''} on Southern Software's ${d.org} line. ${owner}`;
+  const plain=[headline,prodTxt,projTxt+' '+workTxt,issueTxt,lastNote,'Attention: '+(flags.length?flags.join(', '):'none'),'Suggested next steps: '+steps.join(' ')].filter(Boolean).join('\n\n');
+  window._aiText=plain;
+  const sec=(t,b)=>`<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--v-text4);margin-bottom:3px">${t}</div><div style="font-size:13px;line-height:1.6;color:var(--v-text2)">${b}</div></div>`;
+  const flagPills=flags.length?flags.map(f=>`<span style="font-size:11px;font-weight:600;color:#f59e0b;background:#f59e0b22;padding:2px 9px;border-radius:999px">⚠ ${escH(f)}</span>`).join(' '):'<span style="font-size:12px;color:#22c55e">✓ Nothing flagged</span>';
+  const body=document.getElementById('ai-body'); if(!body) return;
+  body.innerHTML=`
+    <div style="font-size:14px;line-height:1.6;color:var(--v-text);margin-bottom:14px">${escH(headline)}</div>
+    ${sec('What they run',escH(prodTxt))}
+    ${sec('Project status',escH(projTxt+' '+workTxt))}
+    ${sec('Open items',escH(issueTxt))}
+    ${lastNote?sec('Latest note',escH(lastNote)):''}
+    <div style="margin-bottom:12px"><div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--v-text4);margin-bottom:5px">Attention</div>${flagPills}</div>
+    ${sec('Suggested next steps','<ul style="margin:0 0 0 16px;padding:0">'+steps.map(s=>`<li style="margin-bottom:3px">${escH(s)}</li>`).join('')+'</ul>')}
+    <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${['What do they run?','What’s blocking go-live?','Any open issues?','Who do I contact?'].map(q=>`<button class="btn btn-ghost btn-xs" onclick="aiAsk('${id}',this)">${q}</button>`).join('')}</div>
+    <div id="ai-ask" style="margin-top:10px"></div>
+    <div style="margin-top:14px;font-size:10px;color:var(--v-text4);border-top:1px solid var(--v-hair3);padding-top:8px">✨ Generated from this customer’s records. Preview — connects to your chosen AI model at go-live.</div>`;
+}
+function aiCopy(){ try{ navigator.clipboard.writeText(window._aiText||''); toast('Summary copied'); }catch(e){ toast('Copy not available'); } }
+function aiAsk(id,btn){
+  const d=aiGather(id); if(!d) return; const q=btn.textContent;
+  let a='';
+  if(/run/i.test(q)) a=d.products.length?`They license ${d.products.join(', ')}${d.seats?` — about ${d.seats} seats total`:''}.`:'No products on file.';
+  else if(/blocking|go-live/i.test(q)) a=d.nextGo?`Next go-live ${fmtLong(d.nextGo)}. ${d.overdue.length?d.overdue.length+' overdue task(s)':'No overdue tasks'}${d.pendingHw.length?', '+d.pendingHw.length+' hardware item(s) not received':''}${d.issues.length?', '+d.issues.length+' open issue(s)':''}.`:'No upcoming go-live scheduled.';
+  else if(/issue/i.test(q)) a=d.issues.length?d.issues.map(i=>'• '+i.title+(i.product?' ('+i.product+')':'')).join('<br>'):'No open issues.';
+  else if(/contact/i.test(q)){ const ct=(d.ex.contacts||[])[0]; a=ct?`${ct.name}${ct.role?' ('+ct.role+')':''}${ct.email?' — '+ct.email:''}${d.ex.phone?' · '+d.ex.phone:''}`:(d.ex.phone?'Main line: '+d.ex.phone:'No contact on file.'); }
+  $('ai-ask').innerHTML=`<div style="background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--v-text2)"><b style="color:var(--v-text3)">${escH(q)}</b><br>${a}</div>`;
+}
+
 function navigate(v, extra={}) {
   S.view = v;
   _mount='content';
@@ -2930,6 +3094,7 @@ function navigate(v, extra={}) {
     supportagr:renderSupportAgr, announce:renderAnnounce, hwspecs:renderHWSpecs,
     alerts:renderAlerts, chat:renderChat, empstatus:renderEmpStatus, timesheets:renderTimesheets,
     blog:renderBlog, citizen:renderCitizen, myagenda:renderMyAgenda,
+    prayer:renderPrayer, whatsnew:renderWhatsNew,
     activity:renderActivity, admin:renderAdmin})[v]?.(extra);
   updateSidebarBadges();
   closeSidebar();
@@ -4592,7 +4757,7 @@ function showCustDetail(id){
     ${sec('📚 Knowledge Base for this site',kbMatch.length,kbHtml,false)}
     ${sec('🎪 Conferences',confs.length,confHtml,false)}
   </div>`,
-  `<button class="btn btn-ghost btn-sm" onclick="printCustomer('${id}')">🖨️ Print</button><button class="btn btn-ghost btn-sm" onclick="showNewIssueModal('${id}');closeModal()">🐛 Report Issue</button><button class="btn btn-primary btn-sm" onclick="showNewProjModal('${id}');closeModal()">+ New Project</button>`);
+  `<button class="btn btn-ghost btn-sm" onclick="aiSummary('${id}')" style="color:var(--bluel)">✨ AI Summary</button><button class="btn btn-ghost btn-sm" onclick="printCustomer('${id}')">🖨️ Print</button><button class="btn btn-ghost btn-sm" onclick="showNewIssueModal('${id}');closeModal()">🐛 Report Issue</button><button class="btn btn-primary btn-sm" onclick="showNewProjModal('${id}');closeModal()">+ New Project</button>`);
 }
 
 // ── ISSUES ─────────────────────────────────────────────────────
@@ -5319,6 +5484,7 @@ initTextSize();
 initTheme();
 initSidebarGroups();
 boot();
+try{ updateWhatsNewBadge(); }catch(e){}
 </script>
 </body>
 </html>
