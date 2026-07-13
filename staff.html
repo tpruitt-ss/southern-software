@@ -636,6 +636,9 @@ textarea.fc{resize:vertical;min-height:72px}
 [data-perm]{transition:opacity .15s}
 [data-perm].perm-hidden{display:none!important}
 [data-perm].perm-disabled{opacity:.4;pointer-events:none;cursor:not-allowed}
+.perm-hidden{display:none!important}
+/* Action-level gating driven by the current section's caps */
+body.no-create [data-need~="create"], body.no-edit [data-need~="edit"], body.no-delete [data-need~="delete"]{display:none!important}
 
 /* ─── CLICKUP-STYLE TASK ROWS ──────────────────────────────── */
 /* Row layout: [check] [title — takes all space] [assignees] [status] [due] [⓪] */
@@ -895,6 +898,7 @@ a#skip-link:focus{left:8px}
             <div class="sb-item" data-v="announce" data-requires="web_announce"><span class="i">📢</span>Website Announcement</div>
             <div class="sb-item" data-v="hwspecs" data-requires="edit_hardware_specs"><span class="i">🛠️</span>Update Hardware Specs</div>
             <div class="sb-item" data-v="editappversions" data-requires="update_versions"><span class="i">✏️</span>Edit App Versions</div>
+            <div class="sb-item" data-v="perms"><span class="i">🔐</span>Roles &amp; Permissions</div>
             <div class="sb-item" data-v="admin" id="nav-admin"><span class="i">⚙️</span>Admin Panel</div>
           </div>
         </div>
@@ -1109,46 +1113,166 @@ const ROLES = {
   readonly:       { label:'Read Only',      can:['view_all','view_customers','kb_view'] },
 };
 
-function can(action) {
-  if(!S.profile) return false;
-  const role = S.profile.role || S.profile.team || 'readonly';
-  const perms = ROLES[role]?.can || [];
-  return perms.includes('all') || perms.includes(action);
+// ══ ROBUST PERMISSIONS — sections × {view,create,edit,delete}, roles + per-user overrides ══
+const SECTIONS=[
+  {id:'work',           label:'My Work',                icon:'🗂️', views:['overview','myweek','mine','approvals','mysites','followup','myagenda','favorites','empstatus','profile']},
+  {id:'projects',       label:'Projects & Tasks',        icon:'📁', views:['projects','projsearch','projclosed','board','templates','alltasks','triage','schedule','people']},
+  {id:'customers',      label:'Customers',               icon:'🏛️', views:['customers','heatmap','map','mastersearch','contacts','hardware','citizen']},
+  {id:'sales',          label:'Sales Pipeline',          icon:'💼', views:['saleshub','conf']},
+  {id:'support_billing',label:'Annual Support & Billing', icon:'📑', views:['supportagr','revenue','supportan','collections','salesreq','saleslist','salescomplete','salessearch','reconcile']},
+  {id:'knowledge',      label:'Knowledge & Training',    icon:'📚', views:['kb','kbfms','kbps','kbfmsint','kbpsint','kbcreate','trainingfms','trainingps','trainconf','training','appversions','handbook']},
+  {id:'comms',          label:'Communications',          icon:'📣', views:['alerts','chat','newsletters','blog','prayer','whatsnew','activity']},
+  {id:'team',           label:'Time & Team',             icon:'👥', views:['timeoff','timesheets','oncall','team','issues']},
+  {id:'admin',          label:'Admin & Settings',        icon:'⚙️', views:['announce','hwspecs','editappversions','admin','perms']},
+];
+const VIEW_SECTION=(()=>{const m={};SECTIONS.forEach(s=>s.views.forEach(v=>m[v]=s.id));return m;})();
+function sectionOf(v){ return VIEW_SECTION[v]||'work'; }
+const CAP_KEYS=['view','create','edit','delete'];
+const CAP_PRESETS={ N:{view:0,create:0,edit:0,delete:0}, V:{view:1,create:0,edit:0,delete:0}, E:{view:1,create:1,edit:1,delete:0}, F:{view:1,create:1,edit:1,delete:1} };
+function expandCaps(spec){ if(spec==null) return {...CAP_PRESETS.N}; if(typeof spec==='string') return {...(CAP_PRESETS[spec]||CAP_PRESETS.N)}; return {view:spec.view?1:0,create:spec.create?1:0,edit:spec.edit?1:0,delete:spec.delete?1:0}; }
+const ROLE_CAPS_DEF={
+  admin:          {work:'F',projects:'F',customers:'F',sales:'F',support_billing:'F',knowledge:'F',comms:'F',team:'F',admin:'F'},
+  manager:        {work:'F',projects:'F',customers:'F',sales:'F',support_billing:'F',knowledge:'F',comms:'F',team:'F',admin:'V'},
+  implementation: {work:'F',projects:'E',customers:'V',sales:'N',support_billing:'N',knowledge:'E',comms:'V',team:'V',admin:'N'},
+  fms:            {work:'F',projects:'E',customers:'V',sales:'N',support_billing:'N',knowledge:'E',comms:'V',team:'V',admin:'N'},
+  support:        {work:'F',projects:'V',customers:'V',sales:'N',support_billing:'V',knowledge:'V',comms:'V',team:'E',admin:'N'},
+  sales:          {work:'F',projects:'V',customers:'V',sales:'F',support_billing:'V',knowledge:'V',comms:'V',team:'V',admin:'N'},
+  billing:        {work:'F',projects:'V',customers:'V',sales:'V',support_billing:'F',knowledge:'V',comms:'V',team:'V',admin:'N'},
+  trainer:        {work:'F',projects:'N',customers:'V',sales:'N',support_billing:'N',knowledge:'F',comms:'V',team:'V',admin:'N'},
+  readonly:       {work:'V',projects:'V',customers:'V',sales:'V',support_billing:'V',knowledge:'V',comms:'V',team:'V',admin:'N'},
+};
+let PERMS={ roles:{}, users:{} };
+function buildDefaultRoleCaps(){ const out={}; Object.keys(ROLE_CAPS_DEF).forEach(r=>{ out[r]={}; SECTIONS.forEach(s=>{ out[r][s.id]=expandCaps(ROLE_CAPS_DEF[r][s.id]||'N'); }); }); return out; }
+function loadPerms(){ PERMS.roles=buildDefaultRoleCaps(); PERMS.users={};
+  try{ const saved=JSON.parse(localStorage.getItem('ss-perms')||'null'); if(saved){
+    if(saved.customRoleLabels) Object.keys(saved.customRoleLabels).forEach(r=>{ if(!ROLES[r]) ROLES[r]={label:saved.customRoleLabels[r],can:[]}; if(!PERMS.roles[r]){ PERMS.roles[r]={}; SECTIONS.forEach(s=>PERMS.roles[r][s.id]=expandCaps('N')); } });
+    if(saved.roles) Object.keys(saved.roles).forEach(r=>{ PERMS.roles[r]=PERMS.roles[r]||{}; SECTIONS.forEach(s=>{ if(!PERMS.roles[r][s.id])PERMS.roles[r][s.id]=expandCaps('N'); }); Object.keys(saved.roles[r]).forEach(sid=>{ PERMS.roles[r][sid]=expandCaps(saved.roles[r][sid]); }); });
+    if(saved.users) PERMS.users=saved.users;
+  } }catch(e){}
 }
+function savePerms(){ try{ const customRoleLabels={}; Object.keys(ROLES).forEach(r=>{ if(!ROLE_CAPS_DEF[r]) customRoleLabels[r]=ROLES[r].label; }); localStorage.setItem('ss-perms',JSON.stringify({roles:PERMS.roles,users:PERMS.users,customRoleLabels})); }catch(e){} }
+loadPerms();
+function effRole(){ return (S.profile&&(S.profile.role||S.profile.team))||'readonly'; }
+function effUid(){ return S.profile&&S.profile.id; }
+function roleCaps(role,sid){ return (PERMS.roles[role]&&PERMS.roles[role][sid])||CAP_PRESETS.N; }
+function userOverride(uid,sid){ const ov=uid&&PERMS.users[uid]&&PERMS.users[uid].overrides; return ov&&ov[sid]?expandCaps(ov[sid]):null; }
+function effCapsFor(uid,role,sid){ return userOverride(uid,sid)||roleCaps(role,sid); }
+function secCaps(sid){ return effCapsFor(effUid(),effRole(),sid); }
+function pcan(sid,cap){ return !!(secCaps(sid)[cap]); }
+function canViewSection(sid){ return pcan(sid,'view'); }
+function canCreate(view){ return pcan(sectionOf(view),'create'); }
+function canEditV(view){ return pcan(sectionOf(view),'edit'); }
+function canDeleteV(view){ return pcan(sectionOf(view),'delete'); }
+const VIEW_NEED={ kbcreate:['knowledge','create'], announce:['admin','edit'], hwspecs:['admin','edit'], editappversions:['admin','edit'], perms:['admin','edit'] };
+const ACTION_MAP={ view_customers:['customers','view'], edit_customers:['customers','edit'], manage_customers:['customers','edit'], add_agency:['customers','create'],
+  view_reports:['support_billing','view'], edit_reports:['support_billing','edit'], process_sales:['support_billing','edit'],
+  view_sales:['sales','view'], view_projects:['projects','view'], edit_projects:['projects','edit'], add_projects:['projects','create'], create_projects:['projects','create'],
+  edit_tasks:['projects','edit'], assign_tasks:['projects','edit'], kb_view:['knowledge','view'], kb_edit:['knowledge','edit'],
+  update_versions:['admin','edit'], web_announce:['admin','edit'], edit_hardware_specs:['admin','edit'], manage_users:['admin','edit'], edit_lookups:['admin','edit'], edit_bugs:['team','edit'] };
+const ACTION_TRUE=new Set(['view_all','comment','upload','view_fms','view_assigned']);
+function can(action){ if(action==='all') return isAdmin(); const m=ACTION_MAP[action]; if(m) return pcan(m[0],m[1]); if(ACTION_TRUE.has(action)) return canViewSection('work'); return false; }
+function isAdmin(){ return effRole()==='admin'; }
+function isManager(){ return isAdmin()||effRole()==='manager'||pcan('projects','create'); }
 
-function isAdmin()   { return can('all'); }
-function isManager() { return can('all') || can('create_projects'); }
-
-// Apply permissions to UI after render
 function applyPermissions() {
-  const role = S.profile?.role || S.profile?.team || 'readonly';
-
-  // Admin-only sidebar items
-  document.querySelectorAll('[data-requires]').forEach(el => {
-    const req = el.dataset.requires;
-    const allowed = req === 'admin' ? isAdmin() :
-                    req === 'manager' ? isManager() :
-                    can(req);
-    el.classList.toggle('perm-hidden', !allowed);
+  document.querySelectorAll('.sb-nav .sb-item[data-v]').forEach(el=>{
+    const v=el.dataset.v; const need=VIEW_NEED[v];
+    const ok = need ? pcan(need[0],need[1]) : canViewSection(sectionOf(v));
+    el.classList.toggle('perm-hidden', !ok);
   });
-
-  // Hide + Task button if no create permission
-  document.querySelectorAll('.task-add-btn').forEach(el => {
-    el.classList.toggle('perm-hidden', !can('edit_tasks'));
-  });
-
-  // Show admin nav item only to admins
-  const adminNav = document.getElementById('nav-admin');
-  if(adminNav) adminNav.classList.toggle('perm-hidden', !isAdmin());
-
-  // Hide any sidebar group whose items are all permission-hidden (avoids empty group headers)
+  const adminNav=document.getElementById('nav-admin'); if(adminNav) adminNav.classList.toggle('perm-hidden', !canViewSection('admin'));
+  document.querySelectorAll('.task-add-btn').forEach(el=>{ el.classList.toggle('perm-hidden', !pcan('projects','create')); });
   document.querySelectorAll('.sb-nav .sb-group:not([data-g="pinned"])').forEach(g => {
     const items = g.querySelectorAll('.sb-item[data-v]');
     if(!items.length) return;
     const anyVisible = [...items].some(it => !it.classList.contains('perm-hidden'));
     g.classList.toggle('perm-hidden', !anyVisible);
   });
+  applyActionPerms();
 }
+function applyActionPerms(){
+  const sid=sectionOf(S.view||'overview'); const b=document.body;
+  b.classList.toggle('no-create', !pcan(sid,'create'));
+  b.classList.toggle('no-edit', !pcan(sid,'edit'));
+  b.classList.toggle('no-delete', !pcan(sid,'delete'));
+  try{ const noCreate=!pcan(sid,'create'); document.querySelectorAll('#topbar-actions button, #topbar-actions a').forEach(btn=>{ if(btn.hasAttribute('data-need')) return; const t=(btn.textContent||'').trim(); const isCreate=/^(\+|＋)/.test(t)||/\b(new|add|create)\b/i.test(t); if(isCreate) btn.style.display=noCreate?'none':''; }); }catch(e){}
+}
+
+// ── ROLES & PERMISSIONS MANAGER ───────────────────────────────
+let _permsTab='groups', _permsGroup='implementation';
+function roleLabel(r){ return (ROLES[r]&&ROLES[r].label)||r; }
+function renderPerms(){
+  if(!pcan('admin','edit')){ $('content').innerHTML='<div class="empty"><div class="empty-i">🔒</div><div class="empty-h">Access Denied</div><div class="empty-s" style="color:var(--v-text4);font-size:13px;margin-top:6px">Managing permissions needs Admin ▸ Edit.</div></div>'; return; }
+  $('topbar-actions').innerHTML='';
+  $('content').innerHTML=`<div style="max-width:1060px;margin:0 auto;padding:8px 6px">
+    <div style="font-size:11px;color:var(--v-text4);margin-bottom:12px">Define what each group can do per section (View / Create / Edit / Delete), then fine-tune individual people with overrides. Changes save automatically and bind to <b>tblUsers2</b> at go-live.</div>
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button class="btn btn-sm ${_permsTab==='groups'?'btn-primary':'btn-ghost'}" onclick="_permsTab='groups';renderPerms()">👥 Groups / Roles</button>
+      <button class="btn btn-sm ${_permsTab==='people'?'btn-primary':'btn-ghost'}" onclick="_permsTab='people';renderPerms()">🧑 People &amp; Overrides</button>
+    </div>
+    <div id="perms-body"></div></div>`;
+  if(_permsTab==='groups') permsGroupsTab(); else permsPeopleTab();
+}
+function permsGroupsTab(){
+  const groups=Object.keys(PERMS.roles); if(!groups.includes(_permsGroup)) _permsGroup=groups[0];
+  const g=_permsGroup; const locked=(g==='admin');
+  const cntFor=r=>S.profiles.filter(p=>(p.role||p.team||'readonly')===r).length;
+  $('perms-body').innerHTML=`
+    <div class="toolbar">
+      <select class="fc" id="pg-sel" style="width:auto;padding:6px 10px" onchange="_permsGroup=this.value;renderPerms()">${groups.map(r=>`<option value="${r}" ${r===g?'selected':''}>${escH(roleLabel(r))} (${cntFor(r)})</option>`).join('')}</select>
+      <button class="btn btn-ghost btn-sm" onclick="permNewGroup()">+ New group</button>
+      <button class="btn btn-ghost btn-sm" onclick="permCloneGroup('${g}')">⧉ Clone this</button>
+      ${(!ROLE_CAPS_DEF[g])?`<button class="btn btn-ghost btn-sm" style="color:#ef4444" onclick="permDeleteGroup('${g}')">🗑 Delete</button>`:''}
+      <span style="font-size:12px;color:var(--v-text4);align-self:center;margin-left:auto">${locked?'🔒 Admin is the superuser group (locked)':'Changes save automatically'}</span>
+    </div>
+    <div style="overflow:auto;border:1px solid var(--v-hair3);border-radius:12px">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="background:var(--v-surface)"><th style="text-align:left;padding:9px 12px;color:var(--v-text4);font-size:11px;text-transform:uppercase;letter-spacing:.05em">Section</th>${CAP_KEYS.map(c=>`<th style="padding:9px 14px;color:var(--v-text4);font-size:11px;text-transform:uppercase;letter-spacing:.03em">${c}</th>`).join('')}</tr></thead>
+      <tbody>${SECTIONS.map(s=>{const caps=PERMS.roles[g][s.id]||CAP_PRESETS.N;return `<tr style="border-top:1px solid var(--v-hair2)"><td style="padding:9px 12px;color:var(--v-text2)">${s.icon} ${escH(s.label)}</td>${CAP_KEYS.map(c=>`<td style="text-align:center;padding:9px 14px"><input type="checkbox" ${caps[c]?'checked':''} ${locked?'disabled':''} style="width:16px;height:16px;cursor:${locked?'not-allowed':'pointer'}" onchange="permSetCap('${g}','${s.id}','${c}',this.checked)"></td>`).join('')}</tr>`;}).join('')}</tbody>
+    </table></div>
+    <div style="font-size:11px;color:var(--v-text4);margin-top:8px">Unchecking <b>View</b> hides the whole section for this group. Checking Create/Edit/Delete auto-enables View. <b>Delete</b> off = they can edit but not remove records.</div>`;
+}
+function permSetCap(role,sid,cap,val){ const caps=PERMS.roles[role][sid]=PERMS.roles[role][sid]||expandCaps('N'); caps[cap]=val?1:0; if(cap==='view'&&!val){caps.create=caps.edit=caps.delete=0;} if(cap!=='view'&&val){caps.view=1;} savePerms(); permsGroupsTab(); try{applyPermissions();}catch(e){} }
+function permNewGroup(){ showModal('New group',`<div class="fg"><label class="fl">Group name</label><input class="fc" id="ng-name" placeholder="e.g. Field Tech" autofocus></div><div style="font-size:11px;color:var(--v-text4);margin-top:6px">Starts with View-only on every section — tune it after creating.</div>`,`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="permCreateGroup()">Create</button>`); }
+function permCreateGroup(){ const name=$('ng-name').value.trim(); if(!name){toast('Name required');return;} const id='grp_'+name.toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,24)+'_'+Object.keys(PERMS.roles).length; ROLES[id]={label:name,can:[]}; PERMS.roles[id]={}; SECTIONS.forEach(s=>PERMS.roles[id][s.id]=expandCaps(s.id==='admin'?'N':'V')); savePerms(); _permsGroup=id; closeModal(); renderPerms(); toast('Group “'+name+'” created'); }
+function permCloneGroup(src){ const name=roleLabel(src)+' (copy)'; const id='grp_clone_'+Object.keys(PERMS.roles).length; ROLES[id]={label:name,can:[]}; PERMS.roles[id]={}; SECTIONS.forEach(s=>PERMS.roles[id][s.id]=expandCaps(PERMS.roles[src][s.id])); savePerms(); _permsGroup=id; renderPerms(); toast('Cloned to “'+name+'”'); }
+function permDeleteGroup(id){ if(ROLE_CAPS_DEF[id]){ toast('Built-in groups can\'t be deleted'); return; } delete PERMS.roles[id]; delete ROLES[id]; Object.keys(PERMS.users).forEach(u=>{ /* keep users; their role falls back */ }); savePerms(); _permsGroup='implementation'; renderPerms(); toast('Group deleted'); }
+function permsPeopleTab(){
+  $('perms-body').innerHTML=`
+    <div class="search-wrap" style="margin-bottom:10px"><span class="search-i">🔍</span><input class="search-fc" id="pp-s" placeholder="Search people…" style="width:260px"></div>
+    <div id="pp-list" class="proj-list"></div>`;
+  const draw=()=>{ const q=($('pp-s').value||'').toLowerCase();
+    const ppl=S.profiles.filter(p=>!q||(p.full_name||'').toLowerCase().includes(q)||(p.title||'').toLowerCase().includes(q));
+    $('pp-list').innerHTML=ppl.map(p=>{ const role=p.role||p.team||'readonly'; const ov=(PERMS.users[p.id]&&PERMS.users[p.id].overrides)||{}; const ovN=Object.keys(ov).length;
+      return `<div class="proj-row" style="cursor:default"><div class="sb-avatar" style="width:32px;height:32px;font-size:11px;flex-shrink:0">${_initials(p.full_name||'?')}</div>
+        <div class="proj-info"><div class="proj-name">${escH(p.full_name||'—')}${ovN?` <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;color:#a855f7;background:#a855f722">${ovN} override${ovN>1?'s':''}</span>`:''}</div><div class="proj-meta">${escH(p.title||'')}</div></div>
+        <div class="proj-right" onclick="event.stopPropagation()" style="display:flex;gap:6px;align-items:center">
+          <select class="fc" style="width:auto;padding:4px 8px;font-size:12px" onchange="changeRole('${p.id}',this.value);renderPerms()">${Object.keys(PERMS.roles).map(r=>`<option value="${r}" ${r===role?'selected':''}>${escH(roleLabel(r))}</option>`).join('')}</select>
+          <button class="btn btn-ghost btn-xs" onclick="permUserModal('${p.id}')">🔧 Access</button>
+          <button class="btn btn-ghost btn-xs" onclick="impersonate('${p.id}')" title="Preview the portal exactly as this person sees it">👁 Preview</button>
+        </div></div>`; }).join('')||`<div class="empty"><div class="empty-i">👤</div><div class="empty-h">No people match</div></div>`;
+  };
+  $('pp-s').oninput=draw; draw();
+}
+function permUserModal(uid){
+  const p=S.profiles.find(x=>x.id===uid); if(!p)return; const role=p.role||p.team||'readonly';
+  PERMS.users[uid]=PERMS.users[uid]||{overrides:{}};
+  showModal('🔐 Access — '+escH(p.full_name),`
+    <div style="font-size:12px;color:var(--v-text3);margin-bottom:10px">Group: <b>${escH(roleLabel(role))}</b>. Flip <b>Override</b> on a section to depart from the group — <span style="color:#22c55e">grant</span> access they don't normally have, or <span style="color:#ef4444">restrict</span> access the group gives.</div>
+    <div style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr><th style="text-align:left;padding:5px 6px;color:var(--v-text4);font-size:10px;text-transform:uppercase">Section</th><th style="padding:5px;color:var(--v-text4);font-size:10px;text-transform:uppercase">Override</th>${CAP_KEYS.map(c=>`<th style="padding:5px 8px;color:var(--v-text4);font-size:10px;text-transform:uppercase">${c}</th>`).join('')}</tr></thead>
+      <tbody id="pu-rows">${SECTIONS.map(s=>permUserRow(uid,role,s)).join('')}</tbody>
+    </table></div>
+    <div style="font-size:11px;color:var(--v-text4);margin-top:8px">Overridden sections are highlighted. Use 👁 Preview back on the list to see the result.</div>`,`<button class="btn btn-primary btn-sm" onclick="closeModal()">Done</button>`);
+}
+function permUserRow(uid,role,s){ const ov=PERMS.users[uid].overrides; const isOv=!!ov[s.id]; const caps=isOv?expandCaps(ov[s.id]):roleCaps(role,s.id);
+  return `<tr style="border-top:1px solid var(--v-hair2);${isOv?'background:#a855f712':''}" data-sid="${s.id}"><td style="padding:6px;color:var(--v-text2)">${s.icon} ${escH(s.label)}</td>
+    <td style="text-align:center"><input type="checkbox" ${isOv?'checked':''} onchange="permToggleOverride('${uid}','${role}','${s.id}',this.checked)"></td>
+    ${CAP_KEYS.map(c=>`<td style="text-align:center;padding:6px"><input type="checkbox" ${caps[c]?'checked':''} ${isOv?'':'disabled'} style="${isOv?'':'opacity:.35'}" onchange="permSetUserCap('${uid}','${s.id}','${c}',this.checked)"></td>`).join('')}</tr>`;
+}
+function permToggleOverride(uid,role,sid,on){ const ov=PERMS.users[uid].overrides; if(on){ ov[sid]=expandCaps(roleCaps(role,sid)); } else { delete ov[sid]; } savePerms(); permUserRefresh(uid,role); try{applyPermissions();}catch(e){} }
+function permSetUserCap(uid,sid,cap,val){ const ov=PERMS.users[uid].overrides; if(!ov[sid])ov[sid]=expandCaps('N'); ov[sid][cap]=val?1:0; if(cap==='view'&&!val){ov[sid].create=ov[sid].edit=ov[sid].delete=0;} if(cap!=='view'&&val){ov[sid].view=1;} savePerms(); const p=S.profiles.find(x=>x.id===uid); permUserRefresh(uid,p.role||p.team||'readonly'); try{applyPermissions();}catch(e){} }
+function permUserRefresh(uid,role){ const tb=$('pu-rows'); if(tb)tb.innerHTML=SECTIONS.map(s=>permUserRow(uid,role,s)).join(''); }
 
 // ── ADMIN PANEL ───────────────────────────────────────────────
 function renderAdmin() {
@@ -1283,6 +1407,9 @@ function adminLookups(){
 function lookupAdd(cat){ const el=$('lc-in-'+cat.replace(/[^a-z]/gi,'')); const v=el&&el.value.trim(); if(!v) return; if(!LOOKUP_CODES[cat].includes(v)) LOOKUP_CODES[cat].push(v); toast('Added'); adminLookups(); }
 function lookupDel(cat,v){ LOOKUP_CODES[cat]=LOOKUP_CODES[cat].filter(x=>x!==v); toast('Removed'); adminLookups(); }
 
+// Lightweight activity logger (was referenced but never defined — keeps in-memory trail, never throws)
+let ACTIVITY_LOG=[];
+function logActivity(type, a, b, note){ try{ ACTIVITY_LOG.unshift({type,a,b,note,by:(S.profile&&S.profile.full_name)||'',at:new Date().toISOString()}); if(ACTIVITY_LOG.length>200)ACTIVITY_LOG.pop(); }catch(e){} }
 async function changeRole(profileId, newRole) {
   // Update local
   const p = S.profiles.find(x => x.id === profileId);
@@ -1715,7 +1842,7 @@ const VIEW_TITLES = { handbook:'Employee Handbook', activity:'Activity Feed', ad
   heatmap:'Customer Heat Map', mastersearch:'Master Customer Search', projsearch:'Projects — Search All', projclosed:'Projects Closed',
   kbfms:'KB — FMS', kbps:'KB — Public Safety', kbfmsint:'KB — FMS Internal', kbpsint:'KB — PS Internal', kbcreate:'Create KB Article',
   trainingfms:'Learning Tracks — FMS', trainingps:'Learning Tracks — PS', editappversions:'Edit App Versions', trainconf:'Conferences / Training',
-  supportagr:'Annual Support Agreements', announce:'Website Announcement', hwspecs:'Update Hardware Specs',
+  supportagr:'Annual Support Agreements', announce:'Website Announcement', hwspecs:'Update Hardware Specs', perms:'Roles & Permissions',
   alerts:'Notifications & Alerts', chat:'Team Chat', empstatus:"Who's In", timesheets:'Time Tracking',
   blog:'Company Blog', citizen:'Citizen Connect', myagenda:'My Training',
   prayer:'Prayer List', whatsnew:"What's New",
@@ -2715,7 +2842,7 @@ function agrFeeRowHTML(f){
     <input type="checkbox" class="af-247" ${f.s247?'checked':''} title="24/7 support" style="justify-self:center">
     <input type="checkbox" class="af-active" ${f.active!==false?'checked':''} title="Active" onchange="agrRecalcTotal()" style="justify-self:center">
     <input class="fc af-ren" type="date" value="${escH(f.renewal||'')}" style="padding:4px 6px;font-size:11px">
-    <button class="btn btn-ghost btn-xs" onclick="agrDelLine(this)" title="Remove line">×</button>
+    <button class="btn btn-ghost btn-xs" data-need="delete" onclick="agrDelLine(this)" title="Remove line">×</button>
   </div>`;
 }
 function agrRecalcTotal(){
@@ -4281,10 +4408,11 @@ function navigate(v, extra={}) {
     prayer:renderPrayer, whatsnew:renderWhatsNew,
     supportan:renderSupportAnalytics, revenue:renderRevenue, reconcile:renderReconcile, collections:renderCollections, profile:renderProfile, favorites:renderFavorites,
     templates:renderTemplates, myweek:renderMyWeek, approvals:renderApprovals, contacts:renderContacts,
-    activity:renderActivity, admin:renderAdmin})[v]?.(extra);
+    activity:renderActivity, admin:renderAdmin, perms:renderPerms})[v]?.(extra);
   updateSidebarBadges();
   try{ updatePinBtn(); }catch(e){}
   try{ updateApprovalsBadge(); }catch(e){}
+  try{ applyActionPerms(); }catch(e){}
   closeSidebar();
 }
 
@@ -4383,7 +4511,7 @@ function renderSalesList(mode){
   };
   $('so-s').oninput=draw; $('so-stage').onchange=draw; $('so-owner').onchange=draw; draw();
 }
-function canEditOpp(){ return isAdmin()||can('view_sales')||can('process_sales'); }
+function canEditOpp(){ return isAdmin()||pcan('sales','create')||pcan('sales','edit'); }
 const OPP_STAGES=['Lead','Qualified','Proposal','Negotiation','Won','Lost'];
 const OPP_DEFPROB={Lead:10,Qualified:30,Proposal:55,Negotiation:75,Won:100,Lost:0};
 function oppGet(id){ return SALES_OPPS.find(o=>o.id===id); }
@@ -4400,7 +4528,7 @@ function oppEdit(id){
     <div class="fg2"><div class="fg"><label class="fl">Stage</label><select class="fc" id="op-stage" onchange="const p=({Lead:10,Qualified:30,Proposal:55,Negotiation:75,Won:100,Lost:0})[this.value];if(p!=null)document.getElementById('op-prob').value=p;">${OPP_STAGES.map(s=>`<option ${o.stage===s?'selected':''}>${s}</option>`).join('')}</select></div>
       <div class="fg"><label class="fl">Probability (%)</label><input class="fc" type="number" min="0" max="100" id="op-prob" value="${o.prob!=null?o.prob:10}"></div></div>
     <div class="fg"><label class="fl">Expected close date</label><input class="fc" type="date" id="op-close" value="${o.close||today()}"></div>
-  </div>`,`${id?`<button class="btn btn-ghost btn-sm" onclick="oppDelete('${id}')" style="color:#ef4444">🗑 Delete</button>`:''}<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="oppSave(${id?`'${id}'`:'null'})">Save</button>`);
+  </div>`,`${id?`<button class="btn btn-ghost btn-sm" data-need="delete" onclick="oppDelete('${id}')" style="color:#ef4444">🗑 Delete</button>`:''}<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="oppSave(${id?`'${id}'`:'null'})">Save</button>`);
 }
 function oppSave(id){
   const agency=$('op-agency').value.trim(); if(!agency){ toast('Agency required'); return; }
@@ -4857,7 +4985,7 @@ function confAddClass(idx,sid){
     <div class="fg2"><div class="fg"><label class="fl">Room</label><input class="fc" id="cl-room" value="${editing?escH(editing.room||''):''}" placeholder="Magnolia"></div>
       <div class="fg"><label class="fl">Capacity</label><input class="fc" type="number" min="1" id="cl-cap" value="${editing?editing.seats:50}"></div></div>
     <div class="fg"><label class="fl">Trainer(s)</label><input class="fc" id="cl-trainers" value="${editing?escH((editing.trainers||[]).join(', ')):''}" placeholder="Comma-separated, e.g. Zach Perkins, Dan Barcus" list="cl-staff"><datalist id="cl-staff">${staff.map(n=>`<option value="${escH(n)}">`).join('')}</datalist></div>
-  </div>`,`${editing?`<button class="btn btn-ghost btn-sm" onclick="confDelClass(${idx},'${sid}')" style="color:#ef4444">🗑 Delete</button>`:''}<button class="btn btn-ghost btn-sm" onclick="trainConfDetail(${idx})">Cancel</button><button class="btn btn-primary btn-sm" onclick="confSaveClass(${idx}${editing?`,'${sid}'`:''})">Save class</button>`);
+  </div>`,`${editing?`<button class="btn btn-ghost btn-sm" data-need="delete" onclick="confDelClass(${idx},'${sid}')" style="color:#ef4444">🗑 Delete</button>`:''}<button class="btn btn-ghost btn-sm" onclick="trainConfDetail(${idx})">Cancel</button><button class="btn btn-primary btn-sm" onclick="confSaveClass(${idx}${editing?`,'${sid}'`:''})">Save class</button>`);
 }
 function confSaveClass(idx,sid){
   const c=TRAIN_CONF[idx]; const title=$('cl-title').value.trim(); if(!title){ toast('Title required'); return; }
