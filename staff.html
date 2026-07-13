@@ -3769,11 +3769,12 @@ function tplDelTask(k,pi,ti){ PROJECT_TEMPLATES[k].phases[pi].tasks.splice(ti,1)
 
 // ── PROJECT RECORDINGS (Plaud / AI meeting capture) ───────────
 let RECORDINGS=[]; // seeded in seedDemoData once projects load
-const REC_KINDS=['Plaud','Meeting','Site visit','Call'];
+const REC_KINDS=['Plaud','Fathom','Google Meet','Zoom','Site visit','Phone call','Other'];
+const REC_ICON={'Plaud':'🎙️','Fathom':'🎧','Google Meet':'📹','Zoom':'💻','Site visit':'📍','Phone call':'☎️','Other':'🗒️'};
 function custRecordingsHTML(custId){
   const recs=RECORDINGS.filter(r=>r.customerId===custId).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   if(!recs.length) return `<div style="font-size:13px;color:var(--v-text4);padding:4px 2px">No recordings yet. <a href="javascript:void(0)" onclick="addRecordingModal({customerId:'${custId}'})" style="color:var(--bluel)">Add one →</a></div>`;
-  return recs.map(r=>`<div class="d-row" onclick="recordingDetail('${r.id}')" style="align-items:flex-start"><span>🎙️</span><div class="m" style="white-space:normal"><div style="color:var(--v-text)">${escH(r.title)}</div><div style="font-size:11px;color:var(--v-text4)">${escH(r.kind)} · ${fmtLong(r.date)}${r.durationMin?' · '+r.durationMin+' min':''} · ${escH(r.by||'')}</div></div></div>`).join('')
+  return recs.map(r=>`<div class="d-row" onclick="recordingDetail('${r.id}')" style="align-items:flex-start"><span>${(typeof REC_ICON!=='undefined'&&REC_ICON[r.kind])||'🎙️'}</span><div class="m" style="white-space:normal"><div style="color:var(--v-text)">${escH(r.title)}</div><div style="font-size:11px;color:var(--v-text4)">${escH(r.kind)} · ${fmtLong(r.date)}${r.durationMin?' · '+r.durationMin+' min':''} · ${escH(r.by||'')}</div></div></div>`).join('')
     +`<div style="margin-top:6px"><button class="btn btn-ghost btn-xs" onclick="addRecordingModal({customerId:'${custId}'})">🎙️ Add recording</button></div>`;
 }
 function addRecordingModal(opts){
@@ -3783,7 +3784,7 @@ function addRecordingModal(opts){
   showModal('🎙️ Add Recording',`<div class="fstack">
     <div style="font-size:12px;color:var(--v-text3)">Upload a Plaud or AI recording, or paste a transcript. It's documented to the customer's 360 view. Audio transcription runs automatically at go-live; for now paste or type the transcript.</div>
     <div class="fg2"><div class="fg"><label class="fl">Title</label><input class="fc" id="rec-title" placeholder="e.g. Go-live planning call"></div>
-    <div class="fg"><label class="fl">Type</label><select class="fc" id="rec-kind">${REC_KINDS.map(k=>`<option>${k}</option>`).join('')}</select></div></div>
+    <div class="fg"><label class="fl">Source</label><select class="fc" id="rec-kind">${REC_KINDS.map(k=>`<option value="${k}">${(REC_ICON[k]||'')} ${k}</option>`).join('')}</select></div></div>
     <div class="fg2"><div class="fg"><label class="fl">Customer</label><select class="fc" id="rec-cust">${S.customers.map(c=>`<option value="${c.id}"${c.id===custId?' selected':''}>${escH(c.name)}</option>`).join('')}</select></div>
     <div class="fg"><label class="fl">Project (optional)</label><select class="fc" id="rec-proj"><option value="">—</option>${projs.map(p=>`<option value="${p.id}"${p.id===projId?' selected':''}>${escH(p.name)}</option>`).join('')}</select></div></div>
     <div class="fg"><label class="fl">Audio file (Plaud / recording)</label><input type="file" class="fc" id="rec-file" accept="audio/*" onchange="recFilePicked(this)"><div id="rec-fname" style="font-size:11px;color:var(--v-text4);margin-top:3px"></div></div>
@@ -3816,7 +3817,7 @@ function saveRecording(){
 }
 function recordingDetail(id){
   const r=RECORDINGS.find(x=>x.id===id); if(!r)return;
-  showModal('🎙️ '+escH(r.title),`<div class="fstack">
+  showModal(((typeof REC_ICON!=='undefined'&&REC_ICON[r.kind])||'🎙️')+' '+escH(r.title),`<div class="fstack">
     <div style="font-size:12px;color:var(--v-text4)">${escH(r.kind)} · ${fmtLong(r.date)}${r.durationMin?' · '+r.durationMin+' min':''} · ${escH(r.by||'')}</div>
     ${r.summary?`<div class="ai-box"><div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--v-text4);margin-bottom:3px">Summary</div><div style="font-size:13px;color:var(--v-text2)">${escH(r.summary)}</div></div>`:''}
     ${(r.actions&&r.actions.length)?`<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--v-text4);margin-bottom:4px">Action items</div>${r.actions.map(a=>`<label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--v-text2);padding:2px 0"><input type="checkbox" class="rec-act" checked value="${escH(a)}"> ${escH(a)}</label>`).join('')}<button class="btn btn-ghost btn-xs" style="margin-top:6px" onclick="recActionsToTasks('${r.id}')">➕ Add checked as tasks</button></div>`:''}
