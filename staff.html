@@ -899,6 +899,7 @@ a#skip-link:focus{left:8px}
             <div class="sb-item" data-v="hwspecs" data-requires="edit_hardware_specs"><span class="i">🛠️</span>Update Hardware Specs</div>
             <div class="sb-item" data-v="editappversions" data-requires="update_versions"><span class="i">✏️</span>Edit App Versions</div>
             <div class="sb-item" data-v="perms"><span class="i">🔐</span>Roles &amp; Permissions</div>
+            <div class="sb-item" data-v="audit"><span class="i">🧾</span>Audit Trail</div>
             <div class="sb-item" data-v="admin" id="nav-admin"><span class="i">⚙️</span>Admin Panel</div>
           </div>
         </div>
@@ -1123,7 +1124,7 @@ const SECTIONS=[
   {id:'knowledge',      label:'Knowledge & Training',    icon:'📚', views:['kb','kbfms','kbps','kbfmsint','kbpsint','kbcreate','trainingfms','trainingps','trainconf','training','appversions','handbook']},
   {id:'comms',          label:'Communications',          icon:'📣', views:['alerts','chat','newsletters','blog','prayer','whatsnew','activity']},
   {id:'team',           label:'Time & Team',             icon:'👥', views:['timeoff','timesheets','oncall','team','issues']},
-  {id:'admin',          label:'Admin & Settings',        icon:'⚙️', views:['announce','hwspecs','editappversions','admin','perms']},
+  {id:'admin',          label:'Admin & Settings',        icon:'⚙️', views:['announce','hwspecs','editappversions','admin','perms','audit']},
 ];
 const VIEW_SECTION=(()=>{const m={};SECTIONS.forEach(s=>s.views.forEach(v=>m[v]=s.id));return m;})();
 function sectionOf(v){ return VIEW_SECTION[v]||'work'; }
@@ -1214,6 +1215,7 @@ function renderPerms(){
   if(_permsTab==='groups') permsGroupsTab(); else permsPeopleTab();
 }
 function permsGroupsTab(){
+  if(!$('perms-body')) return;
   const groups=Object.keys(PERMS.roles); if(!groups.includes(_permsGroup)) _permsGroup=groups[0];
   const g=_permsGroup; const locked=(g==='admin');
   const cntFor=r=>S.profiles.filter(p=>(p.role||p.team||'readonly')===r).length;
@@ -1232,11 +1234,11 @@ function permsGroupsTab(){
     </table></div>
     <div style="font-size:11px;color:var(--v-text4);margin-top:8px">Unchecking <b>View</b> hides the whole section for this group. Checking Create/Edit/Delete auto-enables View. <b>Delete</b> off = they can edit but not remove records.</div>`;
 }
-function permSetCap(role,sid,cap,val){ const caps=PERMS.roles[role][sid]=PERMS.roles[role][sid]||expandCaps('N'); caps[cap]=val?1:0; if(cap==='view'&&!val){caps.create=caps.edit=caps.delete=0;} if(cap!=='view'&&val){caps.view=1;} savePerms(); permsGroupsTab(); try{applyPermissions();}catch(e){} }
+function permSetCap(role,sid,cap,val){ const caps=PERMS.roles[role][sid]=PERMS.roles[role][sid]||expandCaps('N'); caps[cap]=val?1:0; if(cap==='view'&&!val){caps.create=caps.edit=caps.delete=0;} if(cap!=='view'&&val){caps.view=1;} savePerms(); audit('perm_group_change',{label:'Group “'+roleLabel(role)+'”: '+(SECTIONS.find(s=>s.id===sid)||{}).label+' · '+cap+' '+(val?'ON':'OFF'),cat:'permissions',target:'group',targetId:role}); permsGroupsTab(); try{applyPermissions();}catch(e){} }
 function permNewGroup(){ showModal('New group',`<div class="fg"><label class="fl">Group name</label><input class="fc" id="ng-name" placeholder="e.g. Field Tech" autofocus></div><div style="font-size:11px;color:var(--v-text4);margin-top:6px">Starts with View-only on every section — tune it after creating.</div>`,`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="permCreateGroup()">Create</button>`); }
-function permCreateGroup(){ const name=$('ng-name').value.trim(); if(!name){toast('Name required');return;} const id='grp_'+name.toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,24)+'_'+Object.keys(PERMS.roles).length; ROLES[id]={label:name,can:[]}; PERMS.roles[id]={}; SECTIONS.forEach(s=>PERMS.roles[id][s.id]=expandCaps(s.id==='admin'?'N':'V')); savePerms(); _permsGroup=id; closeModal(); renderPerms(); toast('Group “'+name+'” created'); }
-function permCloneGroup(src){ const name=roleLabel(src)+' (copy)'; const id='grp_clone_'+Object.keys(PERMS.roles).length; ROLES[id]={label:name,can:[]}; PERMS.roles[id]={}; SECTIONS.forEach(s=>PERMS.roles[id][s.id]=expandCaps(PERMS.roles[src][s.id])); savePerms(); _permsGroup=id; renderPerms(); toast('Cloned to “'+name+'”'); }
-function permDeleteGroup(id){ if(ROLE_CAPS_DEF[id]){ toast('Built-in groups can\'t be deleted'); return; } delete PERMS.roles[id]; delete ROLES[id]; Object.keys(PERMS.users).forEach(u=>{ /* keep users; their role falls back */ }); savePerms(); _permsGroup='implementation'; renderPerms(); toast('Group deleted'); }
+function permCreateGroup(){ const name=$('ng-name').value.trim(); if(!name){toast('Name required');return;} const id='grp_'+name.toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,24)+'_'+Object.keys(PERMS.roles).length; ROLES[id]={label:name,can:[]}; PERMS.roles[id]={}; SECTIONS.forEach(s=>PERMS.roles[id][s.id]=expandCaps(s.id==='admin'?'N':'V')); savePerms(); audit('perm_group_create',{label:'Created group “'+name+'”',cat:'permissions',target:'group',targetId:id}); _permsGroup=id; closeModal(); renderPerms(); toast('Group “'+name+'” created'); }
+function permCloneGroup(src){ const name=roleLabel(src)+' (copy)'; const id='grp_clone_'+Object.keys(PERMS.roles).length; ROLES[id]={label:name,can:[]}; PERMS.roles[id]={}; SECTIONS.forEach(s=>PERMS.roles[id][s.id]=expandCaps(PERMS.roles[src][s.id])); savePerms(); audit('perm_group_create',{label:'Cloned group “'+roleLabel(src)+'” → “'+name+'”',cat:'permissions',target:'group',targetId:id}); _permsGroup=id; renderPerms(); toast('Cloned to “'+name+'”'); }
+function permDeleteGroup(id){ if(ROLE_CAPS_DEF[id]){ toast('Built-in groups can\'t be deleted'); return; } const nm=roleLabel(id); delete PERMS.roles[id]; delete ROLES[id]; savePerms(); audit('perm_group_delete',{label:'Deleted group “'+nm+'”',cat:'permissions',target:'group',targetId:id}); _permsGroup='implementation'; renderPerms(); toast('Group deleted'); }
 function permsPeopleTab(){
   $('perms-body').innerHTML=`
     <div class="search-wrap" style="margin-bottom:10px"><span class="search-i">🔍</span><input class="search-fc" id="pp-s" placeholder="Search people…" style="width:260px"></div>
@@ -1270,9 +1272,71 @@ function permUserRow(uid,role,s){ const ov=PERMS.users[uid].overrides; const isO
     <td style="text-align:center"><input type="checkbox" ${isOv?'checked':''} onchange="permToggleOverride('${uid}','${role}','${s.id}',this.checked)"></td>
     ${CAP_KEYS.map(c=>`<td style="text-align:center;padding:6px"><input type="checkbox" ${caps[c]?'checked':''} ${isOv?'':'disabled'} style="${isOv?'':'opacity:.35'}" onchange="permSetUserCap('${uid}','${s.id}','${c}',this.checked)"></td>`).join('')}</tr>`;
 }
-function permToggleOverride(uid,role,sid,on){ const ov=PERMS.users[uid].overrides; if(on){ ov[sid]=expandCaps(roleCaps(role,sid)); } else { delete ov[sid]; } savePerms(); permUserRefresh(uid,role); try{applyPermissions();}catch(e){} }
-function permSetUserCap(uid,sid,cap,val){ const ov=PERMS.users[uid].overrides; if(!ov[sid])ov[sid]=expandCaps('N'); ov[sid][cap]=val?1:0; if(cap==='view'&&!val){ov[sid].create=ov[sid].edit=ov[sid].delete=0;} if(cap!=='view'&&val){ov[sid].view=1;} savePerms(); const p=S.profiles.find(x=>x.id===uid); permUserRefresh(uid,p.role||p.team||'readonly'); try{applyPermissions();}catch(e){} }
+function _pname(uid){ const p=S.profiles.find(x=>x.id===uid); return p?p.full_name:uid; }
+function _sname(sid){ return (SECTIONS.find(s=>s.id===sid)||{}).label||sid; }
+function permToggleOverride(uid,role,sid,on){ const ov=PERMS.users[uid].overrides; if(on){ ov[sid]=expandCaps(roleCaps(role,sid)); } else { delete ov[sid]; } savePerms(); audit('perm_override',{label:_pname(uid)+': '+(on?'added':'removed')+' override on '+_sname(sid),cat:'permissions',target:'user',targetId:uid}); permUserRefresh(uid,role); try{applyPermissions();}catch(e){} }
+function permSetUserCap(uid,sid,cap,val){ const ov=PERMS.users[uid].overrides; if(!ov[sid])ov[sid]=expandCaps('N'); ov[sid][cap]=val?1:0; if(cap==='view'&&!val){ov[sid].create=ov[sid].edit=ov[sid].delete=0;} if(cap!=='view'&&val){ov[sid].view=1;} savePerms(); audit('perm_override',{label:_pname(uid)+' override: '+_sname(sid)+' · '+cap+' '+(val?'ON':'OFF'),cat:'permissions',target:'user',targetId:uid}); const p=S.profiles.find(x=>x.id===uid); permUserRefresh(uid,p.role||p.team||'readonly'); try{applyPermissions();}catch(e){} }
 function permUserRefresh(uid,role){ const tb=$('pu-rows'); if(tb)tb.innerHTML=SECTIONS.map(s=>permUserRow(uid,role,s)).join(''); }
+
+// ── AUDIT TRAIL VIEW ──────────────────────────────────────────
+function auditFmtTs(iso){ try{ const d=new Date(iso); return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }catch(e){ return iso; } }
+function renderAudit(){
+  if(!canViewSection('admin')){ $('content').innerHTML='<div class="empty"><div class="empty-i">🔒</div><div class="empty-h">Access Denied</div><div class="empty-s" style="color:var(--v-text4);font-size:13px;margin-top:6px">The audit trail is restricted to Admin.</div></div>'; return; }
+  const cats=Object.keys(AUDIT_CATS);
+  const actors=[...new Set(AUDIT_LOG.map(e=>e.actor).filter(Boolean))].sort();
+  $('topbar-actions').innerHTML='<button class="btn btn-ghost btn-sm" onclick="auditExport()">⬇ Export CSV</button>';
+  $('content').innerHTML=`<div style="max-width:1080px;margin:0 auto;padding:8px 6px">
+    <div style="font-size:11px;color:var(--v-text4);margin-bottom:12px">Append-only record of every state-changing action — who did what, and when. In preview this lives in the browser; at go-live it writes to an immutable audit table.</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px" id="aud-stats"></div>
+    <div class="toolbar">
+      <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="aud-s" placeholder="Search action, person, target…" style="width:240px"></div>
+      <select class="fc" id="aud-cat" style="width:auto;padding:6px 10px"><option value="">All categories</option>${cats.map(c=>`<option value="${c}">${AUDIT_CATS[c].icon} ${AUDIT_CATS[c].label}</option>`).join('')}</select>
+      <select class="fc" id="aud-actor" style="width:auto;padding:6px 10px"><option value="">All people</option>${actors.map(a=>`<option>${escH(a)}</option>`).join('')}</select>
+      <input class="fc" type="date" id="aud-from" style="width:auto;padding:6px 8px" title="From date">
+      <input class="fc" type="date" id="aud-to" style="width:auto;padding:6px 8px" title="To date">
+      <span id="aud-count" style="font-size:12px;color:var(--v-text4);align-self:center;margin-left:auto"></span>
+    </div>
+    <div id="aud-list" class="proj-list"></div></div>`;
+  ['aud-s','aud-cat','aud-actor','aud-from','aud-to'].forEach(id=>{ const el=$(id); if(el){ el.oninput=auditDraw; el.onchange=auditDraw; } });
+  auditDraw();
+}
+function auditFilter(){
+  const q=($('aud-s')?.value||'').toLowerCase(), cat=$('aud-cat')?.value||'', actor=$('aud-actor')?.value||'', from=$('aud-from')?.value||'', to=$('aud-to')?.value||'';
+  return AUDIT_LOG.filter(e=>{
+    if(cat&&e.cat!==cat) return false;
+    if(actor&&e.actor!==actor) return false;
+    const day=(e.ts||'').slice(0,10);
+    if(from&&day<from) return false;
+    if(to&&day>to) return false;
+    if(q&&![e.label,e.actor,e.via,e.action,e.target,e.targetId].join(' ').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+function auditDraw(){
+  const st=$('aud-stats'); if(st){ const today=new Date().toISOString().slice(0,10); const todayN=AUDIT_LOG.filter(e=>(e.ts||'').slice(0,10)===today).length; const actorsN=new Set(AUDIT_LOG.map(e=>e.actor)).size;
+    st.innerHTML=`${statTile(AUDIT_LOG.length.toLocaleString(),'Total events','#3b82f6')}${statTile(todayN,'Today','#22c55e')}${statTile(actorsN,'People','#a855f7')}${statTile(Object.keys(AUDIT_CATS).filter(c=>AUDIT_LOG.some(e=>e.cat===c)).length,'Categories','#f59e0b')}`; }
+  const f=auditFilter(); const el=$('aud-list'); if(!el) return;
+  if($('aud-count'))$('aud-count').textContent=`${f.length.toLocaleString()} event${f.length!==1?'s':''}`;
+  el.innerHTML=f.slice(0,500).map(e=>{ const m=AUDIT_CATS[e.cat]||AUDIT_CATS.data;
+    return `<div class="proj-row" style="cursor:default">
+      <span style="font-size:1.1rem">${m.icon}</span>
+      <div class="proj-info"><div class="proj-name" style="font-weight:500">${escH(e.label)}</div>
+      <div class="proj-meta">${escH(e.actor)}${e.via?' <span style="color:#a855f7">(as impersonated by '+escH(e.via)+')</span>':''}${e.target?' · '+escH(e.target)+(e.targetId?' '+escH(String(e.targetId)):''):''}</div></div>
+      <div class="proj-right" style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${m.color};background:${m.color}22">${m.label}</span>
+        <span style="font-size:11px;color:var(--v-text4);white-space:nowrap">${auditFmtTs(e.ts)}</span></div></div>`;
+  }).join('')||`<div class="empty"><div class="empty-i">🧾</div><div class="empty-h">No matching events</div></div>`;
+  if(f.length>500 && el.lastElementChild){ el.insertAdjacentHTML('beforeend',`<div style="font-size:11px;color:var(--v-text4);padding:8px 4px">Showing the 500 most recent of ${f.length.toLocaleString()} — narrow the filters or export for the full set.</div>`); }
+}
+function auditExport(){
+  const f=auditFilter(); const cols=['Timestamp','Actor','ImpersonatedBy','Category','Action','Description','Target','TargetId'];
+  const esc=v=>{ v=String(v==null?'':v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+  const rows=f.map(e=>[e.ts,e.actor,e.via||'',(AUDIT_CATS[e.cat]||{}).label||e.cat,e.action,e.label,e.target,e.targetId].map(esc).join(','));
+  const csv=cols.join(',')+'\n'+rows.join('\n');
+  const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='audit-trail-'+new Date().toISOString().slice(0,10)+'.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+  toast('Exported '+f.length+' events'); audit('audit_export',{label:'Exported '+f.length+' audit events to CSV',cat:'admin'});
+}
 
 // ── ADMIN PANEL ───────────────────────────────────────────────
 function renderAdmin() {
@@ -1407,9 +1471,27 @@ function adminLookups(){
 function lookupAdd(cat){ const el=$('lc-in-'+cat.replace(/[^a-z]/gi,'')); const v=el&&el.value.trim(); if(!v) return; if(!LOOKUP_CODES[cat].includes(v)) LOOKUP_CODES[cat].push(v); toast('Added'); adminLookups(); }
 function lookupDel(cat,v){ LOOKUP_CODES[cat]=LOOKUP_CODES[cat].filter(x=>x!==v); toast('Removed'); adminLookups(); }
 
-// Lightweight activity logger (was referenced but never defined — keeps in-memory trail, never throws)
-let ACTIVITY_LOG=[];
-function logActivity(type, a, b, note){ try{ ACTIVITY_LOG.unshift({type,a,b,note,by:(S.profile&&S.profile.full_name)||'',at:new Date().toISOString()}); if(ACTIVITY_LOG.length>200)ACTIVITY_LOG.pop(); }catch(e){} }
+// ══ AUDIT TRAIL — append-only record of every state change ══
+let AUDIT_LOG=[];
+try{ AUDIT_LOG=JSON.parse(localStorage.getItem('ss-audit')||'[]')||[]; }catch(e){ AUDIT_LOG=[]; }
+const AUDIT_CATS={
+  auth:{label:'Auth',color:'#3b82f6',icon:'🔑'}, permissions:{label:'Permissions',color:'#a855f7',icon:'🔐'},
+  customers:{label:'Customers',color:'#22c55e',icon:'🏛️'}, projects:{label:'Projects',color:'#f59e0b',icon:'📁'},
+  tasks:{label:'Tasks',color:'#eab308',icon:'✅'}, support_billing:{label:'Support & Billing',color:'#ef4444',icon:'📑'},
+  sales:{label:'Sales',color:'#0ea5e9',icon:'💼'}, comms:{label:'Comms',color:'#ec4899',icon:'📣'},
+  training:{label:'Training',color:'#14b8a6',icon:'🎓'}, admin:{label:'Admin',color:'#64748b',icon:'⚙️'}, data:{label:'Data',color:'#94a3b8',icon:'🗂️'}
+};
+function _auditActor(){ const me=S.profile||{}; const via=(typeof _realProfile!=='undefined'&&_realProfile)?_realProfile.full_name:null; return {actor:me.full_name||'System',actorId:me.id||'',via}; }
+function _auditId(){ return 'a'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36); }
+function audit(action, opts){ opts=opts||{}; try{
+  const a=_auditActor();
+  const e={ id:_auditId(), ts:new Date().toISOString(), action, label:opts.label||action, cat:opts.cat||'data', target:opts.target||'', targetId:opts.targetId||'', actor:a.actor, actorId:a.actorId, via:a.via||'' };
+  AUDIT_LOG.unshift(e); if(AUDIT_LOG.length>1000) AUDIT_LOG.length=1000;
+  try{ localStorage.setItem('ss-audit', JSON.stringify(AUDIT_LOG.slice(0,400))); }catch(e2){}
+  if(S.view==='audit'){ try{ auditDraw(); }catch(e3){} }
+}catch(err){} }
+// Back-compat shim for the earlier logActivity(type,a,b,note) callers
+function logActivity(type, a, b, note){ audit(type,{label:note||type, targetId:b||'', cat:'data'}); }
 async function changeRole(profileId, newRole) {
   // Update local
   const p = S.profiles.find(x => x.id === profileId);
@@ -1418,7 +1500,7 @@ async function changeRole(profileId, newRole) {
     await db.from('profiles').update({team: newRole}).eq('id', profileId);
   }
   toast('Role updated to ' + (ROLES[newRole]?.label||newRole));
-  logActivity('role_change', null, null, 'Changed role to ' + newRole);
+  audit('role_change',{label:(p?p.full_name:profileId)+' → group '+(ROLES[newRole]?.label||newRole),cat:'permissions',target:'user',targetId:profileId});
 }
 
 
@@ -1653,6 +1735,7 @@ async function doPreviewLogin() {
   try { applyPermissions(); } catch(e) { console.warn("permissions:",e); }
   try { initRolePreview(); } catch(e) { console.warn("rolepreview:",e); }
   navigate('dashboard');
+  try { audit('login',{label:'Signed in to the portal',cat:'auth'}); } catch(e) {}
   try { initTour(); } catch(e) {}
 }
 
@@ -1842,7 +1925,7 @@ const VIEW_TITLES = { handbook:'Employee Handbook', activity:'Activity Feed', ad
   heatmap:'Customer Heat Map', mastersearch:'Master Customer Search', projsearch:'Projects — Search All', projclosed:'Projects Closed',
   kbfms:'KB — FMS', kbps:'KB — Public Safety', kbfmsint:'KB — FMS Internal', kbpsint:'KB — PS Internal', kbcreate:'Create KB Article',
   trainingfms:'Learning Tracks — FMS', trainingps:'Learning Tracks — PS', editappversions:'Edit App Versions', trainconf:'Conferences / Training',
-  supportagr:'Annual Support Agreements', announce:'Website Announcement', hwspecs:'Update Hardware Specs', perms:'Roles & Permissions',
+  supportagr:'Annual Support Agreements', announce:'Website Announcement', hwspecs:'Update Hardware Specs', perms:'Roles & Permissions', audit:'Audit Trail',
   alerts:'Notifications & Alerts', chat:'Team Chat', empstatus:"Who's In", timesheets:'Time Tracking',
   blog:'Company Blog', citizen:'Citizen Connect', myagenda:'My Training',
   prayer:'Prayer List', whatsnew:"What's New",
@@ -1940,6 +2023,25 @@ function seedDemoData(){
         {id:1,type:'FMS General Ledger Support',fee:6200,s247:false,active:false,renewal:past},
         {id:2,type:'Utility Billing Support',fee:5400,s247:false,active:false,renewal:past}],
         history:[{date:past,by:'Bobbi',note:'All fees marked inactive — agency did not renew'}]};
+    }
+    // Seed a realistic historical audit trail (only if empty)
+    if(typeof AUDIT_LOG!=='undefined' && AUDIT_LOG.length<3){
+      const H=h=>new Date(Date.now()-h*3600e3).toISOString();
+      const seed=[
+        ['Janet Benson','salesreq_approve','Approved & converting sales request: Ardmore PD · Utility Billing','support_billing',3],
+        ['Bobbi Sessoms','payment_record','Recorded $4,200 payment on INV-20431 (Maumelle PD)','support_billing',5],
+        ['Bobbi Sessoms','support_renewed','Marked renewed: Georgiana PD (3 lines)','support_billing',9],
+        ['Travis Pruitt','perm_group_change','Group “Sales”: Annual Support & Billing · view ON','permissions',22],
+        ['Travis Pruitt','role_change','Michael Valverde → group FMS','permissions',26],
+        ['R. Brigman','opp_create','Created opportunity: Black Mountain Police Dept · General Ledger ($120,000)','sales',31],
+        ['Zach Perkins','class_register','Registered for “CAD Call Entry & Dispatch Essentials” (2026 Annual Public Safety Users’ Conference)','training',34],
+        ['Marketing','newsletter_send','Sent newsletter “Conference Season — Register Now” to All Customers (4,820 recipients)','comms',48],
+        ['Dan Barcus','task_status','Task “Confirm go-live date with the agency” → In progress','tasks',52],
+        ['Janet Benson','salesreq_reject','Rejected sales request: Belhaven Police Dept · MDIS','support_billing',70],
+      ];
+      seed.forEach((s,i)=>{ AUDIT_LOG.push({ id:'seed'+i, ts:H(s[4]), action:s[1], label:s[2], cat:s[3], target:'', targetId:'', actor:s[0], actorId:'', via:'' }); });
+      AUDIT_LOG.sort((a,b)=>(b.ts||'').localeCompare(a.ts||''));
+      try{ localStorage.setItem('ss-audit', JSON.stringify(AUDIT_LOG.slice(0,400))); }catch(e){}
     }
   }catch(e){ console.warn('seed:',e); }
 }
@@ -2862,12 +2964,15 @@ function agrMarkRenewed(id){
   agrCollectManage(id); const s=AGR_STORE[id]; let n=0;
   (s.fees||[]).forEach(f=>{ if(f.active!==false){ f.renewal=agrPlusYear(today()); n++; } });
   (s.history=s.history||[]).push({date:today(),by:meName(),note:`Marked renewed — ${n} active fee line${n===1?'':'s'} extended 12 months`});
+  audit('support_renewed',{label:'Marked renewed: '+((_agrCustList().find(x=>x.id===id)||{}).name||id)+' ('+n+' line'+(n===1?'':'s')+')',cat:'support_billing',target:'customer',targetId:id});
   toast('Renewal recorded'); agrManage(id);
 }
 function agrSaveManage(id){
   agrCollectManage(id); const s=AGR_STORE[id];
   if(!(s.fees||[]).length){ toast('Add at least one fee line'); return; }
   (s.history=s.history||[]).push({date:today(),by:meName(),note:'Support fees updated'});
+  const nm=(_agrCustList().find(x=>x.id===id)||{}).name||id;
+  audit('support_fee_save',{label:'Saved support fees for '+nm+' ('+(s.fees||[]).length+' line'+((s.fees||[]).length!==1?'s':'')+')',cat:'support_billing',target:'customer',targetId:id});
   closeModal(); toast('Support agreement saved');
   if(S.view==='supportagr') renderSupportAgr();
 }
@@ -3296,6 +3401,7 @@ function blogNew(){
 function blogSave(){
   const t=$('bg-t').value.trim(), b=$('bg-b').value.trim(); if(!t){ toast('Title required'); return; }
   BLOG.unshift({id:Math.max(0,...BLOG.map(x=>x.id))+1,title:t,author:meName(),date:new Date().toISOString().slice(0,10),tag:$('bg-tag').value,body:b});
+  audit('blog_publish',{label:'Published blog post: “'+t+'”',cat:'comms',target:'post'});
   toast('Post published'); renderBlog();
 }
 
@@ -3931,6 +4037,7 @@ function colRecordPay(inv){
   c.amount=Math.max(0,Math.round((c.amount-amt)*100)/100);
   if(c.amount<=0){ c.status='Paid'; c.days=0; } else { c.status='Partial'; }
   c.notes=c.notes||[]; c.notes.push({date:$('col-date').value||today(),by:meName(),note:`Payment ${money(amt)} (${$('col-method').value})${$('col-ref').value.trim()?' #'+$('col-ref').value.trim():''}`});
+  audit('payment_record',{label:'Recorded '+money(amt)+' payment on '+c.invoice+' ('+c.agency+')'+(c.status==='Paid'?' — paid in full':''),cat:'support_billing',target:'invoice',targetId:c.invoice});
   closeModal(); toast('Payment recorded'+(c.status==='Paid'?' — paid in full ✓':'')); colDraw();
 }
 function colNoteModal(inv){
@@ -3940,7 +4047,7 @@ function colNoteModal(inv){
     <div class="fg"><label class="fl">Note</label><textarea class="fc" id="col-note" rows="3" placeholder="e.g. Spoke with finance clerk — payment approved, mailing check Friday."></textarea></div>
   </div>`,`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="colAddNote('${escH(inv)}')">Save note</button>`);
 }
-function colAddNote(inv){ const c=colGet(inv); if(!c) return; const n=$('col-note').value.trim(); if(!n){ toast('Enter a note'); return; } c.notes=c.notes||[]; c.notes.push({date:today(),by:meName(),note:n}); closeModal(); toast('Note added'); colDraw(); }
+function colAddNote(inv){ const c=colGet(inv); if(!c) return; const n=$('col-note').value.trim(); if(!n){ toast('Enter a note'); return; } c.notes=c.notes||[]; c.notes.push({date:today(),by:meName(),note:n}); audit('collection_note',{label:'Added collection note on '+c.invoice+' ('+c.agency+')',cat:'support_billing',target:'invoice',targetId:c.invoice}); closeModal(); toast('Note added'); colDraw(); }
 function colDetail(inv){
   const c=colGet(inv); if(!c) return; const canEdit=canEditSupport();
   const pays=(c.payments||[]).slice().reverse().map(p=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid var(--v-hair2);font-size:12px"><span style="color:var(--v-text2)">${fmt(p.date)} · ${escH(p.method)}${p.ref?' #'+escH(p.ref):''}</span><span style="color:#22c55e;font-weight:600">${money(p.amt)}</span></div>`).join('')||'<div style="font-size:12px;color:var(--v-text4)">No payments recorded.</div>';
@@ -4012,10 +4119,11 @@ function manageCustomer(id){
     <div class="fg3" style="display:grid;grid-template-columns:1fr 1fr 80px auto;gap:6px;align-items:end"><input class="fc" id="mg-lp" placeholder="Product"><input class="fc" id="mg-lt" placeholder="Type"><input class="fc" id="mg-lc" type="number" placeholder="Qty"><button class="btn btn-ghost btn-sm" onclick="mgAddLic('${id}')">Add</button></div>
   </div>`,`<button class="btn btn-ghost btn-sm" onclick="showCustDetail('${id}')">← Back</button><button class="btn btn-primary btn-sm" onclick="mgSave('${id}')">Save changes</button>`);
 }
-function mgSave(id){ const ex=CUST_EXTRA[id]=CUST_EXTRA[id]||{}; ex.phone=$('mg-phone').value.trim(); ex.sales_owner=$('mg-owner').value.trim(); ex.org=$('mg-org').value; toast('Customer updated'); showCustDetail(id); }
-function mgAddContact(id){ const n=$('mg-cn').value.trim(); if(!n){toast('Name required');return;} (CUST_EXTRA[id].contacts=CUST_EXTRA[id].contacts||[]).push({name:n,role:$('mg-cr').value.trim(),email:$('mg-ce').value.trim()}); manageCustomer(id); }
+function _custName(id){ const c=(S.customers||[]).find(x=>x.id===id); return c?c.name:id; }
+function mgSave(id){ const ex=CUST_EXTRA[id]=CUST_EXTRA[id]||{}; ex.phone=$('mg-phone').value.trim(); ex.sales_owner=$('mg-owner').value.trim(); ex.org=$('mg-org').value; audit('customer_update',{label:'Updated customer details: '+_custName(id),cat:'customers',target:'customer',targetId:id}); toast('Customer updated'); showCustDetail(id); }
+function mgAddContact(id){ const n=$('mg-cn').value.trim(); if(!n){toast('Name required');return;} (CUST_EXTRA[id].contacts=CUST_EXTRA[id].contacts||[]).push({name:n,role:$('mg-cr').value.trim(),email:$('mg-ce').value.trim()}); audit('customer_contact_add',{label:'Added contact “'+n+'” to '+_custName(id),cat:'customers',target:'customer',targetId:id}); manageCustomer(id); }
 function mgDelContact(id,i){ CUST_EXTRA[id].contacts.splice(i,1); manageCustomer(id); }
-function mgAddLic(id){ const p=$('mg-lp').value.trim(); if(!p){toast('Product required');return;} (CUST_EXTRA[id].licenses=CUST_EXTRA[id].licenses||[]).push({product:p,type:$('mg-lt').value.trim(),count:$('mg-lc').value.trim()}); manageCustomer(id); }
+function mgAddLic(id){ const p=$('mg-lp').value.trim(); if(!p){toast('Product required');return;} (CUST_EXTRA[id].licenses=CUST_EXTRA[id].licenses||[]).push({product:p,type:$('mg-lt').value.trim(),count:$('mg-lc').value.trim()}); audit('customer_license_add',{label:'Added license “'+p+'” to '+_custName(id),cat:'customers',target:'customer',targetId:id}); manageCustomer(id); }
 function mgDelLic(id,i){ CUST_EXTRA[id].licenses.splice(i,1); manageCustomer(id); }
 
 // ── AI: MEETING / NOTES CAPTURE ───────────────────────────────
@@ -4056,8 +4164,8 @@ function impersonatePick(){
   showModal('🕵️ Impersonate a user',`<div style="font-size:12px;color:var(--v-text3);margin-bottom:8px">View the portal as another employee (their role, dashboard & tasks). For support & troubleshooting.</div>
     <div class="fstack" style="gap:4px;max-height:50vh;overflow:auto">${ppl.map(p=>`<div class="d-row" onclick="impersonate('${p.id}')">${ava(p,24)}<span class="m">${escH(p.full_name)}</span><span class="s">${escH(p.title||p.team||'')}</span></div>`).join('')}</div>`);
 }
-function impersonate(pid){ const p=(S.profiles||[]).find(x=>x.id===pid); if(!p)return; if(!_realProfile)_realProfile=S.profile; S.profile=p; closeModal(); showImpersonateBanner(); try{applyPermissions();initRolePreview();}catch(e){} navigate('overview'); toast('Now viewing as '+p.full_name); }
-function stopImpersonate(){ if(_realProfile){ S.profile=_realProfile; _realProfile=null; } const b=document.getElementById('imp-banner'); if(b)b.remove(); try{applyPermissions();initRolePreview();}catch(e){} navigate('overview'); toast('Back to your account'); }
+function impersonate(pid){ const p=(S.profiles||[]).find(x=>x.id===pid); if(!p)return; try{ audit('impersonate_start',{label:'Started previewing as '+p.full_name,cat:'auth',target:'user',targetId:pid}); }catch(e){} if(!_realProfile)_realProfile=S.profile; S.profile=p; closeModal(); showImpersonateBanner(); try{applyPermissions();initRolePreview();}catch(e){} navigate('overview'); toast('Now viewing as '+p.full_name); }
+function stopImpersonate(){ const was=S.profile&&S.profile.full_name; if(_realProfile){ S.profile=_realProfile; _realProfile=null; } const b=document.getElementById('imp-banner'); if(b)b.remove(); try{ audit('impersonate_end',{label:'Stopped previewing as '+was,cat:'auth'}); }catch(e){} try{applyPermissions();initRolePreview();}catch(e){} navigate('overview'); toast('Back to your account'); }
 function showImpersonateBanner(){ let b=document.getElementById('imp-banner'); if(!b){ b=document.createElement('div'); b.id='imp-banner'; b.style.cssText='position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:1300;background:#a855f7;color:#fff;padding:8px 16px;border-radius:999px;box-shadow:0 6px 24px #0006;font-size:13px;display:flex;align-items:center;gap:10px'; document.body.appendChild(b); } b.innerHTML=`🕵️ Viewing as <b>${escH(S.profile.full_name)}</b> <button onclick="stopImpersonate()" style="background:#fff3;border:none;color:#fff;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:12px">Exit</button>`; }
 
 // ── SAVED FILTER PRESETS (Support Agreements) ─────────────────
@@ -4408,7 +4516,7 @@ function navigate(v, extra={}) {
     prayer:renderPrayer, whatsnew:renderWhatsNew,
     supportan:renderSupportAnalytics, revenue:renderRevenue, reconcile:renderReconcile, collections:renderCollections, profile:renderProfile, favorites:renderFavorites,
     templates:renderTemplates, myweek:renderMyWeek, approvals:renderApprovals, contacts:renderContacts,
-    activity:renderActivity, admin:renderAdmin, perms:renderPerms})[v]?.(extra);
+    activity:renderActivity, admin:renderAdmin, perms:renderPerms, audit:renderAudit})[v]?.(extra);
   updateSidebarBadges();
   try{ updatePinBtn(); }catch(e){}
   try{ updateApprovalsBadge(); }catch(e){}
@@ -4533,11 +4641,11 @@ function oppEdit(id){
 function oppSave(id){
   const agency=$('op-agency').value.trim(); if(!agency){ toast('Agency required'); return; }
   const rec={agency,state:$('op-state').value.trim().toUpperCase(),product:$('op-product').value,value:parseFloat($('op-value').value)||0,owner:$('op-owner').value.trim(),stage:$('op-stage').value,prob:parseInt($('op-prob').value,10)||0,close:$('op-close').value||today()};
-  if(id){ Object.assign(oppGet(id),rec); toast('Opportunity updated'); }
-  else { SALES_OPPS.push(Object.assign({id:'opp-'+(Math.max(0,...SALES_OPPS.map(o=>+(o.id||'0').replace(/\D/g,'')||0))+1)},rec)); toast('Opportunity added'); }
+  if(id){ Object.assign(oppGet(id),rec); audit('opp_update',{label:'Updated opportunity: '+rec.agency+' · '+rec.product+' ('+rec.stage+', '+money(rec.value)+')',cat:'sales',target:'opportunity',targetId:id}); toast('Opportunity updated'); }
+  else { const nid='opp-'+(Math.max(0,...SALES_OPPS.map(o=>+(o.id||'0').replace(/\D/g,'')||0))+1); SALES_OPPS.push(Object.assign({id:nid},rec)); audit('opp_create',{label:'Created opportunity: '+rec.agency+' · '+rec.product+' ('+money(rec.value)+')',cat:'sales',target:'opportunity',targetId:nid}); toast('Opportunity added'); }
   closeModal(); if(S.view==='saleslist'||S.view==='salescomplete')navigate(S.view); else renderSalesList('open');
 }
-function oppDelete(id){ const i=SALES_OPPS.findIndex(o=>o.id===id); if(i>-1)SALES_OPPS.splice(i,1); closeModal(); toast('Opportunity removed'); if(S.view)navigate(S.view); }
+function oppDelete(id){ const o=oppGet(id); const i=SALES_OPPS.findIndex(o=>o.id===id); if(i>-1)SALES_OPPS.splice(i,1); audit('opp_delete',{label:'Deleted opportunity: '+(o?o.agency+' · '+o.product:id),cat:'sales',target:'opportunity',targetId:id}); closeModal(); toast('Opportunity removed'); if(S.view)navigate(S.view); }
 function renderSalesReq(){
   const reqs=(typeof SALES_REQS!=='undefined'?SALES_REQS:[]);
   const col={New:'#3b82f6',Assigned:'#a855f7',Quoted:'#f59e0b',Approved:'#22c55e',Rejected:'#ef4444'};
@@ -4590,17 +4698,20 @@ function srSave(id){ const r=srGet(id); if(!r) return;
   r.status=st; r.assignedTo=as||'Janet Benson'; r.history=r.history||[];
   if(changes.length)r.history.push({date:today(),by:meName(),note:changes.join(', ')});
   if(note)r.history.push({date:today(),by:meName(),note});
+  audit('salesreq_update',{label:'Sales request '+r.agency+(changes.length?' — '+changes.join(', '):' updated'),cat:'support_billing',target:'sales_request',targetId:r.id});
   closeModal(); toast('Request updated'); if(S.view==='salesreq')renderSalesReq(); try{updateApprovalsBadge();}catch(e){}
 }
 function srQuick(id,st){ const r=srGet(id); if(!r) return;
   r.status=st; if(!r.assignedTo)r.assignedTo=meName(); r.history=r.history||[];
   if(st==='Approved'){ srConvert(id); return; }
   r.history.push({date:today(),by:meName(),note:'Rejected'});
+  audit('salesreq_reject',{label:'Rejected sales request: '+r.agency+' · '+(r.product||''),cat:'support_billing',target:'sales_request',targetId:r.id});
   closeModal(); toast('Request rejected'); if(S.view==='salesreq')renderSalesReq(); try{updateApprovalsBadge();}catch(e){}
 }
 function srConvert(id){ const r=srGet(id); if(!r) return;
   r.status='Approved'; if(!r.assignedTo)r.assignedTo=meName(); r.history=r.history||[];
   r.history.push({date:today(),by:meName(),note:'Approved — converted to a project'}); r.converted=true;
+  audit('salesreq_approve',{label:'Approved & converting sales request: '+r.agency+' · '+(r.product||''),cat:'support_billing',target:'sales_request',targetId:r.id});
   const cust=S.customers.find(c=>(c.name||'').toLowerCase()===(r.agency||'').toLowerCase());
   closeModal(); if(S.view==='salesreq')renderSalesReq(); try{updateApprovalsBadge();}catch(e){}
   showNewProjModal(cust?cust.id:'', {
@@ -4961,17 +5072,17 @@ function confSessionRow(idx,s){
 }
 function confReg(idx,sid){ const s=TRAIN_SESSIONS.find(x=>String(x.id)===String(sid)); if(!s) return; const r=sReg(sid);
   if(r.registered){ delete MY_SESSIONS[sid]; if(s.enrolled>0)s.enrolled--; toast('Registration cancelled'); }
-  else { if(s.enrolled>=s.seats){ toast('Session is full'); return; } MY_SESSIONS[sid]={registered:true,attended:false,feedback:null}; s.enrolled++; toast('Registered — check-in code '+sid); }
+  else { if(s.enrolled>=s.seats){ toast('Session is full'); return; } MY_SESSIONS[sid]={registered:true,attended:false,feedback:null}; s.enrolled++; audit('class_register',{label:'Registered for “'+s.title+'” ('+s.conf+')',cat:'training',target:'session',targetId:sid}); toast('Registered — check-in code '+sid); }
   trainConfDetail(idx);
 }
-function confCheckin(idx,sid){ const inp=$('cci-'+sid); const code=inp&&inp.value.trim(); if(String(code)!==String(sid)){ toast('Check-in code is '+sid); return; } MY_SESSIONS[sid]=MY_SESSIONS[sid]||{registered:true,feedback:null}; MY_SESSIONS[sid].attended=true; toast('Checked in ✓'); trainConfDetail(idx); }
+function confCheckin(idx,sid){ const inp=$('cci-'+sid); const code=inp&&inp.value.trim(); if(String(code)!==String(sid)){ toast('Check-in code is '+sid); return; } MY_SESSIONS[sid]=MY_SESSIONS[sid]||{registered:true,feedback:null}; MY_SESSIONS[sid].attended=true; const _s=TRAIN_SESSIONS.find(x=>String(x.id)===String(sid)); audit('class_checkin',{label:'Checked in to “'+(_s?_s.title:sid)+'”',cat:'training',target:'session',targetId:sid}); toast('Checked in ✓'); trainConfDetail(idx); }
 function confFeedbackOpen(idx,sid){ const s=TRAIN_SESSIONS.find(x=>String(x.id)===String(sid)); if(!s) return;
   showModal('★ Feedback — '+escH(s.title),`<div class="fstack">
     ${['Overall','Content','Instructor','Pace'].map(k=>`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:var(--v-text3);width:80px">${k}</span><select class="fc" id="cfb-${k.toLowerCase()}" style="width:auto;padding:5px 10px">${[5,4,3,2,1].map(n=>`<option value="${n}">${'★'.repeat(n)} (${n})</option>`).join('')}</select></div>`).join('')}
     <div class="fg"><label class="fl">Comments</label><textarea class="fc" id="cfb-c" rows="2" placeholder="What worked / what to improve"></textarea></div>
   </div>`,`<button class="btn btn-ghost btn-sm" onclick="trainConfDetail(${idx})">Back</button><button class="btn btn-primary btn-sm" onclick="confFeedbackSave(${idx},'${sid}')">Submit</button>`);
 }
-function confFeedbackSave(idx,sid){ MY_SESSIONS[sid]=MY_SESSIONS[sid]||{registered:true,attended:true}; MY_SESSIONS[sid].feedback={overall:+$('cfb-overall').value,content:+$('cfb-content').value,instructor:+$('cfb-instructor').value,pace:+$('cfb-pace').value,comments:$('cfb-c').value.trim()}; toast('Thanks for your feedback!'); trainConfDetail(idx); }
+function confFeedbackSave(idx,sid){ MY_SESSIONS[sid]=MY_SESSIONS[sid]||{registered:true,attended:true}; MY_SESSIONS[sid].feedback={overall:+$('cfb-overall').value,content:+$('cfb-content').value,instructor:+$('cfb-instructor').value,pace:+$('cfb-pace').value,comments:$('cfb-c').value.trim()}; const _fs=TRAIN_SESSIONS.find(x=>String(x.id)===String(sid)); audit('class_feedback',{label:'Left feedback on “'+(_fs?_fs.title:sid)+'” ('+(+$('cfb-overall').value)+'★)',cat:'training',target:'session',targetId:sid}); toast('Thanks for your feedback!'); trainConfDetail(idx); }
 function confAddClass(idx,sid){
   const c=TRAIN_CONF[idx]; const editing=sid?TRAIN_SESSIONS.find(x=>String(x.id)===String(sid)):null;
   const products=['CAD','RMS','JMS','MDS/Mobile','Admin','General','Keynote','FMS'];
@@ -4991,11 +5102,11 @@ function confSaveClass(idx,sid){
   const c=TRAIN_CONF[idx]; const title=$('cl-title').value.trim(); if(!title){ toast('Title required'); return; }
   const trainers=$('cl-trainers').value.split(',').map(s=>s.trim()).filter(Boolean);
   const rec={date:$('cl-date').value,product:$('cl-track').value,track:$('cl-track').value,start:$('cl-start').value.trim(),end:$('cl-end').value.trim(),time:$('cl-start').value.trim(),room:$('cl-room').value.trim(),seats:parseInt($('cl-cap').value,10)||50,trainers,trainer:trainers[0]||'TBD',title};
-  if(sid){ const s=TRAIN_SESSIONS.find(x=>String(x.id)===String(sid)); if(s)Object.assign(s,rec); toast('Class updated'); }
-  else { const nid=Math.max(2000,...TRAIN_SESSIONS.map(x=>+x.id||0))+1; TRAIN_SESSIONS.push(Object.assign({id:nid,confId:c.id,conf:c.name,enrolled:0,type:'Class'},rec)); toast('Class added — code '+nid); }
+  if(sid){ const s=TRAIN_SESSIONS.find(x=>String(x.id)===String(sid)); if(s)Object.assign(s,rec); audit('class_update',{label:'Updated class “'+rec.title+'” ('+c.name+')',cat:'training',target:'session',targetId:sid}); toast('Class updated'); }
+  else { const nid=Math.max(2000,...TRAIN_SESSIONS.map(x=>+x.id||0))+1; TRAIN_SESSIONS.push(Object.assign({id:nid,confId:c.id,conf:c.name,enrolled:0,type:'Class'},rec)); audit('class_create',{label:'Added class “'+rec.title+'” to '+c.name,cat:'training',target:'session',targetId:nid}); toast('Class added — code '+nid); }
   trainConfDetail(idx);
 }
-function confDelClass(idx,sid){ const i=TRAIN_SESSIONS.findIndex(x=>String(x.id)===String(sid)); if(i>-1)TRAIN_SESSIONS.splice(i,1); toast('Class removed'); trainConfDetail(idx); }
+function confDelClass(idx,sid){ const s=TRAIN_SESSIONS.find(x=>String(x.id)===String(sid)); const i=TRAIN_SESSIONS.findIndex(x=>String(x.id)===String(sid)); if(i>-1)TRAIN_SESSIONS.splice(i,1); audit('class_delete',{label:'Removed class “'+(s?s.title:sid)+'”',cat:'training',target:'session',targetId:sid}); toast('Class removed'); trainConfDetail(idx); }
 function showTrainConfForm(idx){
   const c=idx!=null?TRAIN_CONF[idx]:null;
   const types=['In-Person','Virtual','Hybrid']; if(c&&c.type&&!types.includes(c.type))types.unshift(c.type);
@@ -5286,7 +5397,7 @@ function nlUpsert(id,data,status,date){
   if(id){ const n=nlGet(id); if(n){ Object.assign(n,data); if(status)n.status=status; if(date)n.date=date; return n; } }
   const n={id:nlNextId(),...data,status:status||'Draft',date:date||today(),recipients:0,opens:0,clicks:0}; NEWSLETTERS.push(n); return n;
 }
-function nlSaveDraft(id){ const d=nlCollect(); if(!d.title){ toast('Give the campaign a name'); return; } const n=nlUpsert(id,d,'Draft'); _nlCompose=null; _nlView=n.id; renderNewsletters(); toast('Draft saved'); }
+function nlSaveDraft(id){ const d=nlCollect(); if(!d.title){ toast('Give the campaign a name'); return; } const n=nlUpsert(id,d,'Draft'); audit('newsletter_draft',{label:'Saved newsletter draft: “'+(d.title)+'”',cat:'comms',target:'newsletter',targetId:n.id}); _nlCompose=null; _nlView=n.id; renderNewsletters(); toast('Draft saved'); }
 function nlSendTest(id){ const d=nlCollect(); if(!d.subject){ toast('Add a subject line first'); return; } const to=(S.profile&&S.profile.email)||(S.user&&S.user.email)||'your inbox'; toast('📨 Test sent to '+to); }
 function nlScheduleModal(id){
   const d=nlCollect(); if(!d.title){ toast('Give the campaign a name first'); return; }
@@ -5296,7 +5407,7 @@ function nlScheduleModal(id){
     <input class="fc" type="date" id="nl-schd" value="${today()}" min="${today()}">
     `,`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="nlDoSchedule(${id?id:'null'})">🕓 Schedule</button>`);
 }
-function nlDoSchedule(id){ const dt=$('nl-schd')?.value||today(); const d=nlCollect(); const n=nlUpsert(id,d,'Scheduled',dt); closeModal(); _nlCompose=null; _nlView=n.id; renderNewsletters(); toast('Scheduled for '+fmt(dt)); }
+function nlDoSchedule(id){ const dt=$('nl-schd')?.value||today(); const d=nlCollect(); const n=nlUpsert(id,d,'Scheduled',dt); audit('newsletter_schedule',{label:'Scheduled newsletter “'+d.title+'” for '+fmt(dt)+' → '+d.audience,cat:'comms',target:'newsletter',targetId:n.id}); closeModal(); _nlCompose=null; _nlView=n.id; renderNewsletters(); toast('Scheduled for '+fmt(dt)); }
 function nlSendModal(id){
   const d=nlCollect(); if(!d.subject){ toast('Add a subject line first'); return; }
   const cnt=nlAudienceCount(d.audience);
@@ -5307,7 +5418,7 @@ function nlSendModal(id){
     <div style="font-size:11px;color:var(--v-text4)">${(typeof SB_URL!=='undefined'&&SB_URL==='YOUR_SUPABASE_URL')?'Preview mode — this simulates a send on test data. No real emails go out until the mail service is connected at go-live.':'This will send to all recipients in the segment.'}</div>
   `,`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-sm" style="background:#16a34a;color:#fff" onclick="nlDoSend(${id?id:'null'})">🚀 Send to ${cnt.toLocaleString()}</button>`);
 }
-function nlDoSend(id){ const d=nlCollect(); const cnt=nlAudienceCount(d.audience); const n=nlUpsert(id,d,'Sent',today()); n.recipients=cnt; n.opens=0; n.clicks=0; closeModal(); _nlCompose=null; _nlView=n.id; renderNewsletters(); toast('🚀 Campaign sent to '+cnt.toLocaleString()+' recipients'); }
+function nlDoSend(id){ const d=nlCollect(); const cnt=nlAudienceCount(d.audience); const n=nlUpsert(id,d,'Sent',today()); n.recipients=cnt; n.opens=0; n.clicks=0; audit('newsletter_send',{label:'Sent newsletter “'+d.title+'” to '+d.audience+' ('+cnt.toLocaleString()+' recipients)',cat:'comms',target:'newsletter',targetId:n.id}); closeModal(); _nlCompose=null; _nlView=n.id; renderNewsletters(); toast('🚀 Campaign sent to '+cnt.toLocaleString()+' recipients'); }
 function nlDuplicate(id){ const n=nlGet(id); if(!n)return; const c={id:nlNextId(),title:n.title+' (copy)',subject:n.subject,preheader:n.preheader,audience:n.audience,author:n.author,body:n.body,status:'Draft',date:today(),recipients:0,opens:0,clicks:0}; NEWSLETTERS.push(c); _nlView=null; _nlCompose=c.id; renderNewsletters(); toast('Duplicated to a new draft'); }
 
 function nlDetail(id){
@@ -6757,7 +6868,7 @@ async function createProject(){
     S.projects.unshift(proj);
     let nSec=0,nTask=0;
     if(useTpl){ templatePhasesFor(products).forEach((ph,pi)=>{ const secId=pid+'-s'+pi; S.sections.push({id:secId,project_id:pid,name:ph.name,sort_order:pi}); nSec++; ph.tasks.forEach((tt,ti)=>{ S.tasks.unshift({id:pid+'-t'+pi+'-'+ti,project_id:pid,section_id:secId,parent_id:null,title:(typeof tt==='string'?tt:tt.title),status:'todo',assignee_id:pmId,assignee_name:pmNm,due_date:null,sort_order:ti}); nTask++; }); }); }
-    try{ logActivity('project',null,pid,'created project: '+name); }catch(e){}
+    try{ audit('project_create',{label:'Created project: '+name,cat:'projects',target:'project',targetId:pid}); }catch(e){}
     toast(useTpl?('Project created — '+nSec+' phases, '+nTask+' tasks from template'):'Project created');
     closeModal(); try{ openProject(pid); }catch(e){ navigate('projects'); }
     return;
@@ -6799,7 +6910,7 @@ async function createProject(){
       }
     }
   }
-  logActivity('project', null, proj.id, 'created project: ' + proj.name);
+  audit('project_create',{label:'Created project: '+proj.name,cat:'projects',target:'project',targetId:proj.id});
   toast('Project created!'); closeModal(); await reload(); openProject(proj.id);
 }
 
@@ -7292,7 +7403,7 @@ async function kDrop(e,newStatus){
   const dt=DUMMY_DATA.tasks.find(t=>t.id===_dragTaskId);
   if(dt)dt.status=realStatus;
   if(SB_URL!=="YOUR_SUPABASE_URL")await db.from("tasks").update({status:realStatus}).eq("id",_dragTaskId);
-  logActivity("task_status",_dragTaskId,null,"moved to "+STATUS[realStatus]?.label);
+  audit('task_status',{label:'Task “'+((t&&t.title)||_dragTaskId)+'” → '+(STATUS[realStatus]?.label||realStatus),cat:'tasks',target:'task',targetId:_dragTaskId});
   renderKanban();
 }
 
