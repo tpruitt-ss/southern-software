@@ -836,7 +836,7 @@ a#skip-link:focus{left:8px}
         <div class="sb-group" data-g="supportbilling">
           <div class="sb-label" onclick="toggleGroup('supportbilling')" title="Annual support renewals & billing (Bobbi) and sales-request processing (Janet)">Annual Support &amp; Billing<span class="sb-chev">▾</span></div>
           <div class="sb-gitems">
-            <div class="sb-item" data-v="supportagr" data-requires="view_reports"><span class="i">📑</span>Support Agreements</div>
+            <div class="sb-item" data-v="supportagr" data-requires="view_reports"><span class="i">📑</span>Annual Support Agreements</div>
             <div class="sb-item" data-v="revenue" data-requires="view_reports"><span class="i">💵</span>Support Revenue</div>
             <div class="sb-item" data-v="supportan" data-requires="view_reports"><span class="i">📈</span>Support Analytics</div>
             <div class="sb-item" data-v="collections" data-requires="view_reports"><span class="i">🧾</span>Collections</div>
@@ -1716,7 +1716,7 @@ const VIEW_TITLES = { handbook:'Employee Handbook', activity:'Activity Feed', ad
   heatmap:'Customer Heat Map', mastersearch:'Master Customer Search', projsearch:'Projects — Search All', projclosed:'Projects Closed',
   kbfms:'KB — FMS', kbps:'KB — Public Safety', kbfmsint:'KB — FMS Internal', kbpsint:'KB — PS Internal', kbcreate:'Create KB Article',
   trainingfms:'Learning Tracks — FMS', trainingps:'Learning Tracks — PS', editappversions:'Edit App Versions', trainconf:'Conferences / Training',
-  supportagr:'Support Agreements & Renewals', announce:'Website Announcement', hwspecs:'Update Hardware Specs',
+  supportagr:'Annual Support Agreements & Renewals', announce:'Website Announcement', hwspecs:'Update Hardware Specs',
   alerts:'Notifications & Alerts', chat:'Team Chat', empstatus:"Who's In", timesheets:'Time Tracking',
   blog:'Company Blog', citizen:'Citizen Connect', myagenda:'My Training',
   prayer:'Prayer List', whatsnew:"What's New",
@@ -2665,6 +2665,9 @@ function agrEnsureStore(id){
 }
 function agrNewFeeId(id){ const s=AGR_STORE[id]; return Math.max(0,...(s.fees||[]).map(f=>f.id||0))+1; }
 function canEditSupport(){ return isAdmin()||can('edit_reports')||can('manage_customers'); }
+// Shared customer classification (keeps Customers directory consistent with the maps & support view)
+function custLine(c){ const x=(typeof CUST_EXTRA!=='undefined'&&CUST_EXTRA[c.id])||{}; let org=x.org; if(org!=='FMS'&&org!=='PS'){ const t=(c.agency_type||'').toLowerCase(); org=/water|sewer|city|town|county|municipal|tax|financ|utility|school|isd/.test(t)?'FMS':'PS'; } return org; }
+function custActive(c){ const st=(typeof AGR_STORE!=='undefined')?AGR_STORE[c.id]:null; if(st&&(st.fees||[]).length&&!(st.fees||[]).some(f=>f.active!==false)) return false; return _agrHash((c.name||'')+(c.state||''))%100>=16; }
 function agrPlusYear(iso){ const d=new Date(iso||today()); if(isNaN(d)) return today(); d.setFullYear(d.getFullYear()+1); return d.toISOString().slice(0,10); }
 
 // Choose a customer, then manage its support fees (used by "＋ Support Fee")
@@ -3342,7 +3345,7 @@ function showTour(){
   const steps=[
     ['🏛️','Customer 360','Open any customer for the full field cockpit — projects, licenses, hardware, open issues, contacts with tap-to-call, and real site history.','navigate(\'customers\')'],
     ['✨','AI Summary','Inside a customer, click <b>AI Summary</b> for a plain-English pre-call brief generated from their whole history.','navigate(\'customers\')'],
-    ['📑','Support Agreements','Track renewals and support value; filter to what’s expiring.','navigate(\'supportagr\')'],
+    ['📑','Annual Support Agreements','Track renewals and support value; filter to what’s expiring.','navigate(\'supportagr\')'],
     ['💼','Sales → Janet','SalesHub pipeline, and New Sales Request routes straight to Janet.','navigate(\'saleshub\')'],
     ['🎓','Training','Register for sessions, check in with the room code, leave feedback.','navigate(\'myagenda\')'],
     ['🌙','Make it yours','Toggle light/dark (footer), resize text, collapse sidebar groups, and “Preview as” any role.','navigate(\'overview\')'],
@@ -4240,18 +4243,52 @@ function renderSalesReq(){
     <span id="sr-count" style="font-size:12px;color:var(--v-text4);align-self:center"></span>
   </div>
   <div id="sr-list" class="proj-list"></div>`;
+  const canProc=canProcessSales();
   const draw=()=>{
     const q=$('sr-s').value.toLowerCase(), st=$('sr-st').value;
     const f=reqs.filter(r=>(!st||r.status===st)&&(!q||[r.agency,r.product,r.requestedBy].join(' ').toLowerCase().includes(q)));
     $('sr-count').textContent=`${f.length} request${f.length!==1?'s':''}`;
-    $('sr-list').innerHTML=f.map(r=>`<div class="proj-row" style="cursor:default">
+    $('sr-list').innerHTML=f.map(r=>`<div class="proj-row" style="cursor:${canProc?'pointer':'default'}" ${canProc?`onclick="srProcess('${r.id}')"`:''}>
         <span style="font-size:1.1rem">📥</span>
         <div class="proj-info"><div class="proj-name">${escH(r.agency)} <span style="font-size:12px;color:var(--v-text3)">· ${escH(r.product)}</span></div>
         <div class="proj-meta">Requested by ${escH(r.requestedBy)} · ${fmt(r.date)} · → ${escH(r.assignedTo||'Janet Benson')}${r.notes?' · '+escH(r.notes):''}</div></div>
-        <div class="proj-right"><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${col[r.status]};background:${col[r.status]}22">${escH(r.status)}</span></div>
+        <div class="proj-right" onclick="event.stopPropagation()">${canProc?`<button class="btn btn-ghost btn-xs" onclick="srProcess('${r.id}')" title="Process this request">⚙ Process</button>`:''}<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${col[r.status]};background:${col[r.status]}22">${escH(r.status)}</span></div>
       </div>`).join('')||`<div class="empty"><div class="empty-i">📥</div><div class="empty-h">No requests</div></div>`;
   };
   $('sr-s').oninput=draw; $('sr-st').onchange=draw; draw();
+}
+function canProcessSales(){ return isAdmin()||can('process_sales')||can('manage_customers'); }
+function srGet(id){ return (typeof SALES_REQS!=='undefined'?SALES_REQS:[]).find(r=>r.id===id); }
+function srProcess(id){
+  if(!canProcessSales()){ toast("You don't have processing access"); return; }
+  const r=srGet(id); if(!r) return;
+  const statuses=['New','Assigned','Quoted','Approved','Rejected'];
+  const hist=(r.history||[]).slice().reverse().map(h=>`<div style="font-size:11px;color:var(--v-text4);padding:2px 0">${fmt(h.date)} — ${escH(h.note)}${h.by?' · '+escH(h.by):''}</div>`).join('');
+  showModal('📥 Process request — '+escH(r.agency),`
+    <div style="font-size:12px;color:var(--v-text3);margin-bottom:10px">${escH(r.product||'')} · requested by ${escH(r.requestedBy||'')} · ${fmt(r.date)}${r.state?' · '+escH(r.state):''}</div>
+    <label class="fl">Status</label>
+    <select class="fc" id="sr-p-status">${statuses.map(s=>`<option ${r.status===s?'selected':''}>${s}</option>`).join('')}</select>
+    <div style="display:flex;gap:8px;align-items:flex-end;margin-top:10px">
+      <div style="flex:1"><label class="fl">Assigned to</label><input class="fc" id="sr-p-assign" value="${escH(r.assignedTo||'Janet Benson')}"></div>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('sr-p-assign').value='${escH(meName())}'">Claim to me</button>
+    </div>
+    <label class="fl" style="margin-top:10px">Add a processing note</label>
+    <textarea class="fc" id="sr-p-note" rows="3" placeholder="Note for the record…"></textarea>
+    ${hist?`<div style="margin-top:10px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--v-text4);margin-bottom:4px">History</div>${hist}</div>`:'<div style="font-size:11px;color:var(--v-text4);margin-top:8px">No processing history yet.</div>'}
+  `,`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-ghost btn-sm" style="color:#ef4444" onclick="srQuick('${id}','Rejected')">✖ Reject</button><button class="btn btn-sm" style="background:#16a34a;color:#fff" onclick="srQuick('${id}','Approved')">✅ Approve & convert</button><button class="btn btn-primary btn-sm" onclick="srSave('${id}')">💾 Save</button>`);
+}
+function srSave(id){ const r=srGet(id); if(!r) return;
+  const st=$('sr-p-status').value, as=($('sr-p-assign').value||'').trim(), note=($('sr-p-note').value||'').trim();
+  const changes=[]; if(st!==r.status)changes.push('status → '+st); if(as&&as!==(r.assignedTo||'Janet Benson'))changes.push('assigned → '+as);
+  r.status=st; r.assignedTo=as||'Janet Benson'; r.history=r.history||[];
+  if(changes.length)r.history.push({date:today(),by:meName(),note:changes.join(', ')});
+  if(note)r.history.push({date:today(),by:meName(),note});
+  closeModal(); toast('Request updated'); if(S.view==='salesreq')renderSalesReq(); try{updateApprovalsBadge();}catch(e){}
+}
+function srQuick(id,st){ const r=srGet(id); if(!r) return;
+  r.status=st; if(!r.assignedTo)r.assignedTo=meName(); r.history=r.history||[];
+  r.history.push({date:today(),by:meName(),note: st==='Approved'?'Approved — converting to a project':'Rejected'});
+  closeModal(); toast('Request '+st.toLowerCase()+(st==='Approved'?' — ready to convert to a project':'')); if(S.view==='salesreq')renderSalesReq(); try{updateApprovalsBadge();}catch(e){}
 }
 function showNewSalesReq(){
   const me=(S.profile&&S.profile.full_name)||'Travis Pruitt';
@@ -5962,21 +5999,33 @@ function printCustomer(id){
 
 function renderCustomers() {
   $('topbar-actions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="showNewCustModal()">+ New Customer</button>`;
+  const psN=S.customers.filter(c=>custLine(c)==='PS').length, fmsN=S.customers.filter(c=>custLine(c)==='FMS').length, actN=S.customers.filter(c=>custActive(c)).length;
   $('content').innerHTML=`
-  <div class="search-wrap" style="margin-bottom:1rem"><span class="search-i">🔍</span><input class="search-fc" id="cs" placeholder="Search customers…" style="width:240px"></div>
+  <div class="toolbar">
+    <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="cs" placeholder="Search customers…" style="width:220px"></div>
+    <select class="fc" id="cs-line" style="width:auto;padding:6px 10px"><option value="">All Products</option><option value="PS">Public Safety (${psN})</option><option value="FMS">FMS (${fmsN})</option></select>
+    <select class="fc" id="cs-status" style="width:auto;padding:6px 10px"><option value="">Active + Inactive</option><option value="Active">Active (${actN})</option><option value="Inactive">Inactive (${S.customers.length-actN})</option></select>
+    <span id="cs-count" style="font-size:12px;color:var(--v-text4);align-self:center"></span>
+  </div>
   <div class="proj-list" id="cust-list"></div>`;
   const site=(typeof SITE_PROJECTS!=='undefined'?SITE_PROJECTS:[]);
   const draw=()=>{
-    const q=$('cs').value.toLowerCase();
-    const custs=S.customers.filter(c=>!q||c.name.toLowerCase().includes(q)||(c.state||'').toLowerCase().includes(q)||(c.agency_type||'').toLowerCase().includes(q));
+    const q=$('cs').value.toLowerCase(), ln=$('cs-line').value, stt=$('cs-status').value;
+    const custs=S.customers.filter(c=>{
+      const active=custActive(c);
+      return (!ln||custLine(c)===ln)&&(!stt||(stt==='Active'?active:!active))&&(!q||c.name.toLowerCase().includes(q)||(c.state||'').toLowerCase().includes(q)||(c.agency_type||'').toLowerCase().includes(q));
+    });
+    $('cs-count').textContent=`${custs.length} customer${custs.length!==1?'s':''}`;
     const g=$('cust-list');
     g.innerHTML=custs.map(c=>{
       const np=S.projects.filter(p=>p.customer_id===c.id).length+site.filter(p=>p.customer_id===c.id).length;
       const oi=(S.issues||[]).filter(i=>i.customer_id===c.id&&!['done','na'].includes(i.status)).length;
-      return `<div class="proj-row" onclick="showCustDetail('${c.id}')">
+      const line=custLine(c), active=custActive(c);
+      const lineBadge=`<span title="${line==='FMS'?'FMS':'Public Safety'}" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;color:${line==='FMS'?'#f59e0b':'#3b82f6'};background:${line==='FMS'?'#f59e0b22':'#3b82f622'}">${line}</span>`;
+      return `<div class="proj-row" onclick="showCustDetail('${c.id}')" style="${active?'':'opacity:.6'}">
         <span style="font-size:1.3rem">🏛️</span>
         <div class="proj-info">
-          <div class="proj-name">${escH(c.name)}</div>
+          <div class="proj-name">${escH(c.name)} ${lineBadge}${active?'':' <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;color:#94a3b8;background:#94a3b822">Inactive</span>'}</div>
           <div class="proj-meta">${c.state||''}${c.agency_type?' · '+escH(c.agency_type):''}</div>
         </div>
         <div class="proj-right" style="display:flex;align-items:center;gap:8px">
@@ -5984,9 +6033,9 @@ function renderCustomers() {
           <span style="font-size:12px;color:var(--muted)">${np} project${np!==1?'s':''}</span>
         </div>
       </div>`;
-    }).join('')||`<div class="empty"><div class="empty-i">🏛️</div><div class="empty-h">No customers</div></div>`;
+    }).join('')||`<div class="empty"><div class="empty-i">🏛️</div><div class="empty-h">No customers match</div></div>`;
   };
-  $('cs').oninput=draw; draw();
+  $('cs').oninput=draw; $('cs-line').onchange=draw; $('cs-status').onchange=draw; draw();
 }
 
 function showCustDetail(id){
