@@ -3218,15 +3218,70 @@ function ccSave(){
 }
 
 // ── TRAINING ENGINE (register → check-in → feedback → agenda) ──
-let TRAIN_SESSIONS=[
-  {id:101,conf:'PS Annual Users Conference',title:'CAD Deep Dive',date:'2026-08-12',time:'9:00 AM',room:'Salon A',product:'CAD',trainer:'Zach Perkins',seats:40,enrolled:31},
-  {id:102,conf:'PS Annual Users Conference',title:'RMS Reporting & NIBRS',date:'2026-08-12',time:'10:30 AM',room:'Salon B',product:'RMS',trainer:'Debbie Stevens',seats:40,enrolled:28},
-  {id:103,conf:'PS Annual Users Conference',title:'JMS Booking Workflow',date:'2026-08-12',time:'1:00 PM',room:'Salon A',product:'JMS',trainer:'Nick Madray',seats:35,enrolled:22},
-  {id:104,conf:'PS Annual Users Conference',title:'Mobile / MDIS in the Field',date:'2026-08-13',time:'9:00 AM',room:'Salon C',product:'Mobile',trainer:'Jesse Merritt',seats:30,enrolled:19},
-  {id:105,conf:'FMS Biennial Users Conference',title:'General Ledger Year-End',date:'2026-09-10',time:'9:00 AM',room:'Room 1',product:'FMS',trainer:'Matt Pittman',seats:30,enrolled:24},
-  {id:106,conf:'FMS Biennial Users Conference',title:'Utility Billing & Invoice Cloud',date:'2026-09-10',time:'1:00 PM',room:'Room 2',product:'FMS',trainer:'Cameron Reynolds',seats:30,enrolled:17},
-];
-let MY_SESSIONS={101:{registered:true,attended:false,feedback:null},105:{registered:true,attended:false,feedback:null}};
+const TRACK_COL={CAD:'#3b82f6',RMS:'#22c55e',JMS:'#a855f7','MDS/Mobile':'#f59e0b',Admin:'#ec4899',General:'#0ea5e9',Keynote:'#eab308',FMS:'#f59e0b',Social:'#64748b'};
+const ANNUAL_CONF={id:'232',name:"2026 Annual Public Safety Users' Conference"};
+let TRAIN_SESSIONS=[];
+(function buildAnnualAgenda(){
+  const D=['2026-10-26','2026-10-27','2026-10-28','2026-10-29']; let id=2001;
+  const S=(day,start,end,room,product,title,trainers,cap,enr,type)=>TRAIN_SESSIONS.push({
+    id:id++,confId:ANNUAL_CONF.id,conf:ANNUAL_CONF.name,date:D[day],start,end,time:start,room,
+    product,track:product,title,trainers:trainers||[],trainer:(trainers&&trainers[0])||'TBD',
+    seats:cap,enrolled:enr,type:type||'Class'});
+  // ── Day 1 — Monday, Oct 26 (arrival & general sessions) ──
+  S(0,'1:00 PM','2:30 PM','Grand Ballroom','Keynote','Registration & Opening Keynote',['Travis Pruitt'],400,196,'Keynote');
+  S(0,'2:45 PM','3:45 PM','Grand Ballroom','Keynote',"What's New in Nucleus 2026",['Zach Perkins','Marc Sessoms'],400,171,'Keynote');
+  S(0,'4:00 PM','5:00 PM','Grand Ballroom','General','Product Roadmap & Open Q&A',['Travis Pruitt','Jordan Johnstone'],400,150,'General');
+  S(0,'6:00 PM','8:00 PM','Harbor Terrace','Social','Welcome Reception',[],400,0,'Social');
+  // ── Day 2 — Tuesday, Oct 27 (four breakout slots × tracks) ──
+  S(1,'9:00 AM','10:15 AM','Magnolia','CAD','CAD Call Entry & Dispatch Essentials',['Zach Perkins'],55,44,'Class');
+  S(1,'9:00 AM','10:15 AM','Cypress','RMS','RMS Records & NIBRS Reporting',['Debbie Stevens'],55,49,'Class');
+  S(1,'9:00 AM','10:15 AM','Palmetto','JMS','JMS Booking & Intake Workflow',['Nick Madray'],50,31,'Class');
+  S(1,'9:00 AM','10:15 AM','Live Oak','MDS/Mobile','MDS in the Field: Setup & Sync',['Jesse Merritt'],45,33,'Class');
+  S(1,'10:30 AM','11:45 AM','Magnolia','CAD','CAD Mapping & GEO Verification',['Chris Stanley'],55,38,'Class');
+  S(1,'10:30 AM','11:45 AM','Cypress','RMS','RMS Accreditation & State Exports',['Debbie Stevens','Jeanie West'],55,41,'Class');
+  S(1,'10:30 AM','11:45 AM','Palmetto','JMS','JMS Housing, Classification & Releases',['Nick Madray'],50,27,'Class');
+  S(1,'10:30 AM','11:45 AM','Azalea Lab','Admin','Hands-on Lab: Users, Permissions & Lookup Codes',['Dee Perez'],24,24,'Lab');
+  S(1,'1:15 PM','2:30 PM','Magnolia','CAD','CAD Unit Recommendations & Run Cards',['Zach Perkins'],55,36,'Class');
+  S(1,'1:15 PM','2:30 PM','Cypress','RMS','RMS Property & Evidence',['Amanda McKenzie'],55,34,'Class');
+  S(1,'1:15 PM','2:30 PM','Palmetto','MDS/Mobile','Citizen Connect & Public Portal',['Steve Bastarache'],50,29,'Class');
+  S(1,'1:15 PM','2:30 PM','Live Oak','Admin','Scheduled Reports & Command Line Searches',['Jordan Johnstone'],45,31,'Class');
+  S(1,'2:45 PM','4:00 PM','Magnolia','CAD','CAD Administration & Configuration',['Zach Perkins','Dan Barcus'],55,40,'Class');
+  S(1,'2:45 PM','4:00 PM','Cypress','RMS','RMS Analytics & Dashboards',['Chris Stanley'],55,28,'Class');
+  S(1,'2:45 PM','4:00 PM','Palmetto','JMS','JMS Commissary & Trust Accounting',['Nick Madray'],50,22,'Class');
+  S(1,'4:15 PM','5:15 PM','Grand Ballroom','General','Product Roundtables (CAD · RMS · JMS · Mobile)',['Dan Barcus','Debbie Stevens','Nick Madray'],200,88,'Roundtable');
+  // ── Day 3 — Wednesday, Oct 28 (breakouts + labs + certification) ──
+  S(2,'9:00 AM','10:15 AM','Magnolia','CAD','CAD EOC & Major Incident Mode',['Zach Perkins'],55,30,'Class');
+  S(2,'9:00 AM','10:15 AM','Cypress','RMS','RMS/JMS Searches & NCIC Interface',['Jeanie West'],55,45,'Class');
+  S(2,'9:00 AM','10:15 AM','Live Oak','MDS/Mobile','Mobile Field Reporting & eCitations',['Jesse Merritt'],45,26,'Class');
+  S(2,'9:00 AM','10:15 AM','Azalea Lab','Admin','Hands-on Lab: Building Reports',['Jordan Johnstone'],24,21,'Lab');
+  S(2,'10:30 AM','11:45 AM','Magnolia','CAD','CAD Interfaces: Radio, E911 & Paging',['Dan Barcus'],55,33,'Class');
+  S(2,'10:30 AM','11:45 AM','Cypress','RMS','QMS: Internal Affairs & Early Warning',['Amanda McKenzie'],55,24,'Class');
+  S(2,'10:30 AM','11:45 AM','Palmetto','JMS','JMS Analytics & State Reporting',['Nick Madray'],50,19,'Class');
+  S(2,'1:15 PM','2:30 PM','Magnolia','CAD','CAD Data Conversion Best Practices',['Zach Perkins','Marc Sessoms'],55,25,'Class');
+  S(2,'1:15 PM','2:30 PM','Cypress','RMS','RMS Certification Exam (optional)',['Debbie Stevens'],40,18,'Certification');
+  S(2,'1:15 PM','2:30 PM','Live Oak','MDS/Mobile','Watch Manager & Scheduling',['Steve Bastarache'],45,22,'Class');
+  S(2,'6:30 PM','9:00 PM','Grand Ballroom','Social','Awards Banquet & Charity Auction',[],400,0,'Social');
+  // ── Day 4 — Thursday, Oct 29 (morning + closing) ──
+  S(3,'9:00 AM','10:15 AM','Magnolia','CAD','Ask the CAD Experts',['Zach Perkins','Dan Barcus'],55,29,'Roundtable');
+  S(3,'9:00 AM','10:15 AM','Cypress','RMS','Ask the RMS/JMS Experts',['Debbie Stevens','Nick Madray'],55,26,'Roundtable');
+  S(3,'10:30 AM','11:30 AM','Grand Ballroom','General','Closing Session & Prize Drawing',['Travis Pruitt'],400,140,'Keynote');
+})();
+// Standalone / other-conference sessions (FMS + a virtual class linked to its conference)
+TRAIN_SESSIONS.push(
+  {id:105,confId:null,conf:'FMS Users Conference',title:'General Ledger Year-End',date:'2026-09-10',start:'9:00 AM',end:'10:30 AM',time:'9:00 AM',room:'Room 1',product:'FMS',track:'FMS',trainers:['Matt Pittman'],trainer:'Matt Pittman',seats:30,enrolled:24,type:'Class'},
+  {id:106,confId:null,conf:'FMS Users Conference',title:'Utility Billing & Invoice Cloud',date:'2026-09-10',start:'1:00 PM',end:'2:30 PM',time:'1:00 PM',room:'Room 2',product:'FMS',track:'FMS',trainers:['Cameron Reynolds'],trainer:'Cameron Reynolds',seats:30,enrolled:17,type:'Class'}
+);
+// Return the sessions for a conference; virtual conferences synthesize a single online class from their own record.
+function sessionsForConf(c){
+  if(!c) return [];
+  const byId=TRAIN_SESSIONS.filter(s=>s.confId&&String(s.confId)===String(c.id));
+  if(byId.length) return byId;
+  const isVirtual=(c.type||'').toLowerCase().includes('virtual');
+  if(isVirtual){ return [{id:'v'+c.id,confId:c.id,conf:c.name,title:c.name,date:c.start,start:'2:00 PM',end:'3:30 PM',time:'2:00 PM',room:'Online (Zoom)',product:confProduct(c.name),track:confProduct(c.name),trainers:['SS Training'],trainer:'SS Training',seats:c.max||200,enrolled:c.registered||0,type:'Virtual Class',_synth:true}]; }
+  return [];
+}
+function confProduct(name){ const t=(name||'').toLowerCase(); if(/cad/.test(t))return'CAD'; if(/rms/.test(t))return'RMS'; if(/jms/.test(t))return'JMS'; if(/qms/.test(t))return'RMS'; if(/mds|mobile|citizen/.test(t))return'MDS/Mobile'; if(/fms|ledger|billing|payroll/.test(t))return'FMS'; return'General'; }
+let MY_SESSIONS={2005:{registered:true,attended:false,feedback:null},2009:{registered:true,attended:false,feedback:null},105:{registered:true,attended:false,feedback:null}};
 let _feedbackFor=null;
 function sReg(id){ return MY_SESSIONS[id]||{registered:false,attended:false,feedback:null}; }
 function renderMyAgenda(){
@@ -3252,9 +3307,12 @@ function sessRow(s,inAgenda){
   } else {
     right=r.registered?`<span style="font-size:11px;color:#22c55e">✓ Registered</span>`:(full?`<span style="font-size:11px;color:#ef4444">Full</span>`:`<button class="btn btn-ghost btn-xs" onclick="sessRegister(${s.id})">Register</button>`);
   }
+  const tc=(typeof TRACK_COL!=='undefined'&&TRACK_COL[s.product])||'#3b82f6';
+  const when=(s.start&&s.end)?(s.start+'–'+s.end):(s.time||'');
+  const trs=(s.trainers&&s.trainers.length)?s.trainers.join(', '):(s.trainer||'');
   return `<div class="proj-row" style="cursor:default"><span style="font-size:1.1rem">🎓</span>
-    <div class="proj-info"><div class="proj-name">${escH(s.title)} <span style="font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;color:#3b82f6;background:#3b82f622">${escH(s.product)}</span></div>
-    <div class="proj-meta">${escH(s.conf)} · ${fmtLong(s.date)} ${escH(s.time)} · ${escH(s.room)} · ${escH(s.trainer)} · ${s.enrolled}/${s.seats}${inAgenda?' · code '+s.id:''}</div></div>
+    <div class="proj-info"><div class="proj-name">${escH(s.title)} <span style="font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;color:${tc};background:${tc}22">${escH(s.product)}</span></div>
+    <div class="proj-meta">${escH(s.conf)} · ${fmtLong(s.date)} ${escH(when)} · ${escH(s.room)}${trs?' · '+escH(trs):''} · ${s.enrolled}/${s.seats}${inAgenda?' · code '+s.id:''}</div></div>
     <div class="proj-right">${right}</div></div>`;
 }
 function agendaDraw(){
@@ -4571,28 +4629,111 @@ function renderTrainConf(){
         <div class="proj-info"><div class="proj-name">${escH(c.name)}</div>
         <div class="proj-meta">${c.start?fmt(c.start):''}${c.end&&c.end!==c.start?'–'+fmt(c.end):''}${c.type?' · '+escH(c.type):''}${c.venue?' · '+escH(c.venue):(c.city?' · '+escH(c.city):'')}${c.state?' ('+escH(c.state)+')':''}</div></div>
         <div class="proj-right" style="display:flex;align-items:center;gap:8px">
+          ${(()=>{const n=sessionsForConf(c).length;return n?`<span title="Classes / sessions" style="font-size:11px;color:var(--v-text3)">🎓 ${n} class${n!==1?'es':''}</span>`:'';})()}
           <span style="font-size:11px;color:var(--v-text3)">${c.registered} reg${c.max?'/'+c.max:''}</span>
           <span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${stCol[c.status]||'var(--v-text3)'};background:${(stCol[c.status]||'var(--v-text3)')}22">${escH(c.status||'—')}</span>
         </div></div>`;}).join('')||`<div class="empty"><div class="empty-i">🎟️</div><div class="empty-h">No conferences match</div></div>`;
   };
   $('tc-s').oninput=draw; $('tc-type').onchange=draw; $('tc-status').onchange=draw; $('tc-year').onchange=draw; draw();
 }
+let _confDetailIdx=null, _confTrack='';
 function trainConfDetail(idx){
   const c=(typeof TRAIN_CONF!=='undefined'?TRAIN_CONF:[])[idx]; if(!c) return;
+  _confDetailIdx=idx;
   const info=(l,v)=>v?`<div style="display:flex;justify-content:space-between;gap:14px;padding:5px 0;border-bottom:1px solid var(--v-hair2)"><span style="font-size:12px;color:var(--v-text3)">${l}</span><span style="font-size:12px;color:var(--v-text);text-align:right">${escH(v)}</span></div>`:'';
-  const roster=(c.roster||[]);
-  const rHtml=roster.length?roster.map(a=>`<div style="display:flex;gap:10px;padding:4px 0;border-bottom:1px solid var(--v-hair2);font-size:12px;align-items:center"><span style="flex:1;color:var(--v-text)">${escH(a.n)}</span><span style="color:var(--v-text3);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(a.a||'')}${a.s?' · '+escH(a.s):''}</span>${a.c?'<span style="font-size:10px;color:#4ade80">✓ checked in</span>':''}</div>`).join('')
-      +(c.registered>roster.length?`<div style="font-size:11px;color:var(--v-text4);padding:6px 0">Showing ${roster.length} of ${c.registered} registrations.</div>`:'')
-    :'<div style="color:var(--v-text4);font-size:13px">No registrations yet.</div>';
   const stat=(n,l,col)=>`<div style="flex:1;min-width:74px;background:var(--v-surface);border:1px solid var(--v-hair);border-radius:10px;padding:9px 8px;text-align:center"><div style="font-size:18px;font-weight:800;color:${col}">${n}</div><div style="font-size:10px;color:var(--v-text3)">${l}</div></div>`;
-  showModal('🎟️ '+c.name,`<div class="fstack" style="max-height:72vh;overflow:auto">
+  const sessions=sessionsForConf(c);
+  const canEdit=(typeof isAdmin==='function'&&isAdmin())||can('kb_edit');
+  const myN=sessions.filter(s=>sReg(s.id).registered).length;
+  const tracks=[...new Set(sessions.map(s=>s.product))];
+  // group sessions by day
+  const days=[...new Set(sessions.map(s=>s.date))].sort();
+  const tmin=t=>{ if(!t)return 0; const m=t.match(/(\d+):(\d+)\s*(AM|PM)?/i); if(!m)return 0; let h=+m[1]%12; if(/pm/i.test(m[3]||''))h+=12; return h*60+ +m[2]; };
+  const shown=sessions.filter(s=>!_confTrack||s.product===_confTrack);
+  let agendaHtml;
+  if(!sessions.length){
+    agendaHtml=`<div style="color:var(--v-text4);font-size:13px;padding:8px 0">No class schedule yet.${canEdit?' Use “＋ Add class” to build the agenda.':''}</div>`;
+  } else {
+    agendaHtml=days.map(d=>{
+      const rows=shown.filter(s=>s.date===d).sort((a,b)=>tmin(a.start)-tmin(b.start));
+      if(!rows.length) return '';
+      const dt=new Date(d+'T12:00:00');
+      const dname=dt.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+      return `<div style="margin-top:12px"><div style="font-size:12px;font-weight:800;color:var(--v-text);border-bottom:2px solid var(--v-hair3);padding-bottom:4px;margin-bottom:6px">${dname}</div>
+        ${rows.map(s=>confSessionRow(idx,s)).join('')}</div>`;
+    }).join('');
+  }
+  const trackChips=tracks.length>1?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 2px">
+      <span onclick="_confTrack='';trainConfDetail(${idx})" style="cursor:pointer;font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid var(--v-hair3);${!_confTrack?'background:var(--blue);color:#fff':'color:var(--v-text3)'}">All</span>
+      ${tracks.map(t=>{const col=(TRACK_COL[t]||'#3b82f6');return `<span onclick="_confTrack='${t}';trainConfDetail(${idx})" style="cursor:pointer;font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid ${col}55;${_confTrack===t?`background:${col};color:#fff`:`color:${col}`}">${escH(t)}</span>`;}).join('')}
+    </div>`:'';
+  showModal((c.type&&c.type.toLowerCase().includes('virtual')?'💻 ':'🎟️ ')+c.name,`<div class="fstack" style="max-height:74vh;overflow:auto">
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      ${stat(c.registered,'Registered','#3b82f6')}${stat(c.checkedIn,'Checked in','#22c55e')}${stat(c.max||'—','Capacity','#a855f7')}
+      ${stat(sessions.length,'Classes','#3b82f6')}${stat(myN,'My sessions','#22c55e')}${stat(days.length||'—','Days','#a855f7')}${stat(c.registered,'Registered','#eab308')}
     </div>
-    <div class="fg"><div>${info('Type',c.type)}${info('Category',c.category)}${info('Dates',(c.start?fmt(c.start):'')+(c.end&&c.end!==c.start?'–'+fmt(c.end):''))}${info('Venue',c.venue)}${info('Location',[c.city,c.state].filter(Boolean).join(', '))}${info('Status',c.status)}${info('Registration',c.regStatus)}${info('Year',c.year)}</div></div>
-    <div class="fg"><label class="fl">Attendee Roster (${c.registered})</label>${rHtml}</div>
-  </div>`,`<button class="btn btn-ghost btn-sm" onclick="closeModal();showTrainConfForm(${idx})">✏️ Edit</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Done</button>`);
+    <div class="fg"><div>${info('Type',c.type)}${info('Category',c.category)}${info('Dates',(c.start?fmt(c.start):'')+(c.end&&c.end!==c.start?'–'+fmt(c.end):''))}${info('Venue',c.venue)}${info('Location',[c.city,c.state].filter(Boolean).join(', '))}${info('Status',c.status)}${info('Registration',c.regStatus)}</div></div>
+    <div class="fg"><div style="display:flex;justify-content:space-between;align-items:center"><label class="fl" style="margin:0">Class Schedule (${sessions.length})</label>${canEdit&&!(sessions[0]&&sessions[0]._synth)?`<button class="btn btn-ghost btn-xs" onclick="confAddClass(${idx})">＋ Add class</button>`:''}</div>
+      ${trackChips}
+      <div style="font-size:11px;color:var(--v-text4);margin:4px 0 2px">Register for a class, then check in on the day with the code shown in the room, and leave feedback afterward.</div>
+      ${agendaHtml}</div>
+  </div>`,`<button class="btn btn-ghost btn-sm" onclick="closeModal();showTrainConfForm(${idx})">✏️ Edit conference</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Done</button>`);
 }
+function confSessionRow(idx,s){
+  const r=sReg(s.id); const full=s.enrolled>=s.seats && !r.registered;
+  const tc=(TRACK_COL[s.product]||'#3b82f6');
+  const trs=(s.trainers&&s.trainers.length)?s.trainers.join(', '):(s.trainer||'');
+  const social=s.type==='Social';
+  let action='';
+  if(social){ action=`<span style="font-size:11px;color:var(--v-text4)">Open to all</span>`; }
+  else if(!r.registered){ action=full?`<span style="font-size:11px;color:#ef4444;font-weight:700">Full</span>`:`<button class="btn btn-ghost btn-xs" onclick="confReg(${idx},'${s.id}')">Register</button>`; }
+  else if(!r.attended){ action=`<input id="cci-${s.id}" placeholder="Code" style="width:64px;padding:4px 6px;font-size:12px;background:var(--v-surface-solid);color:var(--v-text);border:1px solid var(--border);border-radius:6px"><button class="btn btn-primary btn-xs" onclick="confCheckin(${idx},'${s.id}')">Check in</button> <button class="btn btn-ghost btn-xs" onclick="confReg(${idx},'${s.id}')" title="Cancel registration">✕</button>`; }
+  else { action=`<span style="font-size:11px;font-weight:700;color:#22c55e;background:#22c55e22;padding:2px 8px;border-radius:999px">✓ In</span>`+(r.feedback?` <span style="font-size:11px;color:#a855f7" title="Your rating">★${r.feedback.overall}</span>`:` <button class="btn btn-ghost btn-xs" onclick="confFeedbackOpen(${idx},'${s.id}')">Feedback</button>`); }
+  return `<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--v-hair2)">
+    <div style="min-width:118px;font-size:11px;color:var(--v-text3);white-space:nowrap">${escH(s.start||s.time||'')}${s.end?'–'+escH(s.end):''}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;color:var(--v-text);font-weight:600">${escH(s.title)} <span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;color:${tc};background:${tc}22">${escH(s.product)}</span>${s.type&&!['Class','Social'].includes(s.type)?` <span style="font-size:10px;color:var(--v-text4)">${escH(s.type)}</span>`:''}</div>
+      <div style="font-size:11px;color:var(--v-text4);margin-top:1px">📍 ${escH(s.room||'TBD')}${trs?' · 👤 '+escH(trs):''}${!social?' · '+s.enrolled+'/'+s.seats:''}${r.registered&&!social?' · code '+s.id:''}</div>
+    </div>
+    <div style="text-align:right;white-space:nowrap">${action}</div>
+  </div>`;
+}
+function confReg(idx,sid){ const s=TRAIN_SESSIONS.find(x=>String(x.id)===String(sid)); if(!s) return; const r=sReg(sid);
+  if(r.registered){ delete MY_SESSIONS[sid]; if(s.enrolled>0)s.enrolled--; toast('Registration cancelled'); }
+  else { if(s.enrolled>=s.seats){ toast('Session is full'); return; } MY_SESSIONS[sid]={registered:true,attended:false,feedback:null}; s.enrolled++; toast('Registered — check-in code '+sid); }
+  trainConfDetail(idx);
+}
+function confCheckin(idx,sid){ const inp=$('cci-'+sid); const code=inp&&inp.value.trim(); if(String(code)!==String(sid)){ toast('Check-in code is '+sid); return; } MY_SESSIONS[sid]=MY_SESSIONS[sid]||{registered:true,feedback:null}; MY_SESSIONS[sid].attended=true; toast('Checked in ✓'); trainConfDetail(idx); }
+function confFeedbackOpen(idx,sid){ const s=TRAIN_SESSIONS.find(x=>String(x.id)===String(sid)); if(!s) return;
+  showModal('★ Feedback — '+escH(s.title),`<div class="fstack">
+    ${['Overall','Content','Instructor','Pace'].map(k=>`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:var(--v-text3);width:80px">${k}</span><select class="fc" id="cfb-${k.toLowerCase()}" style="width:auto;padding:5px 10px">${[5,4,3,2,1].map(n=>`<option value="${n}">${'★'.repeat(n)} (${n})</option>`).join('')}</select></div>`).join('')}
+    <div class="fg"><label class="fl">Comments</label><textarea class="fc" id="cfb-c" rows="2" placeholder="What worked / what to improve"></textarea></div>
+  </div>`,`<button class="btn btn-ghost btn-sm" onclick="trainConfDetail(${idx})">Back</button><button class="btn btn-primary btn-sm" onclick="confFeedbackSave(${idx},'${sid}')">Submit</button>`);
+}
+function confFeedbackSave(idx,sid){ MY_SESSIONS[sid]=MY_SESSIONS[sid]||{registered:true,attended:true}; MY_SESSIONS[sid].feedback={overall:+$('cfb-overall').value,content:+$('cfb-content').value,instructor:+$('cfb-instructor').value,pace:+$('cfb-pace').value,comments:$('cfb-c').value.trim()}; toast('Thanks for your feedback!'); trainConfDetail(idx); }
+function confAddClass(idx,sid){
+  const c=TRAIN_CONF[idx]; const editing=sid?TRAIN_SESSIONS.find(x=>String(x.id)===String(sid)):null;
+  const products=['CAD','RMS','JMS','MDS/Mobile','Admin','General','Keynote','FMS'];
+  const staff=(S.profiles||[]).map(p=>p.full_name);
+  showModal(editing?'Edit class':'＋ Add class — '+escH(c.name),`<div class="fstack">
+    <div class="fg"><label class="fl">Class title *</label><input class="fc" id="cl-title" value="${editing?escH(editing.title):''}" placeholder="e.g. CAD Dispatch Essentials"></div>
+    <div class="fg2"><div class="fg"><label class="fl">Date</label><input class="fc" type="date" id="cl-date" value="${editing?editing.date:(c.start||'')}"></div>
+      <div class="fg"><label class="fl">Track</label><select class="fc" id="cl-track">${products.map(p=>`<option ${editing&&editing.product===p?'selected':''}>${p}</option>`).join('')}</select></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">Start time</label><input class="fc" id="cl-start" value="${editing?escH(editing.start||''):'9:00 AM'}" placeholder="9:00 AM"></div>
+      <div class="fg"><label class="fl">End time</label><input class="fc" id="cl-end" value="${editing?escH(editing.end||''):'10:15 AM'}" placeholder="10:15 AM"></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">Room</label><input class="fc" id="cl-room" value="${editing?escH(editing.room||''):''}" placeholder="Magnolia"></div>
+      <div class="fg"><label class="fl">Capacity</label><input class="fc" type="number" min="1" id="cl-cap" value="${editing?editing.seats:50}"></div></div>
+    <div class="fg"><label class="fl">Trainer(s)</label><input class="fc" id="cl-trainers" value="${editing?escH((editing.trainers||[]).join(', ')):''}" placeholder="Comma-separated, e.g. Zach Perkins, Dan Barcus" list="cl-staff"><datalist id="cl-staff">${staff.map(n=>`<option value="${escH(n)}">`).join('')}</datalist></div>
+  </div>`,`${editing?`<button class="btn btn-ghost btn-sm" onclick="confDelClass(${idx},'${sid}')" style="color:#ef4444">🗑 Delete</button>`:''}<button class="btn btn-ghost btn-sm" onclick="trainConfDetail(${idx})">Cancel</button><button class="btn btn-primary btn-sm" onclick="confSaveClass(${idx}${editing?`,'${sid}'`:''})">Save class</button>`);
+}
+function confSaveClass(idx,sid){
+  const c=TRAIN_CONF[idx]; const title=$('cl-title').value.trim(); if(!title){ toast('Title required'); return; }
+  const trainers=$('cl-trainers').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const rec={date:$('cl-date').value,product:$('cl-track').value,track:$('cl-track').value,start:$('cl-start').value.trim(),end:$('cl-end').value.trim(),time:$('cl-start').value.trim(),room:$('cl-room').value.trim(),seats:parseInt($('cl-cap').value,10)||50,trainers,trainer:trainers[0]||'TBD',title};
+  if(sid){ const s=TRAIN_SESSIONS.find(x=>String(x.id)===String(sid)); if(s)Object.assign(s,rec); toast('Class updated'); }
+  else { const nid=Math.max(2000,...TRAIN_SESSIONS.map(x=>+x.id||0))+1; TRAIN_SESSIONS.push(Object.assign({id:nid,confId:c.id,conf:c.name,enrolled:0,type:'Class'},rec)); toast('Class added — code '+nid); }
+  trainConfDetail(idx);
+}
+function confDelClass(idx,sid){ const i=TRAIN_SESSIONS.findIndex(x=>String(x.id)===String(sid)); if(i>-1)TRAIN_SESSIONS.splice(i,1); toast('Class removed'); trainConfDetail(idx); }
 function showTrainConfForm(idx){
   const c=idx!=null?TRAIN_CONF[idx]:null;
   const types=['In-Person','Virtual','Hybrid']; if(c&&c.type&&!types.includes(c.type))types.unshift(c.type);
