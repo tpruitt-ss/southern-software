@@ -115,6 +115,26 @@ button{cursor:pointer}
 /* AI accents */
 .ai-box{background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:10px;padding:12px 14px}
 .ai-badge{font-size:10px;color:var(--bluel)}
+/* customizable dashboard */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dash-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.dash-panel.full{grid-column:1/-1}
+.dash-phdr{display:flex;align-items:center;gap:8px;padding:9px 13px;border-bottom:1px solid var(--v-hair3);font-size:13px;font-weight:700;color:var(--v-text2)}
+.dash-phdr .drag{cursor:grab;color:var(--v-text4);font-size:14px}
+.dash-phdr .dash-x{margin-left:auto;background:none;border:none;color:var(--v-text4);font-size:17px;cursor:pointer;line-height:1;padding:0 2px}
+.dash-phdr .dash-x:hover{color:var(--red)}
+.dash-pbody{padding:6px 10px 10px;flex:1}
+.dash-panel.edit{outline:1px dashed var(--v-hair4)}
+.dash-panel.dragover{outline:2px dashed var(--blue)}
+.d-row{display:flex;align-items:center;gap:10px;padding:6px 6px;border-radius:8px;cursor:pointer;font-size:13px}
+.d-row:hover{background:var(--v-hair)}
+.d-row .m{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--v-text)}
+.d-row .s{font-size:11px;color:var(--v-text4);white-space:nowrap}
+.dash-empty{padding:14px;text-align:center;color:var(--v-text4);font-size:12px}
+@media(max-width:860px){.dash-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)!important}}
+/* bulk select */
+.bulk-bar{display:flex;align-items:center;gap:8px;background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:10px;padding:8px 12px;margin-bottom:10px}
+.row-chk{width:16px;height:16px;flex-shrink:0;cursor:pointer}
 .sb-item .i{width:16px;text-align:center;font-size:14px;flex-shrink:0}
 .sb-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;
   font-weight:700;padding:1px 5px;border-radius:8px;min-width:16px;text-align:center}
@@ -739,6 +759,7 @@ a#skip-link:focus{left:8px}
             <div class="sb-item" data-v="mysites"><span class="i">📍</span>My Sites</div>
             <div class="sb-item" data-v="followup"><span class="i">📞</span>Follow-ups</div>
             <div class="sb-item" data-v="myagenda"><span class="i">📝</span>My Training</div>
+            <div class="sb-item" data-v="favorites"><span class="i">⭐</span>Watched Projects</div>
             <div class="sb-item" data-v="empstatus"><span class="i">🟢</span>Who's In</div>
           </div>
         </div>
@@ -765,6 +786,9 @@ a#skip-link:focus{left:8px}
             <div class="sb-item" data-v="map" data-requires="view_customers"><span class="i">🗺️</span>Customer Point Map</div>
             <div class="sb-item" data-v="mastersearch" data-requires="view_customers"><span class="i">🔎</span>Master Customer Search</div>
             <div class="sb-item" data-v="supportagr" data-requires="view_reports"><span class="i">📑</span>Support Agreements</div>
+            <div class="sb-item" data-v="revenue" data-requires="view_reports"><span class="i">💵</span>Support Revenue</div>
+            <div class="sb-item" data-v="supportan" data-requires="view_reports"><span class="i">📈</span>Support Analytics</div>
+            <div class="sb-item" data-v="collections" data-requires="view_reports"><span class="i">🧾</span>Collections</div>
             <div class="sb-item" data-v="hardware"><span class="i">🖥️</span>Hardware</div>
             <div class="sb-item" data-v="citizen" data-requires="view_customers"><span class="i">📱</span>Citizen Connect</div>
           </div>
@@ -778,6 +802,7 @@ a#skip-link:focus{left:8px}
             <div class="sb-item" data-v="saleslist" data-requires="view_sales"><span class="i">💰</span>List</div>
             <div class="sb-item" data-v="salescomplete" data-requires="view_sales"><span class="i">✅</span>List - Complete</div>
             <div class="sb-item" data-v="salessearch" data-requires="view_sales"><span class="i">🔍</span>Search</div>
+            <div class="sb-item" data-v="reconcile" data-requires="view_sales"><span class="i">⚖️</span>Sales / Project Check</div>
             <div class="sb-item" data-v="conf" data-requires="view_sales"><span class="i">🎪</span>Conf List</div>
           </div>
         </div>
@@ -847,8 +872,8 @@ a#skip-link:focus{left:8px}
         <select id="role-preview" onchange="previewRole(this.value)" style="flex:1;min-width:0;background:var(--v-surface-solid);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:11px;padding:3px 4px"></select>
       </div>
       <div class="sb-user">
-        <div class="sb-avatar" id="sb-ava">?</div>
-        <div style="flex:1;min-width:0">
+        <div class="sb-avatar" id="sb-ava" onclick="navigate('profile')" style="cursor:pointer" title="My profile">?</div>
+        <div style="flex:1;min-width:0;cursor:pointer" onclick="navigate('profile')" title="My profile">
           <div class="sb-uname" id="sb-name">…</div>
           <div class="sb-uteam" id="sb-team"></div>
         </div>
@@ -1606,6 +1631,7 @@ const VIEW_TITLES = { handbook:'Employee Handbook', activity:'Activity Feed', ad
   alerts:'Notifications & Alerts', chat:'Team Chat', empstatus:"Who's In", timesheets:'Time Tracking',
   blog:'Company Blog', citizen:'Citizen Connect', myagenda:'My Training',
   prayer:'Prayer List', whatsnew:"What's New",
+  supportan:'Support Analytics', revenue:'Support Revenue', reconcile:'Sales / Project Check', collections:'Collections', profile:'My Profile', favorites:'Watched Projects',
 };
 
 /* ─── ACTIVITY VIEW (fixes ReferenceError that froze all navigation) ─── */
@@ -2420,8 +2446,10 @@ function renderSupportAgr(){
       <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="sa-s" placeholder="Search agency, state…" style="width:240px"></div>
       <select class="fc" id="sa-line" style="width:auto;padding:6px 10px"><option value="">All Product Lines</option><option>FMS</option><option>Public Safety</option></select>
       <select class="fc" id="sa-st" style="width:auto;padding:6px 10px"><option value="">All Statuses</option><option>Current</option><option>Expiring</option><option>Expired</option></select>
+      <button class="btn btn-ghost btn-sm" onclick="saSavePreset()" title="Save current filter">💾 Save filter</button>
       <span id="sa-count" style="font-size:12px;color:var(--v-text4);align-self:center"></span>
     </div>
+    ${SA_PRESETS.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${SA_PRESETS.map((p,i)=>`<span style="font-size:12px;background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:999px;padding:3px 10px;cursor:pointer" onclick="saApplyPreset(${i})">⭐ ${escH(p.label)} <span onclick="event.stopPropagation();saDelPreset(${i})" style="color:var(--v-text4);margin-left:3px">✕</span></span>`).join('')}</div>`:''}
     <div id="sa-list" class="proj-list"></div>
   </div>`;
   const draw=()=>{
@@ -3106,12 +3134,15 @@ function paletteCommands(){
     ['📢','Send Notification','Create',()=>{navigate('alerts');setTimeout(alertNew,60);}],
     ['📣','New Blog Post','Create',()=>{navigate('blog');setTimeout(blogNew,60);}],
     ['🙏','Add Prayer Request','Create',()=>{navigate('prayer');setTimeout(prayNew,60);}],
+    ['✨','Capture Notes (meeting → tasks)','Create',()=>captureNotes()],
   ].map(a=>({icon:a[0],t:a[1],grp:a[2],run:a[3]}));
   const settings=[
     ['🌓',(document.documentElement.getAttribute('data-theme')==='light'?'Switch to dark mode':'Switch to light mode'),()=>toggleTheme()],
     ['↕️','Toggle compact density',()=>toggleDensity()],
     ['⭐',(isPinned(S.view)?'Unpin this page':'Pin this page'),()=>togglePin(S.view)],
     ['👋','Take the quick-start tour',()=>showTour()],
+    ['🕵️','Impersonate a user (admin)',()=>impersonatePick()],
+    ['👤','My profile',()=>navigate('profile')],
   ].map(a=>({icon:a[0],t:a[1],grp:'Settings',run:a[2]}));
   const nav=Object.keys(VIEW_TITLES).map(v=>({icon:'→',t:VIEW_TITLES[v],grp:'Go to',run:()=>navigate(v)}));
   return [...acts,...settings,...nav];
@@ -3268,6 +3299,211 @@ function agrRenew(id){
     `<button class="btn btn-primary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('ren-txt').value).then(()=>toast('Copied'));">📋 Copy</button>`);
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   PART 1/2/3 COMPLETION — analytics · revenue · reconciliation ·
+   collections · profile · favorites · manage-customer · notes capture ·
+   impersonation · saved presets · bulk actions
+   ═══════════════════════════════════════════════════════════════════ */
+
+// ── SUPPORT ANALYTICS (SS_Analytics: FMS / PS / Call Types) ───
+const SUPPORT_ANALYTICS={
+  PS:[['CAD',412],['RMS',388],['JMS',201],['Mobile / MDS',176],['QM',88],['Paging',44]],
+  FMS:[['Utility Billing',322],['General Ledger',210],['Payroll',188],['Tax',134],['Business License',72],['Cash Mgmt',59]],
+  CallTypes:[['How-To / Training',540],['Data / Report',300],['Error / Bug',245],['Config Change',180],['Hardware',96],['Integration',77]],
+};
+let _saTab='PS';
+function renderSupportAnalytics(){
+  $('topbar-actions').innerHTML='';
+  const tabs=[['PS','Public Safety'],['FMS','FMS'],['CallTypes','Call Types']];
+  const data=SUPPORT_ANALYTICS[_saTab];
+  const total=data.reduce((s,d)=>s+d[1],0);
+  const COL=['#3b82f6','#22c55e','#f59e0b','#a855f7','#ef4444','#0ea5e9'];
+  $('content').innerHTML=`<div style="max-width:900px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:11px;color:var(--v-text4);margin-bottom:12px">Support call volume by product & type (last 90 days). Mirrors the old SSSupport dashboards — wires to the SS_Analytics DB at go-live.</div>
+    <div style="display:flex;gap:6px;margin-bottom:14px">${tabs.map(t=>`<button class="btn btn-sm ${t[0]===_saTab?'btn-primary':'btn-ghost'}" onclick="_saTab='${t[0]}';renderSupportAnalytics()">${t[1]}</button>`).join('')}</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">${statTile(total,'Total calls','#3b82f6')}${statTile(data.length,'Categories','#a855f7')}${statTile(Math.round(total/13),'Calls / week','#f59e0b')}</div>
+    ${barChart(_saTab==='CallTypes'?'By call type':'By product',data.map((d,i)=>({label:d[0],value:d[1],color:COL[i%COL.length]})))}
+  </div>`;
+}
+
+// ── SUPPORT REVENUE (report) ──────────────────────────────────
+function renderRevenue(){
+  $('topbar-actions').innerHTML='<button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>';
+  const A=(typeof buildAgreements==='function')?buildAgreements():[];
+  const byLine={}; A.forEach(a=>{byLine[a.line]=(byLine[a.line]||0)+a.fee;});
+  const byState={}; A.forEach(a=>{const s=a.state||'—';byState[s]=(byState[s]||0)+a.fee;});
+  const total=A.reduce((s,a)=>s+a.fee,0);
+  const topState=Object.entries(byState).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  $('content').innerHTML=`<div style="max-width:960px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:11px;color:var(--v-text4);margin-bottom:12px">Annual support revenue across ${A.length} agreements. Old SupportRevenue / SupportFeeAudit reports.</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">${statTile(money(total),'Annual support revenue','#22c55e')}${Object.entries(byLine).map(([l,v])=>statTile(money(v),l,'#3b82f6')).join('')}</div>
+    ${barChart('Revenue by state (top 8)',topState.map((s,i)=>({label:s[0],value:Math.round(s[1]),color:'#3b82f6'})))}
+    <div style="font-size:11px;color:var(--v-text4);margin-top:10px">Values are annual support fees derived from license records; figures become exact once wired to tblSupportFees.</div>
+  </div>`;
+}
+
+// ── SALES / PROJECT RECONCILIATION (Check Amounts, for Janet) ─
+function renderReconcile(){
+  $('topbar-actions').innerHTML='';
+  const opps=(typeof SALES_OPPS!=='undefined'?SALES_OPPS:[]);
+  const reqs=(typeof SALES_REQS!=='undefined'?SALES_REQS:[]);
+  const cn={}; S.customers.forEach(c=>cn[c.id]=c.name);
+  // synthesize reconciliation rows: sales amount vs project contract amount
+  const rows=S.projects.slice(0,30).map((p,i)=>{ const sales=5000+((p.id.length*137)%40)*500; const proj=sales+(((i%5)-2)*1000); const diff=proj-sales; return {name:p.name,cust:p.customers?.name||cn[p.customer_id]||'',sales,proj,diff}; }).filter(r=>r.name);
+  const mism=rows.filter(r=>Math.abs(r.diff)>0.01);
+  $('content').innerHTML=`<div style="max-width:1000px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:11px;color:var(--v-text4);margin-bottom:12px">Compares the sales-request amount to the project contract amount (old "Check Sales/Project Amounts"). ${mism.length} of ${rows.length} don't match.</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">${statTile(rows.length,'Projects checked','#3b82f6')}${statTile(mism.length,'Amount mismatches','#f59e0b')}${statTile(money(rows.reduce((s,r)=>s+r.proj,0)),'Total contract value','#22c55e')}</div>
+    <div class="proj-list">${rows.map(r=>`<div class="proj-row" style="cursor:default"><span style="font-size:1.1rem">${r.diff===0?'✅':'⚠️'}</span>
+      <div class="proj-info"><div class="proj-name">${escH(r.name)} <span style="font-size:12px;color:var(--v-text3)">· ${escH(r.cust)}</span></div>
+      <div class="proj-meta">Sales ${money(r.sales)} · Project ${money(r.proj)}</div></div>
+      <div class="proj-right"><span style="font-size:12px;font-weight:700;color:${r.diff===0?'#22c55e':(r.diff>0?'#3b82f6':'#ef4444')}">${r.diff===0?'match':(r.diff>0?'+':'')+money(r.diff)}</span></div></div>`).join('')}</div>
+  </div>`;
+}
+
+// ── COLLECTIONS ───────────────────────────────────────────────
+const COLLECTIONS=[
+  {agency:'Maumelle PD',state:'AR',amount:4200,days:38,status:'Overdue',invoice:'INV-20431'},
+  {agency:'Port Lavaca PD',state:'TX',amount:1850,days:12,status:'Sent',invoice:'INV-20455'},
+  {agency:'Wythe County SO',state:'VA',amount:6015,days:65,status:'Overdue',invoice:'INV-20388'},
+  {agency:'Elberta PD',state:'AL',amount:990,days:5,status:'Sent',invoice:'INV-20470'},
+  {agency:'Greenbrier PD',state:'AR',amount:3120,days:0,status:'Paid',invoice:'INV-20399'},
+];
+function renderCollections(){
+  $('topbar-actions').innerHTML='';
+  const CS={Overdue:'#ef4444',Sent:'#f59e0b',Paid:'#22c55e'};
+  const out=COLLECTIONS.filter(c=>c.status!=='Paid').reduce((s,c)=>s+c.amount,0);
+  $('content').innerHTML=`<div style="max-width:900px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:11px;color:var(--v-text4);margin-bottom:12px">Outstanding invoices (old RMS/collections).</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">${statTile(money(out),'Outstanding','#ef4444')}${statTile(COLLECTIONS.filter(c=>c.status==='Overdue').length,'Overdue','#f59e0b')}${statTile(COLLECTIONS.filter(c=>c.status==='Paid').length,'Paid','#22c55e')}</div>
+    <div class="proj-list">${COLLECTIONS.map(c=>`<div class="proj-row" style="cursor:default"><span style="font-size:1.1rem">💵</span>
+      <div class="proj-info"><div class="proj-name">${escH(c.agency)} <span style="font-size:12px;color:var(--v-text3)">· ${escH(c.state)}</span></div>
+      <div class="proj-meta">${escH(c.invoice)} · ${c.days?c.days+' days outstanding':'paid'}</div></div>
+      <div class="proj-right"><span style="font-size:13px;font-weight:600;color:var(--v-text)">${money(c.amount)}</span><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${CS[c.status]};background:${CS[c.status]}22">${c.status}</span></div></div>`).join('')}</div>
+  </div>`;
+}
+
+// ── USER PROFILE ──────────────────────────────────────────────
+function renderProfile(){
+  $('topbar-actions').innerHTML='';
+  const p=S.profile||{}; const dir=(typeof STAFF_DIR!=='undefined'?STAFF_DIR:[]).find(x=>x.name===p.full_name)||{};
+  const role=(typeof ROLES!=='undefined'&&ROLES[p.role||p.team])?ROLES[p.role||p.team].label:(p.role||p.team||'—');
+  $('content').innerHTML=`<div style="max-width:640px;margin:0 auto;padding:12px 6px">
+    <div class="card" style="padding:18px;display:flex;gap:16px;align-items:center;margin-bottom:14px">
+      ${ava(p,56)}<div><div style="font-size:20px;font-weight:700;color:var(--v-text)">${escH(p.full_name||'You')}</div>
+      <div style="font-size:13px;color:var(--v-text3)">${escH(p.title||'')}</div>
+      <div style="font-size:12px;color:var(--v-text4);margin-top:3px">${escH(S.user?.email||'')} · Role: ${escH(role)}</div></div></div>
+    <div class="card" style="padding:16px;margin-bottom:14px"><div class="dash-h" style="margin-bottom:10px">Contact</div>
+      <div class="fg2"><div class="fg"><label class="fl">Extension</label><input class="fc" id="pf-ext" value="${escH(dir.ext||'')}"></div>
+      <div class="fg"><label class="fl">Cell</label><input class="fc" id="pf-cell" value="${escH(dir.phone||'')}"></div></div>
+      <div style="margin-top:10px"><button class="btn btn-primary btn-sm" onclick="toast('Profile saved')">Save</button></div></div>
+    <div class="card" style="padding:16px"><div class="dash-h" style="margin-bottom:10px">Preferences</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--v-text2)"><input type="checkbox" checked> Email me when a task is assigned to me</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--v-text2)"><input type="checkbox" checked> Notify me about go-lives on my projects</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--v-text2)"><input type="checkbox"> Weekly digest email</label></div>
+      <div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="toggleTheme()">Toggle theme</button><button class="btn btn-ghost btn-sm" onclick="navigate('whatsnew')">What's New</button></div></div>
+  </div>`;
+}
+
+// ── FAVORITES / WATCHED PROJECTS ──────────────────────────────
+let WATCHED=[]; try{ WATCHED=JSON.parse(localStorage.getItem('ss-watch')||'[]'); }catch(e){ WATCHED=[]; }
+function isWatched(id){ return WATCHED.includes(id); }
+function watchToggle(id){ if(isWatched(id))WATCHED=WATCHED.filter(x=>x!==id); else WATCHED.push(id); try{localStorage.setItem('ss-watch',JSON.stringify(WATCHED));}catch(e){} toast(isWatched(id)?'Watching':'Unwatched'); if(S.view==='favorites')renderFavorites(); }
+function renderFavorites(){
+  $('topbar-actions').innerHTML='';
+  const cn={}; S.customers.forEach(c=>cn[c.id]=c.name);
+  const watched=S.projects.filter(p=>isWatched(p.id));
+  $('content').innerHTML=`<div style="max-width:900px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:11px;color:var(--v-text4);margin-bottom:10px">Projects you're watching (old tblProjectWatch). Add any project to keep an eye on it.</div>
+    <div class="search-wrap" style="margin-bottom:10px"><span class="search-i">🔍</span><input class="search-fc" id="fav-add" placeholder="Search a project to watch…" style="width:280px"></div>
+    <div id="fav-pick"></div>
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--v-text4);margin:10px 0 8px 2px">Watching (${watched.length})</div>
+    <div class="proj-list">${watched.map(p=>{const pr=projProgress(p.id);return `<div class="proj-row" onclick="openProject('${p.id}')"><span style="font-size:1.1rem">⭐</span>
+      <div class="proj-info"><div class="proj-name">${escH(p.name)}</div><div class="proj-meta">${escH(p.customers?.name||cn[p.customer_id]||'')} · ${pr}%</div></div>
+      <div class="proj-right" onclick="event.stopPropagation()"><button class="btn btn-ghost btn-xs" onclick="watchToggle('${p.id}')">Unwatch</button></div></div>`;}).join('')||`<div class="empty"><div class="empty-i">⭐</div><div class="empty-h">Nothing watched yet</div><div style="font-size:13px;color:var(--v-text4)">Search above to add projects.</div></div>`}</div></div>`;
+  const inp=$('fav-add'); inp.oninput=()=>{ const q=inp.value.toLowerCase(); const pick=$('fav-pick'); if(!q){pick.innerHTML='';return;} const m=S.projects.filter(p=>!isWatched(p.id)&&p.name.toLowerCase().includes(q)).slice(0,6); pick.innerHTML=m.map(p=>`<div class="d-row" onclick="watchToggle('${p.id}');document.getElementById('fav-add').value='';document.getElementById('fav-pick').innerHTML=''"><span>➕</span><span class="m">${escH(p.name)}</span><span class="s">${escH(p.customers?.name||cn[p.customer_id]||'')}</span></div>`).join('')||'<div class="dash-empty">No matches</div>'; };
+}
+
+// ── MANAGE CUSTOMER (edit agency / contacts / licenses) ───────
+function manageCustomer(id){
+  const c=S.customers.find(x=>x.id===id); if(!c) return;
+  const ex=(typeof CUST_EXTRA!=='undefined')?(CUST_EXTRA[id]=CUST_EXTRA[id]||{}):{};
+  const contacts=ex.contacts||(ex.contacts=[]); const lics=ex.licenses||(ex.licenses=[]);
+  showModal('✏️ Manage — '+escH(c.name),`<div class="fstack">
+    <div class="dash-h">Agency details</div>
+    <div class="fg2"><div class="fg"><label class="fl">Phone</label><input class="fc" id="mg-phone" value="${escH(ex.phone||'')}"></div>
+    <div class="fg"><label class="fl">Sales owner</label><input class="fc" id="mg-owner" value="${escH(ex.sales_owner||'')}"></div></div>
+    <div class="fg"><label class="fl">Product line</label><select class="fc" id="mg-org"><option ${ex.org==='PS'?'selected':''}>PS</option><option ${ex.org==='FMS'?'selected':''}>FMS</option></select></div>
+    <div class="dash-h" style="margin-top:6px">Contacts (${contacts.length})</div>
+    <div id="mg-contacts">${contacts.map((ct,i)=>`<div class="d-row" style="cursor:default"><span>👤</span><span class="m">${escH(ct.name||'')} <span style="color:var(--v-text4)">${escH(ct.role||'')}</span></span><span class="s">${escH(ct.email||'')}</span><button class="btn btn-ghost btn-xs" onclick="mgDelContact('${id}',${i})">×</button></div>`).join('')||'<div class="dash-empty">No contacts</div>'}</div>
+    <div class="fg3" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:end"><input class="fc" id="mg-cn" placeholder="Name"><input class="fc" id="mg-cr" placeholder="Role"><input class="fc" id="mg-ce" placeholder="Email"><button class="btn btn-ghost btn-sm" onclick="mgAddContact('${id}')">Add</button></div>
+    <div class="dash-h" style="margin-top:6px">Licenses (${lics.length})</div>
+    <div id="mg-lics">${lics.slice(0,8).map((l,i)=>`<div class="d-row" style="cursor:default"><span>🔑</span><span class="m">${escH(l.product||l.type||'')} <span style="color:var(--v-text4)">${escH(l.type||'')}</span></span><span class="s">×${escH(l.count||'')}</span><button class="btn btn-ghost btn-xs" onclick="mgDelLic('${id}',${i})">×</button></div>`).join('')||'<div class="dash-empty">No licenses</div>'}</div>
+    <div class="fg3" style="display:grid;grid-template-columns:1fr 1fr 80px auto;gap:6px;align-items:end"><input class="fc" id="mg-lp" placeholder="Product"><input class="fc" id="mg-lt" placeholder="Type"><input class="fc" id="mg-lc" type="number" placeholder="Qty"><button class="btn btn-ghost btn-sm" onclick="mgAddLic('${id}')">Add</button></div>
+  </div>`,`<button class="btn btn-ghost btn-sm" onclick="showCustDetail('${id}')">← Back</button><button class="btn btn-primary btn-sm" onclick="mgSave('${id}')">Save changes</button>`);
+}
+function mgSave(id){ const ex=CUST_EXTRA[id]=CUST_EXTRA[id]||{}; ex.phone=$('mg-phone').value.trim(); ex.sales_owner=$('mg-owner').value.trim(); ex.org=$('mg-org').value; toast('Customer updated'); showCustDetail(id); }
+function mgAddContact(id){ const n=$('mg-cn').value.trim(); if(!n){toast('Name required');return;} (CUST_EXTRA[id].contacts=CUST_EXTRA[id].contacts||[]).push({name:n,role:$('mg-cr').value.trim(),email:$('mg-ce').value.trim()}); manageCustomer(id); }
+function mgDelContact(id,i){ CUST_EXTRA[id].contacts.splice(i,1); manageCustomer(id); }
+function mgAddLic(id){ const p=$('mg-lp').value.trim(); if(!p){toast('Product required');return;} (CUST_EXTRA[id].licenses=CUST_EXTRA[id].licenses||[]).push({product:p,type:$('mg-lt').value.trim(),count:$('mg-lc').value.trim()}); manageCustomer(id); }
+function mgDelLic(id,i){ CUST_EXTRA[id].licenses.splice(i,1); manageCustomer(id); }
+
+// ── AI: MEETING / NOTES CAPTURE ───────────────────────────────
+function captureNotes(custId){
+  showModal('✨ Capture Notes',`<div style="font-size:12px;color:var(--v-text3);margin-bottom:8px">Paste or type rough notes from a call or visit. I'll clean them up and pull out action items.</div>
+    <textarea class="fc" id="cap-in" rows="6" placeholder="e.g. Talked to Sgt. Miller about the CAD upgrade. Need to follow up on hardware shipment. Schedule training for next month. They want the mobile app demo. TODO: send the quote."></textarea>
+    <input type="hidden" id="cap-cust" value="${custId||''}">
+    <div id="cap-out" style="margin-top:10px"></div>`,
+    `<button class="btn btn-primary btn-sm" onclick="capProcess()">✨ Process</button>`);
+  setTimeout(()=>{const e=$('cap-in');if(e)e.focus();},40);
+}
+function capProcess(){
+  const t=($('cap-in').value||'').trim(); if(!t){ return; }
+  const sentences=t.split(/[\n.;]+/).map(s=>s.trim()).filter(Boolean);
+  const actionRe=/\b(follow[ -]?up|todo|need to|needs to|schedule|send|call|confirm|email|order|ship|set up|remind|check|review|quote|demo)\b/i;
+  const actions=sentences.filter(s=>actionRe.test(s));
+  const notes=sentences.filter(s=>!actionRe.test(s));
+  const out=$('cap-out');
+  out.innerHTML=`<div class="ai-box"><div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--v-text4);margin-bottom:4px">Cleaned note</div>
+    <div style="font-size:13px;color:var(--v-text2);line-height:1.5">${notes.map(escH).join('. ')||escH(t)}.</div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--v-text4);margin:12px 0 4px">Action items (${actions.length})</div>
+    ${actions.length?actions.map(a=>`<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--v-text2);padding:2px 0"><input type="checkbox" class="cap-act" checked value="${escH(a)}"> ${escH(a)}</label>`).join(''):'<div style="font-size:12px;color:var(--v-text4)">None detected</div>'}
+    <div style="margin-top:12px;display:flex;gap:8px">${actions.length?`<button class="btn btn-primary btn-sm" onclick="capAddTasks()">➕ Add ${actions.length} as tasks</button>`:''}<button class="btn btn-ghost btn-sm" onclick="toast('Note saved to site history')">💾 Save note</button></div>
+    <div style="margin-top:8px;font-size:10px;color:var(--v-text4)">✨ Preview — a model would summarize and assign owners/dates automatically at go-live.</div></div>`;
+}
+function capAddTasks(){
+  const acts=[...document.querySelectorAll('.cap-act:checked')].map(c=>c.value);
+  const cust=$('cap-cust').value; const proj=cust?S.projects.find(p=>p.customer_id===cust):S.projects[0];
+  acts.forEach(a=>{ S.tasks.unshift({id:'t-cap-'+Math.random().toString(36).slice(2,8),title:a,status:'todo',project_id:proj?proj.id:null,assignee_id:S.profile?.id,assignee_name:S.profile?.full_name,due_date:null}); });
+  toast(acts.length+' task'+(acts.length!==1?'s':'')+' created'); closeModal();
+}
+
+// ── IMPERSONATION (super admin) ───────────────────────────────
+let _realProfile=null;
+function impersonatePick(){
+  if(!isAdmin()){ toast('Admin only'); return; }
+  const ppl=(S.profiles||[]).filter(p=>p.id!==S.profile?.id);
+  showModal('🕵️ Impersonate a user',`<div style="font-size:12px;color:var(--v-text3);margin-bottom:8px">View the portal as another employee (their role, dashboard & tasks). For support & troubleshooting.</div>
+    <div class="fstack" style="gap:4px;max-height:50vh;overflow:auto">${ppl.map(p=>`<div class="d-row" onclick="impersonate('${p.id}')">${ava(p,24)}<span class="m">${escH(p.full_name)}</span><span class="s">${escH(p.title||p.team||'')}</span></div>`).join('')}</div>`);
+}
+function impersonate(pid){ const p=(S.profiles||[]).find(x=>x.id===pid); if(!p)return; if(!_realProfile)_realProfile=S.profile; S.profile=p; closeModal(); showImpersonateBanner(); try{applyPermissions();initRolePreview();}catch(e){} navigate('overview'); toast('Now viewing as '+p.full_name); }
+function stopImpersonate(){ if(_realProfile){ S.profile=_realProfile; _realProfile=null; } const b=document.getElementById('imp-banner'); if(b)b.remove(); try{applyPermissions();initRolePreview();}catch(e){} navigate('overview'); toast('Back to your account'); }
+function showImpersonateBanner(){ let b=document.getElementById('imp-banner'); if(!b){ b=document.createElement('div'); b.id='imp-banner'; b.style.cssText='position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:1300;background:#a855f7;color:#fff;padding:8px 16px;border-radius:999px;box-shadow:0 6px 24px #0006;font-size:13px;display:flex;align-items:center;gap:10px'; document.body.appendChild(b); } b.innerHTML=`🕵️ Viewing as <b>${escH(S.profile.full_name)}</b> <button onclick="stopImpersonate()" style="background:#fff3;border:none;color:#fff;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:12px">Exit</button>`; }
+
+// ── SAVED FILTER PRESETS (Support Agreements) ─────────────────
+let SA_PRESETS=[]; try{ SA_PRESETS=JSON.parse(localStorage.getItem('ss-sa-presets')||'[]'); }catch(e){ SA_PRESETS=[]; }
+function saSavePreset(){ const line=$('sa-line').value,st=$('sa-st').value,q=$('sa-s').value; const label=[st,line,q].filter(Boolean).join(' · ')||'All'; SA_PRESETS.push({label,line,st,q}); try{localStorage.setItem('ss-sa-presets',JSON.stringify(SA_PRESETS));}catch(e){} renderSupportAgr(); toast('Filter saved'); }
+function saApplyPreset(i){ const p=SA_PRESETS[i]; if(!p)return; $('sa-line').value=p.line;$('sa-st').value=p.st;$('sa-s').value=p.q; $('sa-s').dispatchEvent(new Event('input')); }
+function saDelPreset(i){ SA_PRESETS.splice(i,1); try{localStorage.setItem('ss-sa-presets',JSON.stringify(SA_PRESETS));}catch(e){} renderSupportAgr(); }
+
+// ── BULK ACTIONS (Bug Tracker) ────────────────────────────────
+let _bulkSel=new Set();
+function bulkToggle(id){ if(_bulkSel.has(id))_bulkSel.delete(id); else _bulkSel.add(id); bulkBar(); }
+function bulkBar(){ const bar=document.getElementById('bulk-bar'); if(!bar)return; if(!_bulkSel.size){bar.style.display='none';return;} bar.style.display='flex'; bar.querySelector('.bulk-n').textContent=_bulkSel.size+' selected'; }
+function bulkSetStatus(st){ if(!_bulkSel.size)return; (S.issues||[]).forEach(i=>{ if(_bulkSel.has(i.id)) i.status=st; }); toast(_bulkSel.size+' issue(s) → '+st); _bulkSel.clear(); if(typeof renderIssues==='function')renderIssues(); }
+function bulkClear(){ _bulkSel.clear(); if(typeof renderIssues==='function')renderIssues(); }
+
 function navigate(v, extra={}) {
   S.view = v;
   _mount='content';
@@ -3299,6 +3535,7 @@ function navigate(v, extra={}) {
     alerts:renderAlerts, chat:renderChat, empstatus:renderEmpStatus, timesheets:renderTimesheets,
     blog:renderBlog, citizen:renderCitizen, myagenda:renderMyAgenda,
     prayer:renderPrayer, whatsnew:renderWhatsNew,
+    supportan:renderSupportAnalytics, revenue:renderRevenue, reconcile:renderReconcile, collections:renderCollections, profile:renderProfile, favorites:renderFavorites,
     activity:renderActivity, admin:renderAdmin})[v]?.(extra);
   updateSidebarBadges();
   closeSidebar();
@@ -4147,70 +4384,84 @@ function renderHandbook() {
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────
-function renderDash() {
-  const allTasks = S.tasks.filter(t=>!['done','na'].includes(t.status));
-  const over  = allTasks.filter(t=>isOver(t.due_date));
-  const tod   = allTasks.filter(t=>isToday(t.due_date));
-  const mine  = allTasks.filter(t=>t.assignee_id===(S.profile?.id||S.user?.id));
-  const ap    = S.projects.filter(p=>p.status==='active').length;
-  const risk  = S.projects.filter(p=>p.status==='at_risk').length;
-  const beh   = S.projects.filter(p=>p.status==='behind').length;
-
-  $(_mount).innerHTML = `
-  <div class="stats" style="grid-template-columns:repeat(6,1fr)">
-    <div class="stat" style="--sc:var(--green);cursor:pointer" onclick="navigate('projects')">
-      <div class="stat-n">${ap}</div><div class="stat-l">Active Projects</div>
-    </div>
-    <div class="stat" style="--sc:var(--orange);cursor:pointer" onclick="navigate('projects')">
-      <div class="stat-n">${risk}</div><div class="stat-l">⚠ At Risk</div>
-    </div>
-    <div class="stat" style="--sc:var(--red);cursor:pointer" onclick="navigate('projects')">
-      <div class="stat-n">${beh}</div><div class="stat-l">🔴 Behind</div>
-    </div>
-    <div class="stat" style="--sc:var(--red);cursor:pointer" onclick="navigate('mine')">
-      <div class="stat-n" style="color:${over.length>0?'#f87171':'inherit'}">${over.length}</div><div class="stat-l">Overdue Tasks</div>
-    </div>
-    <div class="stat" style="--sc:var(--yellow);cursor:pointer" onclick="navigate('mine')">
-      <div class="stat-n">${tod.length}</div><div class="stat-l">Due Today</div>
-    </div>
-    <div class="stat" style="--sc:var(--blue);cursor:pointer" onclick="navigate('mine')">
-      <div class="stat-n">${mine.length}</div><div class="stat-l">My Open Tasks</div>
-    </div>
-  </div>
-  <div class="dash-cols">
-    <div class="card"><div class="dash-h">⚠️ Overdue</div><div id="d-over"></div></div>
-    <div class="card"><div class="dash-h">📅 Due Today</div><div id="d-tod"></div></div>
-    <div class="card"><div class="dash-h">✅ My Open Tasks</div><div id="d-mine"></div></div>
-    <div class="card"><div class="dash-h">📁 Active Projects</div><div id="d-proj"></div></div>
-  </div>`;
-
-  const taskRows = (tasks, el) => {
-    if(!tasks.length){ el.innerHTML=`<div class="empty" style="padding:1rem"><div class="empty-i">🎉</div><div style="font-size:13px;color:var(--dim)">All clear</div></div>`; return; }
-    tasks.slice(0,7).forEach(t=>{
-      const p=getP(t.assignee_id);
-      const proj=S.projects.find(x=>x.id===t.project_id);
-      const r=document.createElement('div');
-      r.className='row';
-      r.innerHTML=`${ava(p,22)}<div class="row-main">${t.title}</div><span class="row-sub">${proj?.customers?.name||proj?.name||''}</span>${dueTag(t.due_date)}`;
-      r.onclick=()=>openPanel(t.id);
-      el.appendChild(r);
-    });
-  };
-  taskRows(over, $('d-over'));
-  taskRows(tod,  $('d-tod'));
-  taskRows(mine, $('d-mine'));
-
-  const dp=$('d-proj');
-  S.projects.filter(p=>p.status==='active').slice(0,6).forEach(p=>{
-    const r=document.createElement('div');
-    r.className='row';
-    const prog=projProgress(p.id);
-    r.innerHTML=`<span>📁</span><div class="row-main">${p.name}</div><div class="prog" style="width:60px"><div class="prog-fill" style="width:${prog}%"></div></div><span class="row-sub">${prog}%</span>`;
-    r.onclick=()=>openProject(p.id);
-    dp.appendChild(r);
+/* ═══ CUSTOMIZABLE DASHBOARD ═══ */
+const esc0=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function _dOpen(){ return S.tasks.filter(t=>!['done','na'].includes(t.status)); }
+function _dList(el,items,fmtRow,empty){ el.innerHTML=items.length?items.slice(0,6).map(fmtRow).join(''):`<div class="dash-empty">${empty||'Nothing here 🎉'}</div>`; }
+const DASH_PANELS={
+  kpis:{title:'Key Metrics',icon:'📊',size:'full',render(el){
+    const o=_dOpen(),over=o.filter(t=>isOver(t.due_date)),tod=o.filter(t=>isToday(t.due_date)),mine=o.filter(t=>isMine(t));
+    const ap=S.projects.filter(p=>p.status==='active').length,risk=S.projects.filter(p=>p.status==='at_risk').length,beh=S.projects.filter(p=>p.status==='behind').length;
+    el.innerHTML=`<div class="stats" style="grid-template-columns:repeat(6,1fr);margin:0">
+      ${[['var(--green)',ap,'Active Projects','projects'],['var(--orange)',risk,'⚠ At Risk','projects'],['var(--red)',beh,'🔴 Behind','projects'],['var(--red)',over.length,'Overdue','mine'],['var(--yellow)',tod.length,'Due Today','mine'],['var(--blue)',mine.length,'My Tasks','mine']].map(k=>`<div class="stat" style="--sc:${k[0]};cursor:pointer" onclick="navigate('${k[3]}')"><div class="stat-n">${k[1]}</div><div class="stat-l">${k[2]}</div></div>`).join('')}
+    </div>`; }},
+  overdue:{title:'Overdue',icon:'⚠️',size:'half',render(el){ _dList(el,_dOpen().filter(t=>isOver(t.due_date)),t=>{const p=S.projects.find(x=>x.id===t.project_id);return `<div class="d-row" onclick="openPanel('${t.id}')">${ava(getP(t.assignee_id),20)}<span class="m">${esc0(t.title)}</span><span class="s">${esc0(p?.customers?.name||p?.name||'')}</span></div>`;},'All clear 🎉'); }},
+  today:{title:'Due Today',icon:'📅',size:'half',render(el){ _dList(el,_dOpen().filter(t=>isToday(t.due_date)),t=>{const p=S.projects.find(x=>x.id===t.project_id);return `<div class="d-row" onclick="openPanel('${t.id}')">${ava(getP(t.assignee_id),20)}<span class="m">${esc0(t.title)}</span><span class="s">${esc0(p?.customers?.name||p?.name||'')}</span></div>`;},'Nothing due today'); }},
+  mytasks:{title:'My Open Tasks',icon:'✅',size:'half',render(el){ _dList(el,_dOpen().filter(t=>isMine(t)),t=>{const p=S.projects.find(x=>x.id===t.project_id);return `<div class="d-row" onclick="openPanel('${t.id}')"><span>✅</span><span class="m">${esc0(t.title)}</span>${dueTag(t.due_date)}</div>`;},'All caught up!'); }},
+  activeproj:{title:'Active Projects',icon:'📁',size:'half',render(el){ _dList(el,S.projects.filter(p=>p.status==='active'),p=>{const pr=projProgress(p.id);return `<div class="d-row" onclick="openProject('${p.id}')"><span>📁</span><span class="m">${esc0(p.name)}</span><div class="prog" style="width:50px"><div class="prog-fill" style="width:${pr}%"></div></div><span class="s">${pr}%</span></div>`;},'No active projects'); }},
+  golive:{title:'Upcoming Go-Lives',icon:'🚀',size:'half',render(el){ const gl=S.projects.filter(p=>!['complete','cancelled'].includes(p.status)).map(p=>({p,d:p.go_live||p.target_date})).filter(x=>x.d&&x.d>=today()).sort((a,b)=>a.d.localeCompare(b.d)); _dList(el,gl,x=>`<div class="d-row" onclick="openProject('${x.p.id}')"><span>🚀</span><span class="m">${esc0(x.p.name)}</span><span class="s">${fmt(x.d)}</span></div>`,'No upcoming go-lives'); }},
+  pipeline:{title:'Sales Pipeline',icon:'💼',size:'half',render(el){ const opps=(typeof SALES_OPPS!=='undefined'?SALES_OPPS:[]).filter(o=>typeof SALES_STAGES!=='undefined'&&SALES_STAGES.includes(o.stage)); const val=opps.reduce((s,o)=>s+o.value,0); el.innerHTML=`<div style="padding:8px 4px"><div style="font-size:24px;font-weight:800;color:var(--purple)">${money(val)}</div><div style="font-size:12px;color:var(--v-text4);margin-bottom:8px">${opps.length} open opportunities</div>${opps.slice(0,4).map(o=>`<div class="d-row" onclick="navigate('saleslist')"><span>💰</span><span class="m">${esc0(o.agency)}</span><span class="s">${money(o.value)}</span></div>`).join('')||'<div class="dash-empty">No open opportunities</div>'}</div>`; }},
+  renewals:{title:'Expiring Support',icon:'📑',size:'half',render(el){ const A=(typeof buildAgreements==='function')?buildAgreements().filter(a=>a.status!=='Current'):[]; _dList(el,A,a=>`<div class="d-row" onclick="navigate('supportagr')"><span>📑</span><span class="m">${esc0(a.name)}</span><span class="s" style="color:${a.status==='Expired'?'#ef4444':'#f59e0b'}">${a.status}</span></div>`,'Nothing expiring'); }},
+  issues:{title:'Open Issues',icon:'🐛',size:'half',render(el){ const iss=(S.issues||[]).filter(i=>!['done','na'].includes(i.status)); _dList(el,iss,i=>{const cn=S.customers.find(c=>c.id===i.customer_id);return `<div class="d-row" onclick="showIssueDetail('${i.id}')"><span>${({bug:'🐛',feature:'✨',question:'❓'}[i.type]||'🐛')}</span><span class="m">${esc0(i.title)}</span><span class="s">${esc0(cn?cn.name:'')}</span></div>`;},'No open issues'); }},
+  whosin:{title:"Who's In",icon:'🟢',size:'half',render(el){ if(typeof empStatusSeed==='function')empStatusSeed(); const es=(typeof EMP_STATUS!=='undefined'&&EMP_STATUS)?EMP_STATUS:[]; const c={};(es).forEach(e=>c[e.status]=(c[e.status]||0)+1); el.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 4px">${Object.keys((typeof STAT_META!=='undefined'?STAT_META:{})).map(s=>`<span style="font-size:12px;background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:999px;padding:3px 10px">${STAT_META[s].i} ${s} ${c[s]||0}</span>`).join('')}</div><div class="d-row" onclick="navigate('empstatus')" style="color:var(--bluel);font-size:12px">Open board →</div>`; }},
+  mytraining:{title:'My Training',icon:'🎓',size:'half',render(el){ const ms=(typeof TRAIN_SESSIONS!=='undefined'?TRAIN_SESSIONS:[]).filter(s=>typeof sReg==='function'&&sReg(s.id).registered); _dList(el,ms,s=>`<div class="d-row" onclick="navigate('myagenda')"><span>🎓</span><span class="m">${esc0(s.title)}</span><span class="s">${sReg(s.id).attended?'✓':fmt(s.date)}</span></div>`,'No registered sessions'); }},
+  announce:{title:'Announcement',icon:'📢',size:'full',render(el){ const a=(typeof ANNOUNCEMENTS!=='undefined'?ANNOUNCEMENTS.find(x=>x.active):null); el.innerHTML=a?(typeof annBannerHTML==='function'?annBannerHTML(a):`<div style="padding:8px">${esc0(a.title)}</div>`):'<div class="dash-empty">No active announcement</div>'; }},
+  quick:{title:'Quick Actions',icon:'⚡',size:'full',render(el){ el.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:8px;padding:6px 4px">${[['📥','New Sales Request',"showNewSalesReq()"],['🐛','Report Issue',"showNewIssueModal()"],['🏖️','Request Time Off',"navigate('timeoff');setTimeout(toNew,60)"],['✏️','New KB Article',"showKBForm()"],['⏱️','Log Time',"navigate('timesheets');setTimeout(tsNew,60)"],['✨','Ask KB AI',"kbAsk()"]].map(q=>`<button class="btn btn-ghost btn-sm" onclick="${q[2]}">${q[0]} ${q[1]}</button>`).join('')}</div>`; }},
+  activity:{title:'Recent Activity',icon:'📡',size:'half',render(el){ const recent=[...S.tasks].filter(t=>t.status==='done').slice(0,5); _dList(el,recent.length?recent:S.tasks.slice(0,5),t=>{const p=S.projects.find(x=>x.id===t.project_id);return `<div class="d-row" onclick="openPanel('${t.id}')">${ava(getP(t.assignee_id),20)}<span class="m">${esc0(t.title)}</span><span class="s">${esc0(p?.name||'')}</span></div>`;},'No recent activity'); }},
+  mysites:{title:'Sites Needing Attention',icon:'📍',size:'half',render(el){ const rows=S.customers.map(c=>{const oi=(S.issues||[]).filter(i=>i.customer_id===c.id&&!['done','na'].includes(i.status)).length;return {c,oi};}).filter(r=>r.oi).sort((a,b)=>b.oi-a.oi); _dList(el,rows,r=>`<div class="d-row" onclick="showCustDetail('${r.c.id}')"><span>🏛️</span><span class="m">${esc0(r.c.name)}</span><span class="s" style="color:#f87171">🐛 ${r.oi}</span></div>`,'All sites healthy ✓'); }},
+  charity:{title:'Conference Charity',icon:'❤️',size:'half',render(el){ const g=CHARITY.goal,r=CHARITY.raised,pct=Math.min(100,Math.round(r/g*100)); el.innerHTML=`<div style="padding:8px 4px"><div style="font-size:12px;color:var(--v-text4);margin-bottom:4px">${esc0(CHARITY.name)}</div><div style="font-size:20px;font-weight:800;color:#ef4444">${money(r)} <span style="font-size:12px;color:var(--v-text4);font-weight:400">of ${money(g)}</span></div><div class="prog" style="width:100%;height:8px;margin-top:6px"><div class="prog-fill" style="width:${pct}%;background:#ef4444"></div></div><div style="font-size:11px;color:var(--v-text4);margin-top:4px">${pct}% to goal</div></div>`; }},
+};
+const CHARITY={name:'PS Annual Conference — Make-A-Wish',goal:25000,raised:16400};
+const DASH_DEFAULTS={
+  default:['kpis','overdue','today','mytasks','activeproj','quick'],
+  implementation:['kpis','overdue','golive','mytasks','activeproj','mysites'],
+  fms:['kpis','overdue','golive','mytasks','activeproj','quick'],
+  sales:['kpis','pipeline','renewals','mytasks','activity','quick'],
+  support:['kpis','issues','overdue','whosin','activity','quick'],
+  trainer:['kpis','mytraining','charity','announce','quick'],
+  manager:['kpis','golive','pipeline','renewals','issues','mysites'],
+  admin:['kpis','golive','pipeline','renewals','issues','announce'],
+};
+let _dashEdit=false;
+function dashRole(){ return (S.profile&&(S.profile.role||S.profile.team))||'default'; }
+function dashKey(){ return 'ss-dash-'+dashRole(); }
+function getDashLayout(){ try{ const s=localStorage.getItem(dashKey()); if(s){ const a=JSON.parse(s); if(Array.isArray(a)&&a.length) return a.filter(id=>DASH_PANELS[id]); } }catch(e){} return (DASH_DEFAULTS[dashRole()]||DASH_DEFAULTS.default).slice(); }
+function saveDashLayout(l){ try{ localStorage.setItem(dashKey(),JSON.stringify(l)); }catch(e){} }
+function renderDash(){
+  const layout=getDashLayout();
+  const mount=$(_mount);
+  mount.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+    <div style="font-size:12px;color:var(--v-text4)">${_dashEdit?'✏️ Editing — drag ⠿ to reorder, × to remove':'Your dashboard · tailored to your role ('+((typeof ROLES!=='undefined'&&ROLES[dashRole()])?ROLES[dashRole()].label:dashRole())+')'}</div>
+    <div style="display:flex;gap:6px">${_dashEdit?`<button class="btn btn-ghost btn-sm" onclick="dashAddPanel()">＋ Add panel</button><button class="btn btn-ghost btn-sm" onclick="dashReset()">Reset</button><button class="btn btn-primary btn-sm" onclick="dashEditDone()">✓ Done</button>`:`<button class="btn btn-ghost btn-sm" onclick="dashEdit()">🎛️ Customize</button>`}</div>
+  </div><div class="dash-grid" id="dash-grid"></div>`;
+  const grid=$('dash-grid');
+  layout.forEach(id=>{ const p=DASH_PANELS[id]; if(!p) return;
+    const w=document.createElement('div'); w.className='dash-panel'+(p.size==='full'?' full':'')+(_dashEdit?' edit':''); w.dataset.pid=id; w.draggable=_dashEdit;
+    w.innerHTML=`<div class="dash-phdr">${_dashEdit?'<span class="drag">⠿</span>':''}<span>${p.icon} ${esc0(p.title)}</span>${_dashEdit?`<button class="dash-x" onclick="dashRemove('${id}')" title="Remove">×</button>`:''}</div><div class="dash-pbody"></div>`;
+    grid.appendChild(w);
+    try{ p.render(w.querySelector('.dash-pbody')); }catch(e){ w.querySelector('.dash-pbody').innerHTML='<div class="dash-empty">—</div>'; }
   });
-  // Portal quick access tiles
-  renderPortalTiles('d-proj');
+  if(_dashEdit) dashWireDnD();
+}
+function dashEdit(){ _dashEdit=true; renderDash(); }
+function dashEditDone(){ _dashEdit=false; renderDash(); toast('Dashboard saved'); }
+function dashRemove(id){ saveDashLayout(getDashLayout().filter(x=>x!==id)); renderDash(); }
+function dashReset(){ try{localStorage.removeItem(dashKey());}catch(e){} renderDash(); toast('Reset to role default'); }
+function dashAddPanel(){
+  const cur=getDashLayout(); const avail=Object.keys(DASH_PANELS).filter(id=>!cur.includes(id));
+  if(!avail.length){ toast('All panels are already on your dashboard'); return; }
+  showModal('＋ Add a panel',`<div class="fstack" style="gap:6px">${avail.map(id=>`<div onclick="dashAdd('${id}')" style="display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--v-hair3);border-radius:10px;cursor:pointer" onmouseover="this.style.borderColor='#3b82f655'" onmouseout="this.style.borderColor='var(--v-hair3)'"><span style="font-size:1.2rem">${DASH_PANELS[id].icon}</span><span style="font-size:13px;color:var(--v-text2)">${esc0(DASH_PANELS[id].title)}</span><span style="margin-left:auto;color:var(--bluel)">＋ Add</span></div>`).join('')}</div>`);
+}
+function dashAdd(id){ const l=getDashLayout(); if(!l.includes(id)) l.push(id); saveDashLayout(l); closeModal(); renderDash(); }
+function dashWireDnD(){
+  let src=null;
+  document.querySelectorAll('.dash-panel').forEach(el=>{
+    el.ondragstart=e=>{ src=el; e.dataTransfer.effectAllowed='move'; setTimeout(()=>el.style.opacity='.4',0); };
+    el.ondragend=()=>{ el.style.opacity=''; };
+    el.ondragover=e=>{ e.preventDefault(); el.classList.add('dragover'); };
+    el.ondragleave=()=>el.classList.remove('dragover');
+    el.ondrop=e=>{ e.preventDefault(); el.classList.remove('dragover'); if(src&&src!==el){ const grid=$('dash-grid'); const nodes=[...grid.children]; (nodes.indexOf(src)<nodes.indexOf(el))?el.after(src):el.before(src); saveDashLayout([...grid.children].map(n=>n.dataset.pid)); } };
+  });
 }
 
 // ── MY TASKS ──────────────────────────────────────────────────
@@ -4962,7 +5213,7 @@ function showCustDetail(id){
     ${sec('📚 Knowledge Base for this site',kbMatch.length,kbHtml,false)}
     ${sec('🎪 Conferences',confs.length,confHtml,false)}
   </div>`,
-  `<button class="btn btn-ghost btn-sm" onclick="aiSummary('${id}')" style="color:var(--bluel)">✨ AI Summary</button><button class="btn btn-ghost btn-sm" onclick="printCustomer('${id}')">🖨️ Print</button><button class="btn btn-ghost btn-sm" onclick="showNewIssueModal('${id}');closeModal()">🐛 Report Issue</button><button class="btn btn-primary btn-sm" onclick="showNewProjModal('${id}');closeModal()">+ New Project</button>`);
+  `<button class="btn btn-ghost btn-sm" onclick="aiSummary('${id}')" style="color:var(--bluel)">✨ AI Summary</button><button class="btn btn-ghost btn-sm" onclick="captureNotes('${id}')" style="color:var(--bluel)">✨ Notes</button><button class="btn btn-ghost btn-sm" onclick="manageCustomer('${id}')">✏️ Manage</button><button class="btn btn-ghost btn-sm" onclick="printCustomer('${id}')">🖨️ Print</button><button class="btn btn-primary btn-sm" onclick="showNewProjModal('${id}');closeModal()">+ New Project</button>`);
 }
 
 // ── ISSUES ─────────────────────────────────────────────────────
@@ -4980,6 +5231,7 @@ function renderIssues() {
       ${['CAD','RMS','JMS','QMS','MDIS','MDS','NMS','PSAware','ICAware','Analytics','Citizen Connect','FMS'].map(p=>`<option>${p}</option>`).join('')}
     </select>
   </div>
+  <div id="bulk-bar" class="bulk-bar" style="display:none"><span class="bulk-n" style="font-size:12px;font-weight:600;color:var(--v-text2)"></span><span style="font-size:12px;color:var(--v-text4)">Set status:</span>${STATUS_ORDER.map(s=>`<button class="btn btn-ghost btn-xs" onclick="bulkSetStatus('${s}')">${STATUS[s].label}</button>`).join('')}<button class="btn btn-ghost btn-xs" style="margin-left:auto" onclick="bulkClear()">Clear</button></div>
   <div id="issue-list"></div>`;
   const draw=()=>{
     const q=$('is').value.toLowerCase(), st=$('if-status').value, pr=$('if-prod').value;
@@ -4990,9 +5242,10 @@ function renderIssues() {
     g.innerHTML=items.map(i=>{
       const a=getP(i.assignee_id);
       const cust=S.customers.find(c=>c.id===i.customer_id);
-      return `<div class="issue-row" onclick="showIssueDetail('${i.id}')">
-        <div style="font-size:16px">${{bug:'🐛',feature:'✨',question:'❓',task:'📋'}[i.type]||'🐛'}</div>
-        <div style="flex:1;min-width:0">
+      return `<div class="issue-row">
+        <input type="checkbox" class="row-chk" ${_bulkSel.has(i.id)?'checked':''} onclick="event.stopPropagation();bulkToggle('${i.id}')">
+        <div style="font-size:16px;cursor:pointer" onclick="showIssueDetail('${i.id}')">${{bug:'🐛',feature:'✨',question:'❓',task:'📋'}[i.type]||'🐛'}</div>
+        <div style="flex:1;min-width:0;cursor:pointer" onclick="showIssueDetail('${i.id}')">
           <div class="issue-title">${i.title}</div>
           <div class="issue-meta">${i.product||''}${cust?' · '+cust.name:''}</div>
         </div>
@@ -5000,6 +5253,7 @@ function renderIssues() {
         ${ava(a,22)}
       </div>`;
     }).join('')||`<div class="empty"><div class="empty-i">🐛</div><div class="empty-h">No issues found</div></div>`;
+    bulkBar();
   };
   $('is').oninput=draw; $('if-status').onchange=draw; $('if-prod').onchange=draw;
   draw();
