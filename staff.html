@@ -151,6 +151,18 @@ button{cursor:pointer}
 .d-row .s{font-size:11px;color:var(--v-text4);white-space:nowrap}
 .dash-empty{padding:14px;text-align:center;color:var(--v-text4);font-size:12px}
 @media(max-width:860px){.dash-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)!important}}
+@media(max-width:640px){
+  .topbar{gap:2px;padding-left:.4rem;padding-right:.4rem}
+  #help-btn{display:none}
+  #create-btn .cr-txt{display:none}
+  #create-btn{padding:.42rem .6rem;margin-right:.25rem!important}
+  #pin-btn{margin-right:.25rem!important}
+  .topbar-title{font-size:1rem;max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+  .gsearch-wrap{margin:0 .3rem!important}
+  .toolbar{gap:6px}
+  .stats{grid-template-columns:repeat(2,1fr)!important}
+  .fg2,.fg3{grid-template-columns:1fr!important}
+}
 /* bulk select */
 .bulk-bar{display:flex;align-items:center;gap:8px;background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:10px;padding:8px 12px;margin-bottom:10px}
 .row-chk{width:16px;height:16px;flex-shrink:0;cursor:pointer}
@@ -919,7 +931,7 @@ a#skip-link:focus{left:8px}
           <div class="gsearch-results" id="gsearch-results"></div>
         </div>
         <button id="pin-btn" class="btn btn-ghost btn-sm" style="margin-right:.4rem" onclick="pinCurrent()" title="Pin this page to the sidebar" aria-label="Pin this page">📍</button>
-        <button id="create-btn" class="btn btn-primary btn-sm" style="margin-right:.4rem" onclick="openPalette()" title="Create / command palette (⌘K)" aria-label="Create or command palette">＋ Create</button>
+        <button id="create-btn" class="btn btn-primary btn-sm" style="margin-right:.4rem" onclick="openPalette()" title="Create / command palette (⌘K)" aria-label="Create or command palette">＋<span class="cr-txt"> Create</span></button>
         <button id="help-btn" class="btn btn-ghost btn-sm" style="margin-right:.4rem" onclick="showTour()" title="Quick-start tour" aria-label="Help and quick-start tour">?</button>
         <div id="notif-wrap" style="position:relative;margin-right:.4rem">
           <button id="notif-btn" class="btn btn-ghost btn-sm" style="position:relative" title="Notifications" aria-label="Notifications">🔔<span id="notif-badge" class="sb-badge" style="display:none;position:absolute;top:-5px;right:-5px"></span></button>
@@ -1463,6 +1475,7 @@ async function doPreviewLogin() {
   $('login-wrap').style.display = 'none';
   $('app').style.display = 'flex';
   await reload();
+  try { seedDemoData(); } catch(e) {}
   setupNav();
   initSearch();
   initNotifs();
@@ -1567,6 +1580,7 @@ async function boot() {
     $('login-wrap').style.display = 'none';
     $('app').style.display = 'flex';
     await reload();
+    try { seedDemoData(); } catch(e) {}
     setupNav();
     initSearch();
     initNotifs();
@@ -1705,6 +1719,39 @@ function renderActivity(){
    plus shared "is this mine / how many days" helpers.
    ═══════════════════════════════════════════════════════════════ */
 function isMine(t){ return t.assignee_id===S.user?.id || (S.profile && t.assignee_name===S.profile.full_name); }
+
+// Seed demo work so the signed-in user's personal views (My Tasks, dashboard) are populated
+let _demoSeeded=false;
+function seedDemoData(){
+  if(_demoSeeded) return; _demoSeeded=true;
+  try{
+    const meId=(S.profile&&S.profile.id)||S.user?.id||'p-travis';
+    const meNm=(S.profile&&S.profile.full_name)||'Travis Pruitt';
+    const act=S.projects.filter(p=>['active','at_risk','behind'].includes(p.status));
+    const dd=n=>{ const x=new Date(); x.setDate(x.getDate()+n); return x.toISOString().slice(0,10); };
+    const specs=[
+      ['Review CAD conversion field mapping','inprogress',-3],
+      ['Confirm go-live date with the agency','inprogress',-1],
+      ['Sign off on the hardware order','todo',-2],
+      ['Approve the training schedule','todo',0],
+      ['Verify NCIC/state certification','blocked',0],
+      ['Follow up on interface testing','waiting_customer',2],
+      ['Prep the kickoff deck','todo',1],
+      ['Review RMS state export config','inprogress',4],
+      ['Coordinate MDS field install','todo',6],
+      ['Send weekly status to management','todo',3],
+    ];
+    if(act.length) specs.forEach((s,i)=>{ const p=act[i%act.length]; const cust=p.customers?.name||p.name||''; S.tasks.unshift({id:'t-seed-'+i,title:s[0]+(cust?' — '+cust:''),status:s[1],project_id:p.id,section_id:null,parent_id:null,assignee_id:meId,assignee_name:meNm,due_date:dd(s[2])}); });
+    if(Array.isArray(S.issues)){
+      const cids=S.customers.slice(0,8).map(c=>c.id);
+      [['CAD unit status colors not refreshing','CAD','inprogress'],['RMS export missing an NIBRS segment','RMS','todo'],
+       ['JMS booking photo upload fails intermittently','JMS','waiting_customer'],['Utility Billing late fee off by one day','FMS','inprogress'],
+       ['MDS field unit drops connection downtown','MDS','blocked'],['PSAware dashboard slow to load','PSAware','todo'],
+       ['Payroll tax table update for new fiscal year','FMS','todo'],['Citizen Connect push notifications delayed','Citizen Connect','inprogress']
+      ].forEach((m,i)=>S.issues.push({id:'i-seed-'+i,title:m[0],product:m[1],status:m[2],type:'bug',customer_id:cids[i%cids.length],assignee_id:(i%3===0?meId:null),assignee_name:(i%3===0?meNm:null)}));
+    }
+  }catch(e){ console.warn('seed:',e); }
+}
 function daysUntil(d){ if(!d) return null; return Math.round((new Date(d+'T12:00:00')-new Date(today()+'T12:00:00'))/86400000); }
 function inNextDays(d,n){ const du=daysUntil(d); return du!==null && du>=0 && du<=n; }
 function statTile(n,l,col){ return `<div style="flex:1;min-width:120px;background:var(--v-surface);border:1px solid var(--v-hair);border-radius:14px;padding:14px 16px"><div style="font-size:26px;font-weight:800;color:${col}">${n}</div><div style="font-size:12px;color:var(--v-text3);margin-top:2px">${l}</div></div>`; }
