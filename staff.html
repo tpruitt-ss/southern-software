@@ -696,6 +696,7 @@ a#skip-link:focus{left:8px}
         <div class="sb-item" data-v="triage"><span class="i">📥</span>Unassigned<span class="sb-badge" id="triage-badge" style="display:none"></span></div>
         <div class="sb-item" data-v="schedule"><span class="i">🗓️</span>Schedule</div>
         <div class="sb-item" data-v="people"><span class="i">⚖️</span>Team Workload</div>
+        <div class="sb-item" data-v="empstatus"><span class="i">🟢</span>Who's In</div>
 
         <div class="sb-label">Sales</div>
         <div class="sb-item" data-v="saleshub" data-requires="view_sales"><span class="i">💼</span>SalesHub</div>
@@ -711,6 +712,7 @@ a#skip-link:focus{left:8px}
         <div class="sb-item" data-v="map" data-requires="view_customers"><span class="i">🗺️</span>Customer Point Map</div>
         <div class="sb-item" data-v="mastersearch" data-requires="view_customers"><span class="i">🔎</span>Master Customer Search</div>
         <div class="sb-item" data-v="supportagr" data-requires="view_reports"><span class="i">📑</span>Support Agreements</div>
+        <div class="sb-item" data-v="citizen" data-requires="view_customers"><span class="i">📱</span>Citizen Connect</div>
 
         <div class="sb-label">Projects</div>
         <div class="sb-item" data-v="projects"><span class="i">📁</span>Projects - Active</div>
@@ -723,6 +725,7 @@ a#skip-link:focus{left:8px}
         <div class="sb-item" data-v="hardware"><span class="i">🖥️</span>Hardware</div>
         <div class="sb-item" data-v="hwspecs" data-requires="edit_hardware_specs"><span class="i">🛠️</span>Update Hardware Specs</div>
         <div class="sb-item" data-v="timeoff"><span class="i">🏖️</span>SS TimeOff</div>
+        <div class="sb-item" data-v="timesheets"><span class="i">⏱️</span>Time Tracking</div>
         <div class="sb-item" data-v="oncall"><span class="i">📆</span>After Hours Calendar</div>
         <div class="sb-item" data-v="newsletters"><span class="i">📰</span>NewsLetters</div>
         <div class="sb-item" data-v="appversions"><span class="i">📱</span>Current App Versions</div>
@@ -738,10 +741,14 @@ a#skip-link:focus{left:8px}
         <div class="sb-item" data-v="trainingfms"><span class="i">📋</span>Learning Tracks - FMS</div>
         <div class="sb-item" data-v="trainingps"><span class="i">📋</span>Learning Tracks - PS</div>
         <div class="sb-item" data-v="trainconf"><span class="i">🎓</span>Conferences/Training</div>
+        <div class="sb-item" data-v="myagenda"><span class="i">📝</span>My Training</div>
         <div class="sb-item" data-v="training"><span class="i">💻</span>Virtual Classes/Meetings</div>
+        <div class="sb-item" data-v="blog"><span class="i">📰</span>Company Blog</div>
         <div class="sb-item" data-v="handbook"><span class="i">📖</span>Employee Handbook</div>
 
         <div class="sb-label">Support</div>
+        <div class="sb-item" data-v="alerts"><span class="i">🔔</span>Notifications</div>
+        <div class="sb-item" data-v="chat"><span class="i">💬</span>Team Chat</div>
         <div class="sb-item" data-v="issues"><span class="i">🐛</span>Bug Tracker</div>
         <div class="sb-item" data-v="team"><span class="i">👥</span>Team</div>
         <div class="sb-item" data-v="activity"><span class="i">📡</span>Activity<span class="sb-badge" id="activity-badge" style="display:none">0</span></div>
@@ -1514,6 +1521,8 @@ const VIEW_TITLES = { handbook:'Employee Handbook', activity:'Activity Feed', ad
   kbfms:'KB — FMS', kbps:'KB — Public Safety', kbfmsint:'KB — FMS Internal', kbpsint:'KB — PS Internal', kbcreate:'Create KB Article',
   trainingfms:'Learning Tracks — FMS', trainingps:'Learning Tracks — PS', editappversions:'Edit App Versions', trainconf:'Conferences / Training',
   supportagr:'Support Agreements & Renewals', announce:'Website Announcement', hwspecs:'Update Hardware Specs',
+  alerts:'Notifications & Alerts', chat:'Team Chat', empstatus:"Who's In", timesheets:'Time Tracking',
+  blog:'Company Blog', citizen:'Citizen Connect', myagenda:'My Training',
 };
 
 /* ─── ACTIVITY VIEW (fixes ReferenceError that froze all navigation) ─── */
@@ -1733,6 +1742,9 @@ function buildNotifs(){
     if(risk.length) n.push({icon:'🚩',color:'#ef4444',text:risk.length+' projects at risk / behind',sub:'Review portfolio status',action:`navigate('reports')`});
     S.projects.filter(p=>!['complete','cancelled'].includes(p.status)).map(p=>({p,d:p.go_live||p.target_date})).filter(x=>x.d&&inNextDays(x.d,30)).sort((a,b)=>a.d.localeCompare(b.d)).forEach(x=>n.push({icon:'🚀',color:'#a855f7',text:'Go-live soon: '+x.p.name,sub:fmt(x.d)+(x.p.customers?.name?' · '+x.p.customers.name:''),action:`navigate('golive')`}));
   }
+  // SS notifications (targeted alerts) + active website announcement
+  (typeof SS_ALERTS!=='undefined'?SS_ALERTS:[]).filter(a=>!a.read).forEach(a=>n.unshift({icon:a.priority==='High'?'🚨':'📢',color:a.priority==='High'?'#ef4444':'#3b82f6',text:a.message,sub:a.topic+' · '+a.by,action:`navigate('alerts')`}));
+  if(typeof ANNOUNCEMENTS!=='undefined'){ const act=ANNOUNCEMENTS.find(a=>a.active); if(act) n.unshift({icon:'📢',color:'#3b82f6',text:act.title,sub:'Website announcement',action:`navigate('announce')`}); }
   return n;
 }
 let _notifSeen=(function(){try{return new Set(JSON.parse(localStorage.getItem('ss-notif-seen')||'[]'));}catch(e){return new Set();}})();
@@ -2455,6 +2467,358 @@ function previewRole(r){
   toast('Previewing as '+((ROLES[r]&&ROLES[r].label)||r));
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   DEMO FEATURE SET — old-portal capabilities rebuilt on test data
+   Notifications/Alerts · Team Chat · Who's In · Time Tracking ·
+   Company Blog · Citizen Connect · Training engine (register/check-in/feedback)
+   All in-memory in preview; wiring notes in claude/portal-migration-map.md
+   ═══════════════════════════════════════════════════════════════════ */
+function meName(){ return (S.profile&&S.profile.full_name)||'Travis Pruitt'; }
+
+// ── NOTIFICATIONS / ALERTS CENTER (tblSSNotificationsNew + Read) ──
+let SS_ALERTS=[
+  {id:1,topic:'System',priority:'Normal',message:'Portal maintenance Saturday 8:00–8:30 PM ET.',by:'M. Sessoms',when:'2026-07-10',groups:['All'],read:false},
+  {id:2,topic:'PS Support',priority:'High',message:'CAD 9.4.2 hotfix released — update affected customers on the new build.',by:'J. Meggs',when:'2026-07-09',groups:['PSSupport','Install'],read:false},
+  {id:3,topic:'Sales',priority:'Normal',message:'Q3 sales numbers due to Janet by Friday.',by:'R. Brigman',when:'2026-07-08',groups:['Sales'],read:true},
+  {id:4,topic:'Training',priority:'Normal',message:'Fall regional training schedule is posted.',by:'P. Pusser',when:'2026-07-07',groups:['Training','All'],read:true},
+  {id:5,topic:'After Hours',priority:'High',message:'On-call rotation updated — check the After Hours calendar.',by:'T. Pruitt',when:'2026-07-05',groups:['AfterHours'],read:false},
+  {id:6,topic:'Prayer',priority:'Normal',message:'Please keep the Johnson family in your prayers this week.',by:'HR',when:'2026-07-03',groups:['Prayer','All'],read:true},
+];
+const ALERT_GROUPS=['All','AfterHours','Development','FMSSupport','Install','Prayer','PSSupport','Sales','Training'];
+let _alertEdit=null;
+function renderAlerts(){
+  const A=SS_ALERTS;
+  const unread=A.filter(a=>!a.read).length, high=A.filter(a=>a.priority==='High').length;
+  $('topbar-actions').innerHTML='<button class="btn btn-primary btn-sm" onclick="alertNew()">+ Send Notification</button>';
+  $('content').innerHTML=`<div style="max-width:960px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:11px;color:#64748b;margin-bottom:12px">Company notifications, targeted by group. Read status is per person. Mirrors the old tblSSNotificationsNew alerts.</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+      ${statTile(A.length,'Total','#3b82f6')}${statTile(unread,'Unread','#f59e0b')}${statTile(high,'High priority','#ef4444')}
+    </div>
+    <div id="alert-form"></div>
+    <div class="toolbar">
+      <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="al-s" placeholder="Search…" style="width:220px"></div>
+      <select class="fc" id="al-g" style="width:auto;padding:6px 10px"><option value="">All Groups</option>${ALERT_GROUPS.map(g=>`<option>${g}</option>`).join('')}</select>
+      <label style="font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:5px"><input type="checkbox" id="al-u"> Unread only</label>
+      <button class="btn btn-ghost btn-sm" onclick="alertMarkAll()">Mark all read</button>
+    </div>
+    <div id="al-list" class="proj-list"></div></div>`;
+  const draw=()=>{
+    const q=$('al-s').value.toLowerCase(), g=$('al-g').value, u=$('al-u').checked;
+    const f=A.filter(a=>(!g||a.groups.includes(g))&&(!u||!a.read)&&(!q||[a.message,a.topic,a.by].join(' ').toLowerCase().includes(q)));
+    $('al-list').innerHTML=f.map(a=>`<div class="proj-row" style="cursor:pointer;${a.read?'':'border-left:3px solid #3b82f6'}" onclick="alertToggle(${a.id})">
+      <span style="font-size:1.1rem">${a.priority==='High'?'🚨':'📢'}</span>
+      <div class="proj-info"><div class="proj-name">${escH(a.topic)} <span style="font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;color:${a.priority==='High'?'#ef4444':'#64748b'};background:${a.priority==='High'?'#ef444422':'#64748b22'}">${a.priority}</span>${a.read?'':' <span style="font-size:10px;color:#3b82f6">● unread</span>'}</div>
+      <div class="proj-meta">${escH(a.message)}</div>
+      <div class="proj-meta" style="color:#64748b">${escH(a.by)} · ${fmtLong(a.when)} · ${a.groups.map(escH).join(', ')}</div></div>
+    </div>`).join('')||`<div class="empty"><div class="empty-i">📭</div><div class="empty-h">No notifications</div></div>`;
+  };
+  $('al-s').oninput=draw; $('al-g').onchange=draw; $('al-u').onchange=draw; draw();
+  if(_alertEdit!==null) alertShowForm();
+}
+function alertToggle(id){ const a=SS_ALERTS.find(x=>x.id===id); if(a){ a.read=!a.read; renderAlerts(); if(typeof renderNotifs==='function')renderNotifs(); } }
+function alertMarkAll(){ SS_ALERTS.forEach(a=>a.read=true); toast('All marked read'); renderAlerts(); if(typeof renderNotifs==='function')renderNotifs(); }
+function alertNew(){ _alertEdit=1; renderAlerts(); }
+function alertShowForm(){
+  $('alert-form').innerHTML=`<div class="card" style="margin-bottom:14px;padding:14px">
+    <div class="dash-h" style="margin-bottom:10px">📢 Send Notification</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div style="flex:2;min-width:180px"><label style="font-size:11px;color:#94a3b8">Topic</label><input class="fc" id="nl-topic" placeholder="e.g. PS Support"></div>
+      <div style="flex:1;min-width:120px"><label style="font-size:11px;color:#94a3b8">Priority</label><select class="fc" id="nl-pri"><option>Normal</option><option>High</option></select></div>
+    </div>
+    <label style="font-size:11px;color:#94a3b8;display:block;margin-top:10px">Message</label>
+    <textarea class="fc" id="nl-msg" rows="2" placeholder="What do you want people to know?"></textarea>
+    <label style="font-size:11px;color:#94a3b8;display:block;margin-top:10px">Target groups</label>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px">${ALERT_GROUPS.map(g=>`<label style="font-size:12px;color:#cbd5e1;display:flex;align-items:center;gap:4px"><input type="checkbox" class="nl-grp" value="${g}"${g==='All'?' checked':''}> ${g}</label>`).join('')}</div>
+    <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="alertSave()">Send</button><button class="btn btn-ghost btn-sm" onclick="alertCancel()">Cancel</button></div>
+  </div>`;
+}
+function alertCancel(){ _alertEdit=null; $('alert-form').innerHTML=''; }
+function alertSave(){
+  const topic=$('nl-topic').value.trim(), msg=$('nl-msg').value.trim();
+  if(!topic||!msg){ toast('Topic and message required'); return; }
+  const groups=[...document.querySelectorAll('.nl-grp:checked')].map(c=>c.value); if(!groups.length)groups.push('All');
+  const nid=Math.max(0,...SS_ALERTS.map(a=>a.id))+1;
+  SS_ALERTS.unshift({id:nid,topic,priority:$('nl-pri').value,message:msg,by:meName(),when:new Date().toISOString().slice(0,10),groups,read:false});
+  _alertEdit=null; toast('Notification sent'); renderAlerts(); if(typeof renderNotifs==='function')renderNotifs();
+}
+
+// ── WHO'S IN (employee status board) ──────────────────────────
+const STAT_META={In:{c:'#22c55e',i:'🟢'},Remote:{c:'#3b82f6',i:'🏠'},Lunch:{c:'#f59e0b',i:'🍽️'},Meeting:{c:'#a855f7',i:'📅'},Out:{c:'#ef4444',i:'🔴'},PTO:{c:'#94a3b8',i:'🏖️'}};
+let EMP_STATUS=null;
+function empStatusSeed(){
+  if(EMP_STATUS) return;
+  const dir=(typeof STAFF_DIR!=='undefined'&&STAFF_DIR.length)?STAFF_DIR:S.profiles.map(p=>({name:p.full_name,title:p.title,dept:p.team}));
+  const opts=['In','In','In','Remote','Meeting','Lunch','Out','PTO','In','Remote'];
+  EMP_STATUS=dir.slice(0,60).map((p,i)=>({name:p.name,title:p.title||'',dept:p.dept||'',status:opts[(p.name.length+i)%opts.length],note:'',since:'8:32 AM'}));
+  const mine=EMP_STATUS.find(e=>e.name===meName()); if(mine) mine.status='In';
+}
+function renderEmpStatus(){
+  empStatusSeed();
+  const counts={}; Object.keys(STAT_META).forEach(s=>counts[s]=EMP_STATUS.filter(e=>e.status===s).length);
+  const mine=EMP_STATUS.find(e=>e.name===meName());
+  $('topbar-actions').innerHTML='';
+  $('content').innerHTML=`<div style="max-width:1000px;margin:0 auto;padding:12px 6px">
+    <div class="card" style="margin-bottom:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-size:13px;color:#cbd5e1">My status:</span>
+      ${Object.keys(STAT_META).map(s=>`<button class="btn btn-ghost btn-sm" onclick="setMyStatus('${s}')" style="${mine&&mine.status===s?`border-color:${STAT_META[s].c};color:${STAT_META[s].c}`:''}">${STAT_META[s].i} ${s}</button>`).join('')}
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">${Object.keys(STAT_META).map(s=>statTile(counts[s],s,STAT_META[s].c)).join('')}</div>
+    <div class="toolbar"><div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="es-s" placeholder="Search staff…" style="width:220px"></div>
+      <select class="fc" id="es-f" style="width:auto;padding:6px 10px"><option value="">All Statuses</option>${Object.keys(STAT_META).map(s=>`<option>${s}</option>`).join('')}</select></div>
+    <div id="es-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px"></div></div>`;
+  const draw=()=>{
+    const q=$('es-s').value.toLowerCase(), f=$('es-f').value;
+    const list=EMP_STATUS.filter(e=>(!f||e.status===f)&&(!q||[e.name,e.title,e.dept].join(' ').toLowerCase().includes(q)));
+    $('es-list').innerHTML=list.map(e=>{const m=STAT_META[e.status];return `<div style="background:#0f172a80;border:1px solid #ffffff0f;border-left:3px solid ${m.c};border-radius:10px;padding:9px 12px">
+      <div style="display:flex;align-items:center;gap:6px"><span>${m.i}</span><span style="font-size:13px;font-weight:600;color:#e2e8f0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escH(e.name)}</span><span style="font-size:11px;font-weight:700;color:${m.c}">${e.status}</span></div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:2px">${escH(e.title)}${e.note?' · '+escH(e.note):''}</div></div>`;}).join('')||`<div class="empty"><div class="empty-i">👥</div><div class="empty-h">No one matches</div></div>`;
+  };
+  $('es-s').oninput=draw; $('es-f').onchange=draw; draw();
+}
+function setMyStatus(s){ empStatusSeed(); let mine=EMP_STATUS.find(e=>e.name===meName()); if(!mine){ mine={name:meName(),title:(S.profile&&S.profile.title)||'',dept:'',status:s,note:''}; EMP_STATUS.unshift(mine); } mine.status=s; toast('Status: '+s); renderEmpStatus(); }
+
+// ── TIME TRACKING (timesheets) ────────────────────────────────
+let TIMESHEETS=[
+  {id:1,user:'Travis Pruitt',date:'2026-07-13',project:'Rutherford Co — CAD/MDS',hours:3.5,category:'Implementation',notes:'Go-live prep'},
+  {id:2,user:'Travis Pruitt',date:'2026-07-13',project:'Internal',hours:1.0,category:'Meeting',notes:'PM standup'},
+  {id:3,user:'Travis Pruitt',date:'2026-07-12',project:'Pulaski Co — RMS',hours:2.5,category:'Training',notes:'Records training'},
+  {id:4,user:'Brent Boykin',date:'2026-07-13',project:'Abingdon PD — CAD',hours:4.0,category:'Implementation',notes:'Config'},
+  {id:5,user:'Dan Barcus',date:'2026-07-13',project:'Milam Co — JMS',hours:6.0,category:'Conversion',notes:'Data conversion'},
+];
+const TS_CATS=['Implementation','Training','Conversion','Support','Meeting','Travel','Admin','PTO'];
+let _tsEdit=false;
+function renderTimesheets(){
+  $('topbar-actions').innerHTML='<button class="btn btn-primary btn-sm" onclick="tsNew()">+ Log Time</button>';
+  const mine=TIMESHEETS.filter(t=>t.user===meName());
+  const myHrs=mine.reduce((s,t)=>s+t.hours,0), teamHrs=TIMESHEETS.reduce((s,t)=>s+t.hours,0);
+  $('content').innerHTML=`<div style="max-width:960px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:11px;color:#64748b;margin-bottom:12px">Log time against projects. This week's entries (test data).</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">${statTile(myHrs.toFixed(1)+'h','My hours','#3b82f6')}${statTile(mine.length,'My entries','#a855f7')}${statTile(teamHrs.toFixed(1)+'h','Team hours','#22c55e')}</div>
+    <div id="ts-form"></div>
+    <div class="toolbar"><div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="ts-s" placeholder="Search project, notes…" style="width:220px"></div>
+      <select class="fc" id="ts-c" style="width:auto;padding:6px 10px"><option value="">All Categories</option>${TS_CATS.map(c=>`<option>${c}</option>`).join('')}</select>
+      <label style="font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:5px"><input type="checkbox" id="ts-m" checked> Mine only</label></div>
+    <div id="ts-list" class="proj-list"></div></div>`;
+  const draw=()=>{
+    const q=$('ts-s').value.toLowerCase(), c=$('ts-c').value, m=$('ts-m').checked;
+    const f=TIMESHEETS.filter(t=>(!m||t.user===meName())&&(!c||t.category===c)&&(!q||[t.project,t.notes,t.user].join(' ').toLowerCase().includes(q))).sort((a,b)=>b.date.localeCompare(a.date));
+    $('ts-list').innerHTML=f.map(t=>`<div class="proj-row" style="cursor:default"><span style="font-size:1.1rem">⏱️</span>
+      <div class="proj-info"><div class="proj-name">${escH(t.project)} <span style="font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;color:#3b82f6;background:#3b82f622">${escH(t.category)}</span></div>
+      <div class="proj-meta">${fmtLong(t.date)} · ${escH(t.user)}${t.notes?' · '+escH(t.notes):''}</div></div>
+      <div class="proj-right"><span style="font-size:14px;font-weight:700;color:#e2e8f0">${t.hours}h</span></div></div>`).join('')||`<div class="empty"><div class="empty-i">⏱️</div><div class="empty-h">No time logged</div></div>`;
+  };
+  $('ts-s').oninput=draw; $('ts-c').onchange=draw; $('ts-m').onchange=draw; draw();
+  if(_tsEdit) tsShowForm();
+}
+function tsNew(){ _tsEdit=true; renderTimesheets(); }
+function tsShowForm(){
+  const projs=[...new Set([...(S.projects||[]).map(p=>p.name),'Internal'])].slice(0,40);
+  $('ts-form').innerHTML=`<div class="card" style="margin-bottom:14px;padding:14px"><div class="dash-h" style="margin-bottom:10px">⏱️ Log Time</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div style="flex:2;min-width:180px"><label style="font-size:11px;color:#94a3b8">Project</label><input class="fc" id="ts-p" list="ts-plist" placeholder="Project or Internal"><datalist id="ts-plist">${projs.map(p=>`<option>${escH(p)}</option>`).join('')}</datalist></div>
+      <div style="flex:1;min-width:90px"><label style="font-size:11px;color:#94a3b8">Hours</label><input class="fc" id="ts-h" type="number" step="0.25" min="0" placeholder="0.0"></div>
+      <div style="flex:1;min-width:120px"><label style="font-size:11px;color:#94a3b8">Category</label><select class="fc" id="ts-cat">${TS_CATS.map(c=>`<option>${c}</option>`).join('')}</select></div>
+    </div>
+    <label style="font-size:11px;color:#94a3b8;display:block;margin-top:10px">Notes</label><input class="fc" id="ts-n" placeholder="What did you work on?">
+    <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="tsSave()">Save</button><button class="btn btn-ghost btn-sm" onclick="tsCancel()">Cancel</button></div></div>`;
+}
+function tsCancel(){ _tsEdit=false; $('ts-form').innerHTML=''; }
+function tsSave(){
+  const p=$('ts-p').value.trim(), h=parseFloat($('ts-h').value); if(!p||!(h>0)){ toast('Project and hours required'); return; }
+  TIMESHEETS.unshift({id:Math.max(0,...TIMESHEETS.map(t=>t.id))+1,user:meName(),date:new Date().toISOString().slice(0,10),project:p,hours:h,category:$('ts-cat').value,notes:$('ts-n').value.trim()});
+  _tsEdit=false; toast('Time logged'); renderTimesheets();
+}
+
+// ── TEAM CHAT ─────────────────────────────────────────────────
+const CHAT_CHANNELS=['#general','#ps-support','#fms','#sales','#install','#dev'];
+let CHAT_MSGS={
+  '#general':[{who:'M. Sessoms',text:'Morning all — portal maintenance this Saturday evening.',at:'8:04 AM'},{who:'T. Pruitt',text:'Thanks Marc, I\'ll note it on the announcement banner.',at:'8:11 AM'}],
+  '#ps-support':[{who:'J. Meggs',text:'CAD 9.4.2 hotfix is out, please update affected sites.',at:'9:20 AM'},{who:'Zach Perkins',text:'On it — Rutherford and Abingdon first.',at:'9:25 AM'}],
+  '#fms':[{who:'P. Pusser',text:'Utility billing conversion for Early is scheduled Thursday.',at:'Yesterday'}],
+  '#sales':[{who:'R. Brigman',text:'Two new leads from the SC conference — added to SalesHub.',at:'Yesterday'}],
+  '#install':[{who:'Joe Sharpe',text:'Server specs approved for Milam Co.',at:'Mon'}],
+  '#dev':[{who:'Jordan Johnstone',text:'Pushed the geo-backoffice fix to staging.',at:'Mon'}],
+};
+let _chatCh='#general';
+function renderChat(){
+  $('topbar-actions').innerHTML='';
+  $('content').innerHTML=`<div style="max-width:1000px;margin:0 auto;padding:8px 6px;display:grid;grid-template-columns:180px 1fr;gap:12px;height:calc(100vh - 130px)">
+    <div style="background:#0f172a80;border:1px solid #ffffff0f;border-radius:12px;padding:8px;overflow:auto">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;padding:4px 8px">Channels</div>
+      ${CHAT_CHANNELS.map(c=>`<div onclick="chatOpen('${c}')" style="padding:7px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:${c===_chatCh?'#fff':'#cbd5e1'};background:${c===_chatCh?'#3b82f622':'transparent'}" onmouseover="if('${c}'!=='${_chatCh}')this.style.background='#ffffff08'" onmouseout="if('${c}'!=='${_chatCh}')this.style.background='transparent'">${c}</div>`).join('')}
+    </div>
+    <div style="display:flex;flex-direction:column;background:#0f172a80;border:1px solid #ffffff0f;border-radius:12px;overflow:hidden">
+      <div style="padding:10px 14px;border-bottom:1px solid #ffffff0f;font-weight:700;color:#e2e8f0">${_chatCh}</div>
+      <div id="chat-msgs" style="flex:1;overflow:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px"></div>
+      <div style="display:flex;gap:8px;padding:10px 12px;border-top:1px solid #ffffff0f">
+        <input class="fc" id="chat-in" placeholder="Message ${_chatCh}…" style="flex:1" onkeydown="if(event.key==='Enter')chatSend()">
+        <button class="btn btn-primary btn-sm" onclick="chatSend()">Send</button></div>
+    </div></div>`;
+  chatDraw();
+}
+function chatDraw(){
+  const box=$('chat-msgs'); if(!box) return;
+  box.innerHTML=(CHAT_MSGS[_chatCh]||[]).map(m=>`<div style="display:flex;gap:9px"><div class="sb-avatar" style="width:30px;height:30px;font-size:11px;flex-shrink:0">${escH((m.who||'?').split(' ').map(w=>w[0]).join('').slice(0,2))}</div>
+    <div><div style="font-size:12px"><b style="color:#e2e8f0">${escH(m.who)}</b> <span style="color:#64748b;font-size:11px">${escH(m.at)}</span></div><div style="font-size:13px;color:#cbd5e1">${escH(m.text)}</div></div></div>`).join('')||'<div style="color:#64748b;font-size:13px">No messages yet.</div>';
+  box.scrollTop=box.scrollHeight;
+}
+function chatOpen(c){ _chatCh=c; renderChat(); }
+function chatSend(){ const inp=$('chat-in'); const t=inp&&inp.value.trim(); if(!t) return; (CHAT_MSGS[_chatCh]=CHAT_MSGS[_chatCh]||[]).push({who:meName(),text:t,at:'now'}); inp.value=''; chatDraw(); }
+
+// ── COMPANY BLOG ──────────────────────────────────────────────
+let BLOG=[
+  {id:1,title:'Welcome to the New Staff Portal',author:'Travis Pruitt',date:'2026-07-01',tag:'Announcement',body:'We\'re rolling out the new internal portal to replace ClickUp and the legacy employee site. Everything — projects, customers, KB, training, sales — lives in one place now. Explore the sidebar and send feedback via the Bug Tracker.'},
+  {id:2,title:'Q2 Wins: Records Go-Lives Across Three States',author:'Patrick Pusser',date:'2026-06-24',tag:'Company',body:'A huge quarter for the implementation team with successful go-lives in NC, VA, and TX. Thank you to everyone who put in the late nights on data conversions.'},
+  {id:3,title:'Reminder: Annual Users Conference Planning',author:'Jennifer Meggs',date:'2026-06-15',tag:'Training',body:'Planning is underway for the PS Annual Users Conference. Session proposals are open — submit your topics to the training team.'},
+];
+const BLOG_TAGS=['Announcement','Company','Training','Product','Culture'];
+let _blogView=null;
+function renderBlog(){
+  if(_blogView){ blogDetail(_blogView); return; }
+  $('topbar-actions').innerHTML='<button class="btn btn-primary btn-sm" onclick="blogNew()">+ New Post</button>';
+  $('content').innerHTML=`<div style="max-width:820px;margin:0 auto;padding:12px 6px"><div id="blog-form"></div>
+    <div class="toolbar"><div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="bl-s" placeholder="Search posts…" style="width:220px"></div>
+    <select class="fc" id="bl-t" style="width:auto;padding:6px 10px"><option value="">All Tags</option>${BLOG_TAGS.map(t=>`<option>${t}</option>`).join('')}</select></div>
+    <div id="bl-list"></div></div>`;
+  const draw=()=>{
+    const q=$('bl-s').value.toLowerCase(), t=$('bl-t').value;
+    const f=BLOG.filter(b=>(!t||b.tag===t)&&(!q||[b.title,b.body,b.author].join(' ').toLowerCase().includes(q)));
+    $('bl-list').innerHTML=f.map(b=>`<div class="card" style="margin-bottom:12px;padding:14px;cursor:pointer" onclick="blogOpen(${b.id})" onmouseover="this.style.borderColor='#3b82f655'" onmouseout="this.style.borderColor=''">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;color:#a855f7;background:#a855f722">${escH(b.tag)}</span><span style="font-size:11px;color:#64748b">${fmtLong(b.date)} · ${escH(b.author)}</span></div>
+      <div style="font-size:15px;font-weight:700;color:#e2e8f0;margin-bottom:3px">${escH(b.title)}</div>
+      <div style="font-size:13px;color:#94a3b8;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${escH(b.body)}</div></div>`).join('')||`<div class="empty"><div class="empty-i">📰</div><div class="empty-h">No posts</div></div>`;
+  };
+  $('bl-s').oninput=draw; $('bl-t').onchange=draw; draw();
+}
+function blogOpen(id){ _blogView=id; renderBlog(); }
+function blogDetail(id){
+  const b=BLOG.find(x=>x.id===id); if(!b){ _blogView=null; renderBlog(); return; }
+  $('topbar-actions').innerHTML='';
+  $('content').innerHTML=`<div style="max-width:720px;margin:0 auto;padding:12px 6px">
+    <button class="btn btn-ghost btn-sm" onclick="blogBack()" style="margin-bottom:14px">← All Posts</button>
+    <span style="font-size:10px;font-weight:700;padding:1px 8px;border-radius:999px;color:#a855f7;background:#a855f722">${escH(b.tag)}</span>
+    <h1 style="font-size:26px;color:#e2e8f0;margin:10px 0 4px">${escH(b.title)}</h1>
+    <div style="font-size:12px;color:#64748b;margin-bottom:16px">${fmtLong(b.date)} · ${escH(b.author)}</div>
+    <div style="font-size:15px;line-height:1.7;color:#cbd5e1;white-space:pre-wrap">${escH(b.body)}</div></div>`;
+}
+function blogBack(){ _blogView=null; renderBlog(); }
+function blogNew(){
+  $('blog-form').innerHTML=`<div class="card" style="margin-bottom:14px;padding:14px"><div class="dash-h" style="margin-bottom:10px">📰 New Post</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><div style="flex:2;min-width:180px"><label style="font-size:11px;color:#94a3b8">Title</label><input class="fc" id="bg-t" placeholder="Post title"></div>
+    <div style="flex:1;min-width:120px"><label style="font-size:11px;color:#94a3b8">Tag</label><select class="fc" id="bg-tag">${BLOG_TAGS.map(t=>`<option>${t}</option>`).join('')}</select></div></div>
+    <label style="font-size:11px;color:#94a3b8;display:block;margin-top:10px">Body</label><textarea class="fc" id="bg-b" rows="4" placeholder="Write your post…"></textarea>
+    <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="blogSave()">Publish</button><button class="btn btn-ghost btn-sm" onclick="document.getElementById('blog-form').innerHTML=''">Cancel</button></div></div>`;
+}
+function blogSave(){
+  const t=$('bg-t').value.trim(), b=$('bg-b').value.trim(); if(!t){ toast('Title required'); return; }
+  BLOG.unshift({id:Math.max(0,...BLOG.map(x=>x.id))+1,title:t,author:meName(),date:new Date().toISOString().slice(0,10),tag:$('bg-tag').value,body:b});
+  toast('Post published'); renderBlog();
+}
+
+// ── CITIZEN CONNECT (app registration) ────────────────────────
+let CC_APPS=[
+  {id:1,agency:'Rutherford Co',state:'NC',platform:'iOS + Android',status:'Live',by:'Z. Perkins',date:'2026-05-20'},
+  {id:2,agency:'Abingdon PD',state:'VA',platform:'iOS + Android',status:'Setup',by:'D. Barcus',date:'2026-07-02'},
+  {id:3,agency:'Milam County SO',state:'TX',platform:'Android',status:'Requested',by:'J. Merritt',date:'2026-07-09'},
+];
+const CC_STATUS={Live:'#22c55e',Setup:'#f59e0b',Requested:'#3b82f6'};
+let _ccEdit=false;
+function renderCitizen(){
+  $('topbar-actions').innerHTML='<button class="btn btn-primary btn-sm" onclick="ccNew()">+ Register Agency</button>';
+  $('content').innerHTML=`<div style="max-width:900px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:11px;color:#64748b;margin-bottom:12px">Citizen Connect mobile app registrations by agency.</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">${['Live','Setup','Requested'].map(s=>statTile(CC_APPS.filter(a=>a.status===s).length,s,CC_STATUS[s])).join('')}</div>
+    <div id="cc-form"></div>
+    <div class="toolbar"><div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="cc-s" placeholder="Search agency…" style="width:220px"></div>
+    <select class="fc" id="cc-st" style="width:auto;padding:6px 10px"><option value="">All Statuses</option>${Object.keys(CC_STATUS).map(s=>`<option>${s}</option>`).join('')}</select></div>
+    <div id="cc-list" class="proj-list"></div></div>`;
+  const draw=()=>{
+    const q=$('cc-s').value.toLowerCase(), st=$('cc-st').value;
+    const f=CC_APPS.filter(a=>(!st||a.status===st)&&(!q||[a.agency,a.state].join(' ').toLowerCase().includes(q)));
+    $('cc-list').innerHTML=f.map(a=>`<div class="proj-row" style="cursor:default"><span style="font-size:1.1rem">📱</span>
+      <div class="proj-info"><div class="proj-name">${escH(a.agency)} <span style="font-size:12px;color:#94a3b8">· ${escH(a.state)}</span></div>
+      <div class="proj-meta">${escH(a.platform)} · registered by ${escH(a.by)} · ${fmtLong(a.date)}</div></div>
+      <div class="proj-right"><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${CC_STATUS[a.status]};background:${CC_STATUS[a.status]}22">${escH(a.status)}</span></div></div>`).join('')||`<div class="empty"><div class="empty-i">📱</div><div class="empty-h">No registrations</div></div>`;
+  };
+  $('cc-s').oninput=draw; $('cc-st').onchange=draw; draw();
+  if(_ccEdit) ccShowForm();
+}
+function ccNew(){ _ccEdit=true; renderCitizen(); }
+function ccShowForm(){
+  $('cc-form').innerHTML=`<div class="card" style="margin-bottom:14px;padding:14px"><div class="dash-h" style="margin-bottom:10px">📱 Register Agency</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><div style="flex:2;min-width:160px"><label style="font-size:11px;color:#94a3b8">Agency</label><input class="fc" id="cc-a" placeholder="Agency name"></div>
+    <div style="flex:1;min-width:70px"><label style="font-size:11px;color:#94a3b8">State</label><input class="fc" id="cc-stt" placeholder="ST" maxlength="2"></div>
+    <div style="flex:1;min-width:120px"><label style="font-size:11px;color:#94a3b8">Platform</label><select class="fc" id="cc-p"><option>iOS + Android</option><option>iOS</option><option>Android</option></select></div>
+    <div style="flex:1;min-width:110px"><label style="font-size:11px;color:#94a3b8">Status</label><select class="fc" id="cc-stat">${Object.keys(CC_STATUS).map(s=>`<option>${s}</option>`).join('')}</select></div></div>
+    <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="ccSave()">Register</button><button class="btn btn-ghost btn-sm" onclick="ccCancel()">Cancel</button></div></div>`;
+}
+function ccCancel(){ _ccEdit=false; $('cc-form').innerHTML=''; }
+function ccSave(){
+  const a=$('cc-a').value.trim(); if(!a){ toast('Agency required'); return; }
+  CC_APPS.unshift({id:Math.max(0,...CC_APPS.map(x=>x.id))+1,agency:a,state:$('cc-stt').value.trim().toUpperCase(),platform:$('cc-p').value,status:$('cc-stat').value,by:meName(),date:new Date().toISOString().slice(0,10)});
+  _ccEdit=false; toast('Agency registered'); renderCitizen();
+}
+
+// ── TRAINING ENGINE (register → check-in → feedback → agenda) ──
+let TRAIN_SESSIONS=[
+  {id:101,conf:'PS Annual Users Conference',title:'CAD Deep Dive',date:'2026-08-12',time:'9:00 AM',room:'Salon A',product:'CAD',trainer:'Zach Perkins',seats:40,enrolled:31},
+  {id:102,conf:'PS Annual Users Conference',title:'RMS Reporting & NIBRS',date:'2026-08-12',time:'10:30 AM',room:'Salon B',product:'RMS',trainer:'Debbie Stevens',seats:40,enrolled:28},
+  {id:103,conf:'PS Annual Users Conference',title:'JMS Booking Workflow',date:'2026-08-12',time:'1:00 PM',room:'Salon A',product:'JMS',trainer:'Nick Madray',seats:35,enrolled:22},
+  {id:104,conf:'PS Annual Users Conference',title:'Mobile / MDIS in the Field',date:'2026-08-13',time:'9:00 AM',room:'Salon C',product:'Mobile',trainer:'Jesse Merritt',seats:30,enrolled:19},
+  {id:105,conf:'FMS Biennial Users Conference',title:'General Ledger Year-End',date:'2026-09-10',time:'9:00 AM',room:'Room 1',product:'FMS',trainer:'Matt Pittman',seats:30,enrolled:24},
+  {id:106,conf:'FMS Biennial Users Conference',title:'Utility Billing & Invoice Cloud',date:'2026-09-10',time:'1:00 PM',room:'Room 2',product:'FMS',trainer:'Cameron Reynolds',seats:30,enrolled:17},
+];
+let MY_SESSIONS={101:{registered:true,attended:false,feedback:null},105:{registered:true,attended:false,feedback:null}};
+let _feedbackFor=null;
+function sReg(id){ return MY_SESSIONS[id]||{registered:false,attended:false,feedback:null}; }
+function renderMyAgenda(){
+  $('topbar-actions').innerHTML='';
+  const mine=TRAIN_SESSIONS.filter(s=>sReg(s.id).registered);
+  $('content').innerHTML=`<div style="max-width:900px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:11px;color:#64748b;margin-bottom:12px">Register for sessions, check in on the day (enter the code shown in the room), and leave feedback. Mirrors the conference registration → check-in → feedback flow.</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">${statTile(mine.length,'My sessions','#3b82f6')}${statTile(mine.filter(s=>sReg(s.id).attended).length,'Checked in','#22c55e')}${statTile(mine.filter(s=>sReg(s.id).feedback).length,'Feedback given','#a855f7')}</div>
+    <div id="fb-form"></div>
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;margin:4px 0 8px 2px">My Agenda</div>
+    <div id="my-sess" class="proj-list" style="margin-bottom:20px"></div>
+    <div class="toolbar"><div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="se-s" placeholder="Search sessions…" style="width:220px"></div>
+      <select class="fc" id="se-p" style="width:auto;padding:6px 10px"><option value="">All Products</option>${[...new Set(TRAIN_SESSIONS.map(s=>s.product))].map(p=>`<option>${p}</option>`).join('')}</select></div>
+    <div id="all-sess" class="proj-list"></div></div>`;
+  agendaDraw();
+}
+function sessRow(s,inAgenda){
+  const r=sReg(s.id); const full=s.enrolled>=s.seats;
+  let right='';
+  if(inAgenda){
+    if(!r.attended) right=`<input id="ci-${s.id}" placeholder="Code" style="width:70px;padding:5px 8px;font-size:12px;background:#0f172a;color:#e2e8f0;border:1px solid var(--border);border-radius:6px"><button class="btn btn-primary btn-xs" onclick="sessCheckin(${s.id})">Check in</button>`;
+    else right=`<span style="font-size:11px;font-weight:700;color:#22c55e;background:#22c55e22;padding:2px 9px;border-radius:999px">✓ Checked in</span>`+(r.feedback?` <span style="font-size:11px;color:#a855f7">★ ${r.feedback.overall}/5</span>`:` <button class="btn btn-ghost btn-xs" onclick="sessFeedback(${s.id})">Feedback</button>`);
+  } else {
+    right=r.registered?`<span style="font-size:11px;color:#22c55e">✓ Registered</span>`:(full?`<span style="font-size:11px;color:#ef4444">Full</span>`:`<button class="btn btn-ghost btn-xs" onclick="sessRegister(${s.id})">Register</button>`);
+  }
+  return `<div class="proj-row" style="cursor:default"><span style="font-size:1.1rem">🎓</span>
+    <div class="proj-info"><div class="proj-name">${escH(s.title)} <span style="font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;color:#3b82f6;background:#3b82f622">${escH(s.product)}</span></div>
+    <div class="proj-meta">${escH(s.conf)} · ${fmtLong(s.date)} ${escH(s.time)} · ${escH(s.room)} · ${escH(s.trainer)} · ${s.enrolled}/${s.seats}${inAgenda?' · code '+s.id:''}</div></div>
+    <div class="proj-right">${right}</div></div>`;
+}
+function agendaDraw(){
+  const mine=TRAIN_SESSIONS.filter(s=>sReg(s.id).registered);
+  const my=$('my-sess'); if(my) my.innerHTML=mine.map(s=>sessRow(s,true)).join('')||`<div class="empty" style="padding:20px"><div class="empty-h">No sessions yet — register below.</div></div>`;
+  const q=($('se-s')&&$('se-s').value.toLowerCase())||'', p=($('se-p')&&$('se-p').value)||'';
+  const all=TRAIN_SESSIONS.filter(s=>(!p||s.product===p)&&(!q||[s.title,s.conf,s.trainer].join(' ').toLowerCase().includes(q)));
+  const el=$('all-sess'); if(el) el.innerHTML=all.map(s=>sessRow(s,false)).join('');
+  if($('se-s')&&!$('se-s')._w){ $('se-s')._w=1; $('se-s').oninput=agendaDraw; $('se-p').onchange=agendaDraw; }
+}
+function sessRegister(id){ const s=TRAIN_SESSIONS.find(x=>x.id===id); if(!s) return; MY_SESSIONS[id]={registered:true,attended:false,feedback:null}; s.enrolled++; toast('Registered — code is '+id); agendaDraw(); }
+function sessCheckin(id){ const inp=$('ci-'+id); const code=inp&&inp.value.trim(); if(code!==String(id)){ toast('Check-in code is '+id); return; } MY_SESSIONS[id].attended=true; toast('Checked in ✓'); agendaDraw(); }
+function sessFeedback(id){ _feedbackFor=id; const s=TRAIN_SESSIONS.find(x=>x.id===id);
+  $('fb-form').innerHTML=`<div class="card" style="margin-bottom:14px;padding:14px"><div class="dash-h" style="margin-bottom:10px">★ Feedback — ${escH(s.title)}</div>
+    ${['Overall','Content','Instructor','Pace'].map(k=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:12px;color:#94a3b8;width:80px">${k}</span><select class="fc" id="fb-${k.toLowerCase()}" style="width:auto;padding:5px 10px">${[5,4,3,2,1].map(n=>`<option value="${n}">${'★'.repeat(n)} (${n})</option>`).join('')}</select></div>`).join('')}
+    <label style="font-size:11px;color:#94a3b8;display:block;margin-top:8px">Comments</label><textarea class="fc" id="fb-c" rows="2" placeholder="What worked / what to improve"></textarea>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-primary btn-sm" onclick="fbSave(${id})">Submit</button><button class="btn btn-ghost btn-sm" onclick="fbCancel()">Cancel</button></div></div>`;
+}
+function fbCancel(){ _feedbackFor=null; $('fb-form').innerHTML=''; }
+function fbSave(id){ MY_SESSIONS[id].feedback={overall:+$('fb-overall').value,content:+$('fb-content').value,instructor:+$('fb-instructor').value,pace:+$('fb-pace').value,comments:$('fb-c').value.trim()}; _feedbackFor=null; toast('Thanks for your feedback!'); renderMyAgenda(); }
+
 function navigate(v, extra={}) {
   S.view = v;
   _mount='content';
@@ -2482,6 +2846,8 @@ function navigate(v, extra={}) {
     kbcreate:renderKBCreate, trainingfms:()=>renderTraining({ps:'FMS'}), trainingps:()=>renderTraining({ps:'PS'}), trainconf:renderTrainConf,
     editappversions:renderAppVersions,
     supportagr:renderSupportAgr, announce:renderAnnounce, hwspecs:renderHWSpecs,
+    alerts:renderAlerts, chat:renderChat, empstatus:renderEmpStatus, timesheets:renderTimesheets,
+    blog:renderBlog, citizen:renderCitizen, myagenda:renderMyAgenda,
     activity:renderActivity, admin:renderAdmin})[v]?.(extra);
   updateSidebarBadges();
   closeSidebar();
@@ -3190,29 +3556,68 @@ function renderAppVersions(){
 }
 
 // ── TIME OFF (internal) ────────────────────────────────────────
+const TO_TYPES=['Vacation','Sick','Personal','Appt','Birthday','Volunteer','Bereavement','Jury Duty','Work From Home'];
+const TO_BALANCE={Vacation:120,Sick:64,Personal:24,'Work From Home':40}; // hours/year (test data)
+let _toEdit=false, _toSeeded=false;
 function renderTimeOff(){
   const to=(typeof TIME_OFF!=='undefined'?TIME_OFF:[]);
-  $('topbar-actions').innerHTML='';
+  if(!_toSeeded){ _toSeeded=true;
+    to.unshift({who:meName(),type:'Vacation',begin:'2026-08-04',end:'2026-08-08',hours:'40',status:'Pending',notes:'Family trip'});
+    to.unshift({who:'Brent Boykin',type:'Sick',begin:'2026-07-15',end:'2026-07-15',hours:'8',status:'Pending',notes:''});
+  }
+  const canApprove=isAdmin()||isManager();
+  $('topbar-actions').innerHTML='<button class="btn btn-primary btn-sm" onclick="toNew()">+ Request Time Off</button>';
   const sColor={Approved:'#4ade80',Pending:'#fbbf24',Denied:'#f87171',Canceled:'#94a3b8'};
-  $('content').innerHTML=`
+  const myUsed={}; to.filter(t=>t.who===meName()&&t.status==='Approved').forEach(t=>{ myUsed[t.type]=(myUsed[t.type]||0)+(parseFloat(t.hours)||0); });
+  const tiles=Object.keys(TO_BALANCE).map(k=>{const used=myUsed[k]||0;const rem=TO_BALANCE[k]-used;return statTile(rem+'h',k+' left',rem<16?'#f59e0b':'#22c55e');}).join('');
+  $('content').innerHTML=`<div style="max-width:1000px;margin:0 auto;padding:12px 6px">
+  <div style="font-size:11px;color:#64748b;margin-bottom:10px">Your balances (test data). Requests route to your supervisor for approval.</div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px">${tiles}</div>
+  <div id="to-form"></div>
   <div class="toolbar">
     <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="to-s" placeholder="Search requests…" style="width:220px"></div>
-    <select class="fc" id="to-st" style="width:auto;padding:6px 10px"><option value="">All Statuses</option><option>Approved</option><option>Pending</option><option>Denied</option><option>Canceled</option></select>
+    <select class="fc" id="to-st" style="width:auto;padding:6px 10px"><option value="">All Statuses</option><option>Pending</option><option>Approved</option><option>Denied</option><option>Canceled</option></select>
     <select class="fc" id="to-ty" style="width:auto;padding:6px 10px"><option value="">All Types</option>${[...new Set(to.map(t=>t.type))].map(t=>`<option>${escH(t)}</option>`).join('')}</select>
+    <label style="font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:5px"><input type="checkbox" id="to-m"> Mine only</label>
   </div>
-  <div id="to-list" class="proj-list"></div>`;
+  <div id="to-list" class="proj-list"></div></div>`;
   const draw=()=>{
-    const q=$('to-s').value.toLowerCase(), st=$('to-st').value, ty=$('to-ty').value;
-    const f=to.filter(t=>(!st||t.status===st)&&(!ty||t.type===ty)&&(!q||(t.who||'').toLowerCase().includes(q)||(t.notes||'').toLowerCase().includes(q)));
-    $('to-list').innerHTML=f.map(t=>`<div class="proj-row" style="cursor:default">
+    const q=$('to-s').value.toLowerCase(), st=$('to-st').value, ty=$('to-ty').value, m=$('to-m').checked;
+    const f=to.filter(t=>(!m||t.who===meName())&&(!st||t.status===st)&&(!ty||t.type===ty)&&(!q||(t.who||'').toLowerCase().includes(q)||(t.notes||'').toLowerCase().includes(q)));
+    $('to-list').innerHTML=f.map((t)=>{const gi=to.indexOf(t);const act=(canApprove&&t.status==='Pending')?`<button class="btn btn-ghost btn-xs" style="color:#22c55e" onclick="toDecide(${gi},'Approved')">Approve</button><button class="btn btn-ghost btn-xs" style="color:#ef4444" onclick="toDecide(${gi},'Denied')">Deny</button>`:'';
+      return `<div class="proj-row" style="cursor:default">
         <span style="font-size:1.2rem">🏖️</span>
         <div class="proj-info"><div class="proj-name">${escH(t.who||'—')} <span style="font-size:12px;color:#94a3b8">· ${escH(t.type)}</span></div>
-        <div class="proj-meta">${t.begin?fmt(t.begin):''}${t.end&&t.end!==t.begin?' – '+fmt(t.end):''}${t.hours?' · '+t.hours+'h':''}${t.notes?' · '+escH(t.notes):''}</div></div>
-        <div class="proj-right"><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${sColor[t.status]||'#94a3b8'};background:${(sColor[t.status]||'#94a3b8')}22">${escH(t.status)}</span></div>
-      </div>`).join('')||`<div class="empty"><div class="empty-i">🏖️</div><div class="empty-h">No requests match</div></div>`;
+        <div class="proj-meta">${t.begin?fmt(t.begin):''}${t.end&&t.end!==t.begin?' – '+fmt(t.end):''}${t.hours?' · '+t.hours+'h':''}${t.notes?' · '+escH(t.notes):''}${t.approvedBy?' · by '+escH(t.approvedBy):''}</div></div>
+        <div class="proj-right">${act}<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${sColor[t.status]||'#94a3b8'};background:${(sColor[t.status]||'#94a3b8')}22">${escH(t.status)}</span></div>
+      </div>`;}).join('')||`<div class="empty"><div class="empty-i">🏖️</div><div class="empty-h">No requests match</div></div>`;
   };
-  $('to-s').oninput=draw; $('to-st').onchange=draw; $('to-ty').onchange=draw; draw();
+  $('to-s').oninput=draw; $('to-st').onchange=draw; $('to-ty').onchange=draw; $('to-m').onchange=draw; draw();
+  if(_toEdit) toShowForm();
 }
+function toNew(){ _toEdit=true; renderTimeOff(); }
+function toShowForm(){
+  $('to-form').innerHTML=`<div class="card" style="margin-bottom:14px;padding:14px"><div class="dash-h" style="margin-bottom:10px">🏖️ Request Time Off</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div style="flex:1;min-width:120px"><label style="font-size:11px;color:#94a3b8">Type</label><select class="fc" id="tf-ty">${TO_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></div>
+      <div style="flex:1;min-width:120px"><label style="font-size:11px;color:#94a3b8">Start</label><input class="fc" id="tf-b" type="date"></div>
+      <div style="flex:1;min-width:120px"><label style="font-size:11px;color:#94a3b8">End</label><input class="fc" id="tf-e" type="date"></div>
+      <div style="flex:1;min-width:80px"><label style="font-size:11px;color:#94a3b8">Hours</label><input class="fc" id="tf-h" type="number" step="0.5" placeholder="8"></div>
+    </div>
+    <label style="font-size:11px;color:#94a3b8;display:block;margin-top:10px">Notes</label><input class="fc" id="tf-n" placeholder="Optional">
+    <div style="font-size:11px;color:#64748b;margin-top:8px">Routes to your supervisor for approval.</div>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-primary btn-sm" onclick="toSubmit()">Submit</button><button class="btn btn-ghost btn-sm" onclick="toCancel()">Cancel</button></div></div>`;
+}
+function toCancel(){ _toEdit=false; $('to-form').innerHTML=''; }
+function toSubmit(){
+  const b=$('tf-b').value; if(!b){ toast('Start date required'); return; }
+  const to=TIME_OFF; const type=$('tf-ty').value; const hrs=$('tf-h').value;
+  // balance check
+  if(TO_BALANCE[type]!=null){ let used=0; to.filter(t=>t.who===meName()&&t.type===type&&t.status==='Approved').forEach(t=>used+=parseFloat(t.hours)||0); if((parseFloat(hrs)||0)>(TO_BALANCE[type]-used)){ toast('Not enough '+type+' balance'); return; } }
+  to.unshift({who:meName(),type,begin:b,end:$('tf-e').value||b,hours:hrs,status:'Pending',notes:$('tf-n').value.trim()});
+  _toEdit=false; toast('Request submitted to your supervisor'); renderTimeOff();
+}
+function toDecide(gi,decision){ const t=TIME_OFF[gi]; if(!t) return; t.status=decision; t.approvedBy=meName(); toast('Request '+decision.toLowerCase()); renderTimeOff(); }
 
 function renderHandbook() {
   $('topbar-actions').innerHTML = '';
