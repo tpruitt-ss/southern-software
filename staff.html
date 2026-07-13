@@ -108,10 +108,17 @@ button{cursor:pointer}
 .cmdk-item .k{margin-left:auto;font-size:10px;color:var(--v-text4);border:1px solid var(--v-hair3);border-radius:4px;padding:1px 5px}
 .cmdk-grp{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--v-text4);padding:9px 12px 3px}
 /* density */
-[data-density="compact"] .proj-row{padding:6px 10px}
-[data-density="compact"] .sb-item{padding:.3rem .85rem}
-[data-density="compact"] .card{padding:10px 12px}
-[data-density="compact"] .proj-list{gap:4px}
+[data-density="cozy"] .proj-row{padding:8px 12px}
+[data-density="cozy"] .sb-item{padding:.38rem .85rem}
+[data-density="cozy"] .proj-list{gap:6px}
+[data-density="cozy"] .card{padding:12px 14px}
+[data-density="compact"] .proj-row{padding:5px 10px}
+[data-density="compact"] .sb-item{padding:.28rem .85rem}
+[data-density="compact"] .card{padding:9px 12px}
+[data-density="compact"] .proj-list{gap:3px}
+[data-density="compact"] .d-row{padding:4px 6px}
+[data-density="compact"] .dash-pbody{padding:4px 8px 8px}
+.ts-btn.active-ts{border-color:var(--blue)!important;color:var(--bluel)!important;background:rgba(46,127,212,.12)}
 /* AI accents */
 .ai-box{background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:10px;padding:12px 14px}
 .ai-badge{font-size:10px;color:var(--bluel)}
@@ -867,6 +874,12 @@ a#skip-link:focus{left:8px}
         <button class="btn btn-ghost btn-sm ts-btn" onclick="setTextSize(1)" aria-label="Increase text size" title="Larger text">A+</button>
         <button class="btn btn-ghost btn-sm ts-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Toggle light/dark mode" title="Toggle light / dark" style="margin-left:2px">🌙</button>
       </div>
+      <div class="sb-density" style="display:flex;align-items:center;gap:6px;padding:.5rem .7rem;border-top:1px solid var(--border)">
+        <span style="font-size:11px;color:var(--muted);flex:1">Density</span>
+        <button class="btn btn-ghost btn-sm ts-btn" id="den-comfy" onclick="setDensity('')" aria-label="Comfortable density" title="Comfortable (spacious)">░</button>
+        <button class="btn btn-ghost btn-sm ts-btn" id="den-cozy" onclick="setDensity('cozy')" aria-label="Cozy density" title="Cozy (balanced)">▒</button>
+        <button class="btn btn-ghost btn-sm ts-btn" id="den-compact" onclick="setDensity('compact')" aria-label="Compact density" title="Compact (tight — more on screen)">▓</button>
+      </div>
       <div class="sb-roleprev" style="display:flex;align-items:center;gap:6px;padding:.4rem .7rem;border-top:1px solid var(--border)">
         <span style="font-size:11px;color:var(--muted);flex-shrink:0" title="Preview the portal as a different role. Nav items gate to that role's permissions. Does not change anyone's real access.">👁 Preview as</span>
         <select id="role-preview" onchange="previewRole(this.value)" style="flex:1;min-width:0;background:var(--v-surface-solid);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:11px;padding:3px 4px"></select>
@@ -889,6 +902,7 @@ a#skip-link:focus{left:8px}
           <input class="gsearch-input" id="gsearch" placeholder="Search tasks, projects, customers…">
           <div class="gsearch-results" id="gsearch-results"></div>
         </div>
+        <button id="pin-btn" class="btn btn-ghost btn-sm" style="margin-right:.4rem" onclick="pinCurrent()" title="Pin this page to the sidebar" aria-label="Pin this page">📍</button>
         <button id="create-btn" class="btn btn-primary btn-sm" style="margin-right:.4rem" onclick="openPalette()" title="Create / command palette (⌘K)" aria-label="Create or command palette">＋ Create</button>
         <button id="help-btn" class="btn btn-ghost btn-sm" style="margin-right:.4rem" onclick="showTour()" title="Quick-start tour" aria-label="Help and quick-start tour">?</button>
         <div id="notif-wrap" style="position:relative;margin-right:.4rem">
@@ -3181,7 +3195,9 @@ function palRun(i){ const c=_pal.items[i]; if(!c) return; closePalette(); setTim
 // ── PINNING ───────────────────────────────────────────────────
 let PINNED=[]; try{ PINNED=JSON.parse(localStorage.getItem('ss-pins')||'[]'); }catch(e){ PINNED=[]; }
 function isPinned(v){ return PINNED.includes(v); }
-function togglePin(v){ if(!v||!VIEW_TITLES[v])return; if(isPinned(v))PINNED=PINNED.filter(x=>x!==v); else PINNED.push(v); try{localStorage.setItem('ss-pins',JSON.stringify(PINNED));}catch(e){} renderPinned(); toast(isPinned(v)?'Pinned to sidebar':'Unpinned'); }
+function togglePin(v){ if(!v||!VIEW_TITLES[v])return; if(isPinned(v))PINNED=PINNED.filter(x=>x!==v); else PINNED.push(v); try{localStorage.setItem('ss-pins',JSON.stringify(PINNED));}catch(e){} renderPinned(); updatePinBtn(); toast(isPinned(v)?'📌 Pinned to sidebar':'Unpinned'); }
+function pinCurrent(){ if(!VIEW_TITLES[S.view]){ toast('This page can’t be pinned'); return; } togglePin(S.view); }
+function updatePinBtn(){ const b=document.getElementById('pin-btn'); if(!b)return; const v=S.view; if(!VIEW_TITLES[v]){ b.style.display='none'; return; } b.style.display=''; const on=isPinned(v); b.textContent=on?'📌':'📍'; b.style.opacity=on?'1':'.6'; b.title=on?'Unpin this page from the sidebar':'Pin this page to the sidebar'; }
 const PIN_ICON={overview:'📊',customers:'🏛️',supportagr:'📑',saleshub:'💼',projects:'📁',board:'📋',myagenda:'📝',alerts:'🔔',kb:'📚',trainconf:'🎓',timeoff:'🏖️'};
 function renderPinned(){
   const nav=document.querySelector('.sb-nav'); if(!nav) return;
@@ -3193,8 +3209,12 @@ function renderPinned(){
 }
 
 // ── DENSITY ───────────────────────────────────────────────────
-function toggleDensity(){ const r=document.documentElement; const c=r.getAttribute('data-density')==='compact'; if(c)r.removeAttribute('data-density'); else r.setAttribute('data-density','compact'); try{localStorage.setItem('ss-density',c?'':'compact');}catch(e){} toast(c?'Comfortable density':'Compact density'); }
-function initDensity(){ try{ if(localStorage.getItem('ss-density')==='compact') document.documentElement.setAttribute('data-density','compact'); }catch(e){} }
+const DENSITY_LEVELS=['','cozy','compact'];
+const DENSITY_LABEL={'':'Comfortable',cozy:'Cozy',compact:'Compact'};
+function setDensity(level){ const r=document.documentElement; if(level) r.setAttribute('data-density',level); else r.removeAttribute('data-density'); try{localStorage.setItem('ss-density',level);}catch(e){} updateDensityBtns(); toast('Density: '+DENSITY_LABEL[level]); }
+function toggleDensity(){ const cur=document.documentElement.getAttribute('data-density')||''; setDensity(DENSITY_LEVELS[(DENSITY_LEVELS.indexOf(cur)+1)%DENSITY_LEVELS.length]); }
+function updateDensityBtns(){ const cur=document.documentElement.getAttribute('data-density')||''; [['','den-comfy'],['cozy','den-cozy'],['compact','den-compact']].forEach(([l,id])=>{ const b=document.getElementById(id); if(b) b.classList.toggle('active-ts',cur===l); }); }
+function initDensity(){ let d=''; try{ const s=localStorage.getItem('ss-density'); if(DENSITY_LEVELS.includes(s)) d=s; }catch(e){} if(d) document.documentElement.setAttribute('data-density',d); updateDensityBtns(); }
 
 // ── AI: KB ASSISTANT ──────────────────────────────────────────
 function kbAsk(){
@@ -3229,9 +3249,9 @@ function srParse(){
   const t=(document.getElementById('srx-in').value||''); if(!t.trim()){ toast('Paste an email or RFP first'); return; }
   const setV=(id,v)=>{ const el=document.getElementById(id); if(el&&v){ el.value=v; } };
   // agency name: the phrase containing agency-like words, trimmed at natural boundaries
-  let line=(t.split(/[\n.]/).map(s=>s.trim()).find(s=>/\b(county|sheriff|police|city of|town of|department|e-?911|marshal|constable)\b/i.test(s))||'');
-  const m=line.match(/([A-Z][A-Za-z.'’&-]+(?:\s+[A-Z][A-Za-z.'’&-]+){0,5}?\s*(?:County(?:\s+Sheriff(?:'s|’s)?(?:\s+Office)?)?|Sheriff(?:'s|’s)?(?:\s+Office)?|Police(?:\s+Department)?|Marshal|Constable|E-?911|City|Town))/);
-  line=(m?m[1]:line.split(/\s+(?:in|needs?|requires?|would|is|has|wants?)\s+/i)[0]).trim().slice(0,70);
+  let line=(t.split(/[\n.]/).map(s=>s.trim()).find(s=>/\b(county|sheriff|police|city of|town of|department|e-?911|marshal|constable|PD|SO|SD)\b/i.test(s))||'');
+  line=line.split(/\s+(?:in|near|needs?|requires?|would|wants?|is|has|located|for|to)\s+/i)[0].trim();
+  line=line.replace(/^\W+/,'').replace(/^(hello|hi|hey|dear|team|good morning|good afternoon)\b[\s,]*/i,'').replace(/^the\s+/i,'').trim().slice(0,70);
   if(line) setV('nsr-agency',line.replace(/[,.]$/,''));
   const st=(t.match(/\b(AL|AR|FL|GA|KY|LA|MS|NC|SC|TN|TX|VA|WV|OK|MO)\b/)||[])[1]; if(st) setV('nsr-state',st);
   // detect products → check matching sr-mod boxes
@@ -3538,6 +3558,7 @@ function navigate(v, extra={}) {
     supportan:renderSupportAnalytics, revenue:renderRevenue, reconcile:renderReconcile, collections:renderCollections, profile:renderProfile, favorites:renderFavorites,
     activity:renderActivity, admin:renderAdmin})[v]?.(extra);
   updateSidebarBadges();
+  try{ updatePinBtn(); }catch(e){}
   closeSidebar();
 }
 
@@ -4432,7 +4453,7 @@ function renderDash(){
   const mount=$(_mount);
   mount.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
     <div style="font-size:12px;color:var(--v-text4)">${_dashEdit?'✏️ Editing — drag ⠿ to reorder, × to remove':'Your dashboard · tailored to your role ('+((typeof ROLES!=='undefined'&&ROLES[dashRole()])?ROLES[dashRole()].label:dashRole())+')'}</div>
-    <div style="display:flex;gap:6px">${_dashEdit?`<button class="btn btn-ghost btn-sm" onclick="dashAddPanel()">＋ Add panel</button><button class="btn btn-ghost btn-sm" onclick="dashReset()">Reset</button><button class="btn btn-primary btn-sm" onclick="dashEditDone()">✓ Done</button>`:`<button class="btn btn-ghost btn-sm" onclick="dashEdit()">🎛️ Customize</button>`}</div>
+    <div style="display:flex;gap:6px">${_dashEdit?`<button class="btn btn-ghost btn-sm" onclick="dashAddPanel()">＋ Add panel</button><button class="btn btn-ghost btn-sm" onclick="dashReset()">Reset</button><button class="btn btn-primary btn-sm" onclick="dashEditDone()">✓ Done</button>`:`<button class="btn btn-primary btn-sm" onclick="dashEdit()" title="Add, remove, and rearrange your dashboard panels">🎛️ Customize dashboard</button>`}</div>
   </div><div class="dash-grid" id="dash-grid"></div>`;
   const grid=$('dash-grid');
   layout.forEach(id=>{ const p=DASH_PANELS[id]; if(!p) return;
