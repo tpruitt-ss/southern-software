@@ -1993,6 +1993,11 @@ function seedDemoData(){
         {id:2,type:'Utility Billing Support',fee:5400,s247:false,active:false,renewal:past}],
         history:[{date:past,by:'Bobbi',note:'All fees marked inactive — agency did not renew'}]};
     }
+    // Seed a couple of app versions with release notes so Edit App Versions shows populated
+    if(typeof APP_VERSIONS!=='undefined'){
+      const cad=APP_VERSIONS.find(a=>a.app==='CAD'); if(cad&&!cad.notes){ cad.notes='CAD 25.2.241.31 release notes\n\n• Faster unit recommendation on high-volume calls\n• Fixed status-color refresh on the dispatch board\n• New E911 ANI/ALI mapping options\n• Minor UI refinements'; cad.notifiedAt='2026-02-08'; cad.notifiedCount=2610; }
+      const fms=APP_VERSIONS.find(a=>a.app==='FMS'); if(fms&&!fms.notes){ fms.notes='FMS 26.1.161.1 release notes\n\n• Year-end payroll tax table updates\n• Utility Billing late-fee calculation fix\n• Invoice Cloud reconciliation improvements'; }
+    }
     // Seed a realistic historical audit trail (only if empty)
     if(typeof AUDIT_LOG!=='undefined' && AUDIT_LOG.length<3){
       const H=h=>new Date(Date.now()-h*3600e3).toISOString();
@@ -5623,26 +5628,104 @@ function renderTraining(extra){
 }
 
 // ── APP VERSIONS (internal) ────────────────────────────────────
+function canEditVersions(){ return isAdmin()||can('update_versions'); }
+function avReach(a){ // rough customer reach for a version notification
+  const seg = a.ps==='FMS' ? 'FMS' : (a.state&&a.state!=='All' ? null : 'Public Safety');
+  if(a.ps==='FMS') return nlAudienceCount('FMS');
+  if(!a.state||a.state==='All') return nlAudienceCount('Public Safety');
+  // state-specific PS: fraction of the PS base
+  return Math.max(20, Math.round(nlAudienceCount('Public Safety')* (a.state.length? .12: .3)));
+}
 function renderAppVersions(){
   const av=(typeof APP_VERSIONS!=='undefined'?APP_VERSIONS:[]);
-  $('topbar-actions').innerHTML='';
-  $('content').innerHTML=`
+  const canEdit=canEditVersions();
+  $('topbar-actions').innerHTML=canEdit?'<button class="btn btn-primary btn-sm" onclick="avEdit(null)">+ Add Version</button>':'';
+  $('content').innerHTML=`<div style="max-width:1040px;margin:0 auto;padding:8px 6px">
+  ${canEdit?'<div style="font-size:11px;color:var(--v-text4);margin-bottom:10px">Update a released version, attach a change log / release notes, and choose whether to email affected customers. Notifications simulate in preview; they send through the mail service at go-live.</div>':''}
   <div class="toolbar">
     <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="av-s" placeholder="Search apps…" style="width:220px"></div>
     <select class="fc" id="av-ps" style="width:auto;padding:6px 10px"><option value="">All Products</option><option value="PS">Public Safety</option><option value="FMS">FMS</option></select>
+    ${canEdit?'<button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="avEdit(null)">+ Add Version</button>':''}
   </div>
-  <div id="av-list" class="proj-list"></div>`;
+  <div id="av-list" class="proj-list"></div></div>`;
   const draw=()=>{
     const q=$('av-s').value.toLowerCase(), ps=$('av-ps').value;
-    const f=av.filter(a=>(!ps||a.ps===ps)&&(!q||(a.app||'').toLowerCase().includes(q)));
-    $('av-list').innerHTML=f.map(a=>`<div class="proj-row" style="cursor:default">
+    const f=av.map((a,i)=>({a,i})).filter(({a})=>(!ps||a.ps===ps)&&(!q||(a.app||'').toLowerCase().includes(q)));
+    $('av-list').innerHTML=f.map(({a,i})=>`<div class="proj-row" style="cursor:${canEdit?'pointer':'default'}" ${canEdit?`onclick="avEdit(${i})"`:''}>
         <span style="font-size:1.2rem">📱</span>
-        <div class="proj-info"><div class="proj-name">${escH(a.app)} <span style="font-size:12px;color:#4ade80">v${escH(a.version||'—')}</span></div>
+        <div class="proj-info"><div class="proj-name">${escH(a.app)} <span style="font-size:12px;color:#4ade80">v${escH(a.version||'—')}</span>${a.notes?' <span title="Has release notes" style="font-size:11px">📝</span>':''}${a.notifiedAt?` <span title="Customers notified ${fmt(a.notifiedAt)}" style="font-size:10px;color:#a855f7">✉️ notified</span>`:''}</div>
         <div class="proj-meta">${a.ps?escH(a.ps):''}${a.state?' · '+escH(a.state):''}${a.prev?' · was v'+escH(a.prev):''}</div></div>
-        <div class="proj-right"><span style="font-size:11px;color:var(--dim)">${a.updated?fmt(a.updated):''}</span></div>
+        <div class="proj-right" onclick="event.stopPropagation()" style="display:flex;gap:6px;align-items:center">
+          ${a.notes?`<button class="btn btn-ghost btn-xs" onclick="avNotes(${i})">Release notes</button>`:''}
+          ${canEdit?`<button class="btn btn-ghost btn-xs" onclick="avEdit(${i})">Edit</button>`:''}
+          <span style="font-size:11px;color:var(--dim)">${a.updated?fmt(a.updated):''}</span></div>
       </div>`).join('')||`<div class="empty"><div class="empty-i">📱</div><div class="empty-h">No apps match</div></div>`;
   };
   $('av-s').oninput=draw; $('av-ps').onchange=draw; draw();
+}
+function avEdit(idx){
+  if(!canEditVersions()){ toast('You don\'t have version-edit access'); return; }
+  const isNew=idx==null; const a=isNew?{app:'',ps:'PS',state:'All',version:'',prev:'',updated:today(),notes:''}:(APP_VERSIONS[idx]||{});
+  showModal(isNew?'+ Add App Version':'Edit — '+escH(a.app)+' '+escH(a.state||''),`<div class="fstack">
+    <div class="fg2"><div class="fg"><label class="fl">Application *</label><input class="fc" id="av-app" value="${escH(a.app||'')}" placeholder="e.g. CAD" list="av-apps"><datalist id="av-apps">${[...new Set(APP_VERSIONS.map(x=>x.app))].map(x=>`<option value="${escH(x)}">`).join('')}</datalist></div>
+      <div class="fg"><label class="fl">Product line</label><select class="fc" id="av-psl"><option ${a.ps==='PS'?'selected':''}>PS</option><option ${a.ps==='FMS'?'selected':''}>FMS</option></select></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">State</label><input class="fc" id="av-state" value="${escH(a.state||'All')}" placeholder="All or a state code"></div>
+      <div class="fg"><label class="fl">Release date</label><input class="fc" type="date" id="av-date" value="${a.updated||today()}"></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">New version *</label><input class="fc" id="av-ver" value="${escH(a.version||'')}" placeholder="25.2.241.31"></div>
+      <div class="fg"><label class="fl">Previous version</label><input class="fc" id="av-prev" value="${escH(a.prev||'')}" placeholder="auto-fills on bump"></div></div>
+    <div class="fg"><label class="fl">Change log / release notes</label><textarea class="fc" id="av-notes" rows="5" placeholder="• What changed in this release…">${escH(a.notes||'')}</textarea>
+      <div style="font-size:10px;color:var(--v-text4);margin-top:4px">✨ <span onclick="avDraftNotes()" style="color:var(--bluel);cursor:pointer">Draft with AI</span> from the version bump</div></div>
+    <div class="fg"><label class="fl">Attach change log (file or link)</label>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('av-file').click()">📎 Attach file</button>
+        <input type="file" id="av-file" style="display:none" onchange="avAttachFile(this)">
+        <span id="av-file-name" style="font-size:12px;color:var(--v-text3)">${a.attachment?escH(a.attachment.name):'no file'}</span>
+        <input class="fc" id="av-link" value="${escH(a.link||'')}" placeholder="…or paste a link (https://)" style="flex:1;min-width:160px">
+      </div></div>
+    <div style="border:1px solid var(--v-hair3);border-radius:10px;padding:10px 12px;background:var(--v-surface)">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--v-text2)"><input type="checkbox" id="av-notify" onchange="avNotifyToggle()"> ✉️ Email affected customers about this update</label>
+      <div id="av-notify-opts" style="display:none;margin-top:8px;font-size:12px;color:var(--v-text3)">
+        <div>Sends a release notification to <b id="av-reach"></b> customers running <b>${escH(a.app||'this app')}</b>${a.state&&a.state!=='All'?' in '+escH(a.state):''}.</div>
+        <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px"><input type="checkbox" id="av-publish" checked> Also post to the customer <b>Release Notes</b> feed</label>
+      </div>
+    </div>
+  </div>`,`${(!isNew)?`<button class="btn btn-ghost btn-sm" style="color:#ef4444;margin-right:auto" onclick="avDelete(${idx})">🗑 Delete</button>`:''}<button class="btn btn-primary btn-sm" onclick="avSave(${isNew?'null':idx})">${isNew?'Add version':'Save'}</button>`);
+  window._avPending=null;
+  setTimeout(()=>avNotifyToggle(),10);
+}
+function avNotifyToggle(){ const on=$('av-notify')&&$('av-notify').checked; const o=$('av-notify-opts'); if(o)o.style.display=on?'block':'none'; if(on){ const r=$('av-reach'); if(r){ r.textContent=avReach({ps:$('av-psl').value,state:$('av-state').value}).toLocaleString(); } } }
+function avAttachFile(input){ const f=input.files&&input.files[0]; if(!f)return; if(f.size>4e6){ toast('File too large (max 4 MB)'); return; } const r=new FileReader(); r.onload=()=>{ window._avPending={name:f.name,size:f.size,url:r.result}; const el=$('av-file-name'); if(el)el.textContent=f.name; toast('Attached — Save to apply'); }; r.readAsDataURL(f); }
+function avDraftNotes(){ const app=$('av-app').value||'the application'; const ver=$('av-ver').value||'the new version'; const prev=$('av-prev').value; const t=$('av-notes'); if(t){ t.value=`${app} ${ver} release notes\n\n• Stability and performance improvements\n• Fixes for issues reported since ${prev||'the prior build'}\n• Minor UI refinements\n\nContact Southern Software Support with any questions.`; } toast('Draft inserted — edit as needed'); }
+function avSave(idx){
+  const app=$('av-app').value.trim(); const ver=$('av-ver').value.trim();
+  if(!app){ toast('Application required'); return; } if(!ver){ toast('Version required'); return; }
+  const isNew=idx==null; const cur=isNew?{}:APP_VERSIONS[idx];
+  let prev=$('av-prev').value.trim();
+  if(!isNew && cur.version && cur.version!==ver && (!prev || prev===cur.prev)) prev=cur.version; // auto-bump previous
+  const rec={app,ps:$('av-psl').value,state:$('av-state').value.trim()||'All',version:ver,prev,updated:$('av-date').value||today(),notes:$('av-notes').value.trim(),link:$('av-link').value.trim()};
+  if(window._avPending) rec.attachment=window._avPending;
+  else if(!isNew && cur.attachment) rec.attachment=cur.attachment;
+  const notify=$('av-notify')&&$('av-notify').checked;
+  let entry;
+  if(isNew){ APP_VERSIONS.unshift(rec); entry=rec; audit('appversion_add',{label:'Added app version '+app+' '+(rec.state!=='All'?'('+rec.state+') ':'')+'v'+ver,cat:'admin',target:'appversion',targetId:app}); }
+  else { entry=Object.assign(APP_VERSIONS[idx],rec); audit('appversion_update',{label:'Updated '+app+' '+(rec.state!=='All'?'('+rec.state+') ':'')+'to v'+ver+(prev?' (was '+prev+')':''),cat:'admin',target:'appversion',targetId:app}); }
+  if(notify){
+    const n=avReach(entry); entry.notifiedAt=today(); entry.notifiedCount=n;
+    audit('appversion_notify',{label:'Emailed '+n.toLocaleString()+' customers about '+app+' v'+ver,cat:'comms',target:'appversion',targetId:app});
+    if($('av-publish')&&$('av-publish').checked){ try{ RELEASE_NOTES.unshift({version:app+' '+ver,date:entry.updated,title:app+' '+ver+' released',items:(entry.notes||'Version update').split('\n').map(s=>s.replace(/^[•\-\s]+/,'').trim()).filter(Boolean).slice(0,6)}); }catch(e){} }
+    toast('Saved & notified '+n.toLocaleString()+' customers');
+  } else { toast(isNew?'Version added':'Version saved'); }
+  closeModal(); if(S.view==='editappversions'||S.view==='appversions') renderAppVersions();
+}
+function avDelete(idx){ const a=APP_VERSIONS[idx]; if(!a)return; APP_VERSIONS.splice(idx,1); audit('appversion_delete',{label:'Removed app version '+a.app+' '+(a.state!=='All'?'('+a.state+')':''),cat:'admin',target:'appversion',targetId:a.app}); closeModal(); renderAppVersions(); toast('Version removed'); }
+function avNotes(idx){ const a=APP_VERSIONS[idx]; if(!a)return;
+  showModal('📝 '+escH(a.app)+' v'+escH(a.version)+' — Release Notes',`<div class="fstack">
+    <div style="font-size:12px;color:var(--v-text3)">${escH(a.ps||'')}${a.state?' · '+escH(a.state):''} · released ${a.updated?fmt(a.updated):'—'}${a.prev?' · upgraded from v'+escH(a.prev):''}</div>
+    ${a.notifiedAt?`<div style="font-size:12px;color:#a855f7">✉️ ${(a.notifiedCount||0).toLocaleString()} customers notified on ${fmt(a.notifiedAt)}</div>`:'<div style="font-size:12px;color:var(--v-text4)">Customers were not emailed for this release.</div>'}
+    <div style="white-space:pre-wrap;font-size:13px;line-height:1.6;color:var(--v-text2);background:var(--v-surface);border:1px solid var(--v-hair3);border-radius:10px;padding:12px">${a.notes?escH(a.notes):'No release notes recorded.'}</div>
+    ${a.attachment?`<div style="font-size:12px"><a href="${a.attachment.url}" download="${escH(a.attachment.name)}" style="color:#60a5fa">📎 ${escH(a.attachment.name)}</a></div>`:''}
+    ${a.link?`<div style="font-size:12px"><a href="${escH(a.link.startsWith('http')?a.link:'https://'+a.link)}" target="_blank" style="color:#60a5fa">🔗 ${escH(a.link)}</a></div>`:''}
+  </div>`,`${canEditVersions()?`<button class="btn btn-ghost btn-sm" onclick="avEdit(${idx})">✏️ Edit</button>`:''}<button class="btn btn-primary btn-sm" onclick="closeModal()">Done</button>`);
 }
 
 // ── TIME OFF (internal) ────────────────────────────────────────
