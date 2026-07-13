@@ -1181,7 +1181,7 @@ function applyPermissions() {
     const ok = need ? pcan(need[0],need[1]) : canViewSection(sectionOf(v));
     el.classList.toggle('perm-hidden', !ok);
   });
-  const adminNav=document.getElementById('nav-admin'); if(adminNav) adminNav.classList.toggle('perm-hidden', !canViewSection('admin'));
+  const adminNav=document.getElementById('nav-admin'); if(adminNav) adminNav.classList.toggle('perm-hidden', !pcan('admin','edit'));
   document.querySelectorAll('.task-add-btn').forEach(el=>{ el.classList.toggle('perm-hidden', !pcan('projects','create')); });
   document.querySelectorAll('.sb-nav .sb-group:not([data-g="pinned"])').forEach(g => {
     const items = g.querySelectorAll('.sb-item[data-v]');
@@ -1235,7 +1235,7 @@ function permsGroupsTab(){
     <div style="font-size:11px;color:var(--v-text4);margin-top:8px">Unchecking <b>View</b> hides the whole section for this group. Checking Create/Edit/Delete auto-enables View. <b>Delete</b> off = they can edit but not remove records.</div>`;
 }
 function permSetCap(role,sid,cap,val){ const caps=PERMS.roles[role][sid]=PERMS.roles[role][sid]||expandCaps('N'); caps[cap]=val?1:0; if(cap==='view'&&!val){caps.create=caps.edit=caps.delete=0;} if(cap!=='view'&&val){caps.view=1;} savePerms(); audit('perm_group_change',{label:'Group “'+roleLabel(role)+'”: '+(SECTIONS.find(s=>s.id===sid)||{}).label+' · '+cap+' '+(val?'ON':'OFF'),cat:'permissions',target:'group',targetId:role}); permsGroupsTab(); try{applyPermissions();}catch(e){} }
-function permNewGroup(){ showModal('New group',`<div class="fg"><label class="fl">Group name</label><input class="fc" id="ng-name" placeholder="e.g. Field Tech" autofocus></div><div style="font-size:11px;color:var(--v-text4);margin-top:6px">Starts with View-only on every section — tune it after creating.</div>`,`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="permCreateGroup()">Create</button>`); }
+function permNewGroup(){ showModal('New group',`<div class="fg"><label class="fl">Group name</label><input class="fc" id="ng-name" placeholder="e.g. Field Tech" autofocus></div><div style="font-size:11px;color:var(--v-text4);margin-top:6px">Starts with View-only on every section — tune it after creating.</div>`,`<button class="btn btn-primary btn-sm" onclick="permCreateGroup()">Create</button>`); }
 function permCreateGroup(){ const name=$('ng-name').value.trim(); if(!name){toast('Name required');return;} const id='grp_'+name.toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,24)+'_'+Object.keys(PERMS.roles).length; ROLES[id]={label:name,can:[]}; PERMS.roles[id]={}; SECTIONS.forEach(s=>PERMS.roles[id][s.id]=expandCaps(s.id==='admin'?'N':'V')); savePerms(); audit('perm_group_create',{label:'Created group “'+name+'”',cat:'permissions',target:'group',targetId:id}); _permsGroup=id; closeModal(); renderPerms(); toast('Group “'+name+'” created'); }
 function permCloneGroup(src){ const name=roleLabel(src)+' (copy)'; const id='grp_clone_'+Object.keys(PERMS.roles).length; ROLES[id]={label:name,can:[]}; PERMS.roles[id]={}; SECTIONS.forEach(s=>PERMS.roles[id][s.id]=expandCaps(PERMS.roles[src][s.id])); savePerms(); audit('perm_group_create',{label:'Cloned group “'+roleLabel(src)+'” → “'+name+'”',cat:'permissions',target:'group',targetId:id}); _permsGroup=id; renderPerms(); toast('Cloned to “'+name+'”'); }
 function permDeleteGroup(id){ if(ROLE_CAPS_DEF[id]){ toast('Built-in groups can\'t be deleted'); return; } const nm=roleLabel(id); delete PERMS.roles[id]; delete ROLES[id]; savePerms(); audit('perm_group_delete',{label:'Deleted group “'+nm+'”',cat:'permissions',target:'group',targetId:id}); _permsGroup='implementation'; renderPerms(); toast('Group deleted'); }
@@ -1344,64 +1344,32 @@ function renderAdmin() {
     $('content').innerHTML = '<div class="empty"><div class="empty-i">🔒</div><div class="empty-h">Access Denied</div></div>';
     return;
   }
-  $('topbar-actions').innerHTML = '';
-  const roleOrder = ['admin','manager','implementation','fms','support','sales','billing','trainer','readonly'];
-
-  // Count by role
-  const counts = {};
-  roleOrder.forEach(r=>counts[r]=0);
-  S.profiles.forEach(p=>{ const r=p.role||p.team||'readonly'; counts[r]=(counts[r]||0)+1; });
-
+  $('topbar-actions').innerHTML = '<button class="btn btn-primary btn-sm" onclick="adminUserModal(null)">+ Add User</button>';
   const c = $('content');
-  c.innerHTML = '';
-
-  // Stats
-  const statsDiv = document.createElement('div');
-  statsDiv.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.75rem;margin-bottom:1.25rem';
-  roleOrder.forEach(r=>{
-    if(!counts[r]) return;
-    const s = document.createElement('div');
-    s.className = 'stat';
-    s.style.setProperty('--sc','var(--blue)');
-    s.style.padding = '.75rem 1rem';
-    s.innerHTML = '<div class="stat-n" style="font-size:1.6rem">'+counts[r]+'</div><div class="stat-l">'+ROLES[r].label+'</div>';
-    statsDiv.appendChild(s);
-  });
-  c.appendChild(statsDiv);
-
-  // User list
-  const list = document.createElement('div');
-  list.className = 'fstack';
-  roleOrder.forEach(role=>{
-    const users = S.profiles.filter(p=>(p.role||p.team||'readonly')===role);
-    if(!users.length) return;
-    const section = document.createElement('div');
-    const lbl = document.createElement('div');
-    lbl.style.cssText = 'font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:.25rem .5rem;margin-bottom:.35rem';
-    lbl.textContent = ROLES[role].label + ' (' + users.length + ')';
-    section.appendChild(lbl);
-    users.forEach(p=>{
-      const row = document.createElement('div');
-      row.className = 'admin-user-row';
-      row.innerHTML = ava(p,34)
-        + '<div class="admin-user-info"><div class="admin-user-name">'+(p.full_name||'—')+'</div>'
-        + '<div class="admin-user-email">'+(p.title||'')+(p.team?' · '+p.team:'')+'</div></div>'
-        + '<span class="role-badge role-'+role+'">'+ROLES[role].label+'</span>';
-      const sel = document.createElement('select');
-      sel.className = 'admin-role-select';
-      sel.onchange = () => changeRole(p.id, sel.value);
-      roleOrder.forEach(r=>{
-        const opt = document.createElement('option');
-        opt.value = r; opt.textContent = ROLES[r].label;
-        if(r===role) opt.selected=true;
-        sel.appendChild(opt);
-      });
-      row.appendChild(sel);
-      section.appendChild(row);
-    });
-    list.appendChild(section);
-  });
-  c.appendChild(list);
+  const active=S.profiles.filter(p=>!p.removed), removed=S.profiles.filter(p=>p.removed);
+  const wrap=document.createElement('div');
+  wrap.innerHTML=`
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+      ${statTile(active.length,'Users','#3b82f6')}
+      ${statTile(active.filter(userActive).length,'Active','#22c55e')}
+      ${statTile(active.filter(p=>!userActive(p)).length,'Inactive','#f59e0b')}
+      ${statTile(new Set(active.map(userDept)).size,'Departments','#a855f7')}
+    </div>
+    <div class="toolbar"><div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="au-s" placeholder="Search users…" style="width:240px"></div>
+      <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="adminUserModal(null)">+ Add User</button></div>
+    <div id="au-list"></div>
+    ${removed.length?`<details style="margin-top:16px"><summary style="cursor:pointer;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--v-text4)">Removed users (${removed.length})</summary><div class="proj-list" id="au-removed" style="margin-top:8px"></div></details>`:''}`;
+  c.innerHTML=''; c.appendChild(wrap);
+  const drawAU=()=>{
+    const q=($('au-s').value||'').toLowerCase();
+    const f=active.filter(p=>!q||(p.full_name||'').toLowerCase().includes(q)||(p.title||'').toLowerCase().includes(q)||userDept(p).toLowerCase().includes(q)||roleLabel(p.role||p.team||'').toLowerCase().includes(q));
+    const depts=[...DEPARTMENTS,'Other'].filter((d,i,a)=>a.indexOf(d)===i).filter(d=>f.some(p=>userDept(p)===d));
+    $('au-list').innerHTML=depts.map(d=>{ const people=f.filter(p=>userDept(p)===d);
+      return `<div style="margin-bottom:14px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--v-text4);margin:0 0 6px 2px">${d} (${people.length})</div><div class="proj-list">${people.map(p=>auRow(p)).join('')}</div></div>`;
+    }).join('')||'<div class="empty"><div class="empty-i">👥</div><div class="empty-h">No users match</div></div>';
+    const rem=$('au-removed'); if(rem) rem.innerHTML=removed.map(p=>auRow(p,true)).join('');
+  };
+  $('au-s').oninput=drawAU; drawAU();
 
   // Forms links section
   const forms = document.createElement('div');
@@ -1729,6 +1697,7 @@ async function doPreviewLogin() {
   $('app').style.display = 'flex';
   await reload();
   try { seedDemoData(); } catch(e) {}
+  try { applyUserEdits(); } catch(e) {}
   setupNav();
   initSearch();
   initNotifs();
@@ -2928,7 +2897,7 @@ function agrManage(id){
     <button class="btn btn-ghost btn-sm" onclick="agrAddLine('${id}')" style="margin-top:8px">＋ Add fee line</button>
     <div id="agr-total" style="font-size:12px;color:var(--v-text2);margin-top:10px;font-weight:600"></div>
     ${hist?`<div style="margin-top:12px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--v-text4);margin-bottom:4px">History</div>${hist}</div>`:''}
-  `,`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="agrSaveManage('${id}')">💾 Save</button>`);
+  `,`<button class="btn btn-primary btn-sm" onclick="agrSaveManage('${id}')">💾 Save</button>`);
   agrRecalcTotal();
 }
 function agrPickFilter(){
@@ -4028,7 +3997,7 @@ function colPayModal(inv){
     <div class="fg2"><div class="fg"><label class="fl">Method</label><select class="fc" id="col-method"><option>Check</option><option>ACH / Wire</option><option>Credit Card</option><option>Cash</option></select></div>
       <div class="fg"><label class="fl">Reference #</label><input class="fc" id="col-ref" placeholder="Check / confirmation #"></div></div>
     <div class="fg"><label class="fl">Note (optional)</label><input class="fc" id="col-pnote" placeholder="e.g. Left voicemail, promised payment"></div>
-  </div>`,`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="colRecordPay('${escH(inv)}')">💾 Record payment</button>`);
+  </div>`,`<button class="btn btn-primary btn-sm" onclick="colRecordPay('${escH(inv)}')">💾 Record payment</button>`);
 }
 function colRecordPay(inv){
   const c=colGet(inv); if(!c) return;
@@ -4045,7 +4014,7 @@ function colNoteModal(inv){
   showModal('📝 Collection note — '+escH(c.agency),`<div class="fstack">
     <div style="font-size:12px;color:var(--v-text3)">${escH(c.invoice)} · ${money(c.amount)} outstanding</div>
     <div class="fg"><label class="fl">Note</label><textarea class="fc" id="col-note" rows="3" placeholder="e.g. Spoke with finance clerk — payment approved, mailing check Friday."></textarea></div>
-  </div>`,`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="colAddNote('${escH(inv)}')">Save note</button>`);
+  </div>`,`<button class="btn btn-primary btn-sm" onclick="colAddNote('${escH(inv)}')">Save note</button>`);
 }
 function colAddNote(inv){ const c=colGet(inv); if(!c) return; const n=$('col-note').value.trim(); if(!n){ toast('Enter a note'); return; } c.notes=c.notes||[]; c.notes.push({date:today(),by:meName(),note:n}); audit('collection_note',{label:'Added collection note on '+c.invoice+' ('+c.agency+')',cat:'support_billing',target:'invoice',targetId:c.invoice}); closeModal(); toast('Note added'); colDraw(); }
 function colDetail(inv){
@@ -4060,27 +4029,97 @@ function colDetail(inv){
 }
 
 // ── USER PROFILE ──────────────────────────────────────────────
+// ── USER ACCOUNTS: self-service profile + admin management ─────
+const DEPARTMENTS=['Sales','Public Safety','FMS','Development','IT & Support','Leadership & Admin','Other'];
+let USER_EDITS={}; try{ USER_EDITS=JSON.parse(localStorage.getItem('ss-users')||'{}'); }catch(e){ USER_EDITS={}; }
+function saveUserEdits(){ try{ localStorage.setItem('ss-users',JSON.stringify(USER_EDITS)); }catch(e){} }
+function applyUserEdits(){ Object.keys(USER_EDITS).forEach(uid=>{ let p=(S.profiles||[]).find(x=>x.id===uid); if(!p && USER_EDITS[uid]._new){ p={id:uid}; S.profiles.push(p); } if(p) Object.assign(p,USER_EDITS[uid]); }); }
+function userDept(p){ return (p&&p.dept)|| ({fms:'FMS',implementation:'Public Safety'}[p&&p.team]) || 'Other'; }
+function userActive(p){ return p && p.active!==false && !p.removed; }
+function userEmail(p){ return (p&&p.email)|| (p&&p.id==='p-travis'?(S.user&&S.user.email):'') || ((p&&p.full_name||'').toLowerCase().replace(/[^a-z]+/g,'.').replace(/^\.|\.$/g,'')+'@southernsoftware.com'); }
+function syncStaffDir(p){ if(!p||typeof STAFF_DIR==='undefined')return; const d=STAFF_DIR.find(x=>x.name===p.full_name || x.name.split(' (')[0].trim()===p.full_name); if(d){ if(p.title!=null)d.title=p.title; if(p.dept!=null)d.dept=p.dept; if(p.phone!=null)d.phone=p.phone; if(p.ext!=null)d.ext=p.ext; if(p.email!=null)d.email=p.email; } }
+function recordUserEdit(uid, fields){ USER_EDITS[uid]=Object.assign(USER_EDITS[uid]||{},fields); saveUserEdits(); const p=(S.profiles||[]).find(x=>x.id===uid); if(p){ Object.assign(p,fields); syncStaffDir(p); } }
+function readPhoto(input, cb){ const f=input.files&&input.files[0]; if(!f)return; if(!/^image\//.test(f.type)){ toast('Pick an image file'); return; } if(f.size>3e6){ toast('Image too large (max 3 MB)'); return; } const r=new FileReader(); r.onload=()=>cb(r.result); r.readAsDataURL(f); }
+
 function renderProfile(){
   $('topbar-actions').innerHTML='';
-  const p=S.profile||{}; const dir=(typeof STAFF_DIR!=='undefined'?STAFF_DIR:[]).find(x=>x.name===p.full_name)||{};
+  const p=S.profile||{}; const uid=p.id;
+  const dir=(typeof STAFF_DIR!=='undefined'?STAFF_DIR:[]).find(x=>x.name===p.full_name)||{};
+  const phone=p.phone!=null?p.phone:(dir.phone||''); const ext=p.ext!=null?p.ext:(dir.ext||'');
   const role=(typeof ROLES!=='undefined'&&ROLES[p.role||p.team])?ROLES[p.role||p.team].label:(p.role||p.team||'—');
-  $('content').innerHTML=`<div style="max-width:640px;margin:0 auto;padding:12px 6px">
+  const prefs=p.prefs||{taskAssign:true,goLive:true,digest:false};
+  $('content').innerHTML=`<div style="max-width:660px;margin:0 auto;padding:12px 6px">
     <div class="card" style="padding:18px;display:flex;gap:16px;align-items:center;margin-bottom:14px">
-      ${ava(p,56)}<div><div style="font-size:20px;font-weight:700;color:var(--v-text)">${escH(p.full_name||'You')}</div>
-      <div style="font-size:13px;color:var(--v-text3)">${escH(p.title||'')}</div>
-      <div style="font-size:12px;color:var(--v-text4);margin-top:3px">${escH(S.user?.email||'')} · Role: ${escH(role)}</div></div></div>
-    <div class="card" style="padding:16px;margin-bottom:14px"><div class="dash-h" style="margin-bottom:10px">Contact</div>
-      <div class="fg2"><div class="fg"><label class="fl">Extension</label><input class="fc" id="pf-ext" value="${escH(dir.ext||'')}"></div>
-      <div class="fg"><label class="fl">Cell</label><input class="fc" id="pf-cell" value="${escH(dir.phone||'')}"></div></div>
-      <div style="margin-top:10px"><button class="btn btn-primary btn-sm" onclick="toast('Profile saved')">Save</button></div></div>
-    <div class="card" style="padding:16px"><div class="dash-h" style="margin-bottom:10px">Preferences</div>
+      <div style="position:relative;flex-shrink:0">${ava(p,64)}
+        <button onclick="document.getElementById('pf-photo').click()" title="Change photo" style="position:absolute;bottom:-2px;right:-2px;width:24px;height:24px;border-radius:50%;border:2px solid var(--bg);background:var(--blue);color:#fff;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center">📷</button>
+        <input type="file" id="pf-photo" accept="image/*" style="display:none" onchange="pfSetPhoto(this)"></div>
+      <div style="min-width:0"><div style="font-size:20px;font-weight:700;color:var(--v-text)">${escH(p.full_name||'You')}</div>
+      <div style="font-size:13px;color:var(--v-text3)">${escH(p.title||'')}${p.dept?' · '+escH(userDept(p)):''}</div>
+      <div style="font-size:12px;color:var(--v-text4);margin-top:3px">${escH(userEmail(p))} · Group: ${escH(role)}${p.avatar_url?' · <span onclick="pfRemovePhoto()" style="color:#f87171;cursor:pointer">remove photo</span>':''}</div></div></div>
+    <div class="card" style="padding:16px;margin-bottom:14px"><div class="dash-h" style="margin-bottom:4px">My details</div>
+      <div style="font-size:11px;color:var(--v-text4);margin-bottom:10px">Name, email and group come from your Google sign-in and are set by an admin. You can keep the rest current.</div>
+      <div class="fg2"><div class="fg"><label class="fl">Title</label><input class="fc" id="pf-title" value="${escH(p.title||'')}"></div>
+      <div class="fg"><label class="fl">Department</label><input class="fc" value="${escH(userDept(p))}" disabled style="opacity:.6"></div></div>
+      <div class="fg2"><div class="fg"><label class="fl">Cell phone</label><input class="fc" id="pf-cell" value="${escH(phone)}" placeholder="910-555-0000"></div>
+      <div class="fg"><label class="fl">Extension</label><input class="fc" id="pf-ext" value="${escH(ext)}"></div></div>
+      <div style="margin-top:12px"><button class="btn btn-primary btn-sm" onclick="pfSave()">💾 Save my profile</button></div></div>
+    <div class="card" style="padding:16px"><div class="dash-h" style="margin-bottom:10px">Notification preferences</div>
       <div style="display:flex;flex-direction:column;gap:8px">
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--v-text2)"><input type="checkbox" checked> Email me when a task is assigned to me</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--v-text2)"><input type="checkbox" checked> Notify me about go-lives on my projects</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--v-text2)"><input type="checkbox"> Weekly digest email</label></div>
-      <div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="toggleTheme()">Toggle theme</button><button class="btn btn-ghost btn-sm" onclick="navigate('whatsnew')">What's New</button></div></div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--v-text2)"><input type="checkbox" id="pf-p1" ${prefs.taskAssign?'checked':''}> Email me when a task is assigned to me</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--v-text2)"><input type="checkbox" id="pf-p2" ${prefs.goLive?'checked':''}> Notify me about go-lives on my projects</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--v-text2)"><input type="checkbox" id="pf-p3" ${prefs.digest?'checked':''}> Weekly digest email</label></div>
+      <div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" onclick="pfSavePrefs()">Save preferences</button><button class="btn btn-ghost btn-sm" onclick="toggleTheme()">Toggle theme</button></div></div>
   </div>`;
 }
+function pfSetPhoto(input){ const uid=S.profile&&S.profile.id; readPhoto(input,url=>{ recordUserEdit(uid,{avatar_url:url}); audit('profile_photo',{label:'Updated profile photo',cat:'admin'}); try{updateSidebarAvatar();}catch(e){} renderProfile(); toast('Photo updated'); }); }
+function pfRemovePhoto(){ const uid=S.profile&&S.profile.id; recordUserEdit(uid,{avatar_url:null}); try{updateSidebarAvatar();}catch(e){} renderProfile(); toast('Photo removed'); }
+function pfSave(){ const uid=S.profile&&S.profile.id; recordUserEdit(uid,{title:$('pf-title').value.trim(),phone:$('pf-cell').value.trim(),ext:$('pf-ext').value.trim()}); audit('profile_update',{label:'Updated own profile (title / phone / ext)',cat:'admin'}); try{updateSidebarAvatar();}catch(e){} renderProfile(); toast('Profile saved'); }
+function pfSavePrefs(){ const uid=S.profile&&S.profile.id; recordUserEdit(uid,{prefs:{taskAssign:$('pf-p1').checked,goLive:$('pf-p2').checked,digest:$('pf-p3').checked}}); audit('profile_prefs',{label:'Updated notification preferences',cat:'admin'}); toast('Preferences saved'); }
+function updateSidebarAvatar(){ const el=$('sb-ava'); if(el&&S.profile){ if(S.profile.avatar_url){ el.style.backgroundImage=`url('${S.profile.avatar_url}')`; el.style.backgroundSize='cover'; el.style.backgroundPosition='center'; el.textContent=''; } else { el.style.backgroundImage=''; el.textContent=initials(S.profile.full_name||'?'); } } }
+
+// ── ADMIN USER MANAGEMENT ─────────────────────────────────────
+function auRow(p, removed){ const g=p.role||p.team||'readonly'; const act=userActive(p);
+  return `<div class="proj-row" style="cursor:pointer;${act?'':'opacity:.65'}" onclick="adminUserModal('${p.id}')">
+    ${ava(p,34)}
+    <div class="proj-info"><div class="proj-name">${escH(p.full_name||'—')} ${act?'':'<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;color:#94a3b8;background:#94a3b822">Inactive</span>'}${removed?' <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;color:#ef4444;background:#ef444422">Removed</span>':''}</div>
+    <div class="proj-meta">${escH(p.title||'—')} · ${escH(userEmail(p))}</div></div>
+    <div class="proj-right" onclick="event.stopPropagation()" style="display:flex;gap:6px;align-items:center">
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;color:#93c5fd;background:#3b82f622">${escH(roleLabel(g))}</span>
+      ${removed?`<button class="btn btn-ghost btn-xs" onclick="userRestore('${p.id}')">Restore</button>`:`<button class="btn btn-ghost btn-xs" onclick="adminUserModal('${p.id}')">Edit</button>`}
+    </div></div>`;
+}
+function adminUserModal(uid){
+  if(!isAdmin()){ toast('Admin only'); return; }
+  window._auPhotoPending=null;
+  const isNew=!uid; const p=isNew?{id:'u-'+Date.now().toString(36),full_name:'',title:'',team:'implementation',role:'implementation',active:true}:(S.profiles.find(x=>x.id===uid)||{});
+  const groups=Object.keys(PERMS.roles);
+  showModal(isNew?'+ Add User':'Edit User — '+escH(p.full_name||''),`<div class="fstack">
+    <div style="display:flex;gap:14px;align-items:center">
+      <div style="position:relative;flex-shrink:0">${ava(p,56)}<button onclick="document.getElementById('au-photo').click()" title="Photo" style="position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;border-radius:50%;border:2px solid var(--card);background:var(--blue);color:#fff;cursor:pointer;font-size:10px">📷</button><input type="file" id="au-photo" accept="image/*" style="display:none" onchange="adminSetPhoto('${p.id}',this)"></div>
+      <div style="flex:1"><div class="fg"><label class="fl">Full name *</label><input class="fc" id="au-name" value="${escH(p.full_name||'')}" placeholder="First Last"></div></div>
+    </div>
+    <div class="fg2"><div class="fg"><label class="fl">Title</label><input class="fc" id="au-title" value="${escH(p.title||'')}"></div>
+      <div class="fg"><label class="fl">Email (Google sign-in)</label><input class="fc" id="au-email" value="${escH(p.email||(isNew?'':userEmail(p)))}" placeholder="name@southernsoftware.com"></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">Department</label><select class="fc" id="au-dept">${DEPARTMENTS.map(d=>`<option ${userDept(p)===d?'selected':''}>${d}</option>`).join('')}</select></div>
+      <div class="fg"><label class="fl">Group / Role</label><select class="fc" id="au-role">${groups.map(r=>`<option value="${r}" ${(p.role||p.team)===r?'selected':''}>${escH(roleLabel(r))}</option>`).join('')}</select></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">Cell phone</label><input class="fc" id="au-phone" value="${escH(p.phone||'')}" placeholder="910-555-0000"></div>
+      <div class="fg"><label class="fl">Extension</label><input class="fc" id="au-ext" value="${escH(p.ext||'')}"></div></div>
+    ${isNew?'<div style="font-size:11px;color:var(--v-text4)">At go-live the user signs in with their Google account — this pre-provisions their group and access.</div>':`<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--v-text2)"><input type="checkbox" id="au-active" ${userActive(p)?'checked':''}> Active — can sign in</label>`}
+  </div>`,`${(!isNew&&p.id!=='p-travis')?`<button class="btn btn-ghost btn-sm" style="color:#ef4444;margin-right:auto" onclick="userRemove('${p.id}')">🗑 Remove</button>`:''}<button class="btn btn-primary btn-sm" onclick="userSave('${p.id}',${isNew})">Save</button>`);
+}
+function adminSetPhoto(id,input){ readPhoto(input,url=>{ window._auPhotoPending={id,url}; const m=document.querySelector('#modal-body .ava'); if(m){ if(m.tagName==='IMG'){ m.src=url; } else { const img=document.createElement('img'); img.className='ava'; img.src=url; img.style.cssText='width:56px;height:56px'; m.replaceWith(img); } } toast('Photo attached — Save to apply'); }); }
+function userSave(id,isNew){
+  const name=$('au-name').value.trim(); if(!name){ toast('Name required'); return; }
+  const role=$('au-role').value;
+  const fields={full_name:name,title:$('au-title').value.trim(),email:$('au-email').value.trim(),dept:$('au-dept').value,phone:$('au-phone').value.trim(),ext:$('au-ext').value.trim(),role:role,team:role};
+  if(!isNew && $('au-active')) fields.active=$('au-active').checked;
+  if(window._auPhotoPending && window._auPhotoPending.id===id){ fields.avatar_url=window._auPhotoPending.url; window._auPhotoPending=null; }
+  if(isNew){ if(!S.profiles.find(x=>x.id===id)) S.profiles.push({id:id,active:true}); fields._new=true; recordUserEdit(id,fields); audit('user_create',{label:'Added user “'+name+'” ('+roleLabel(role)+', '+fields.dept+')',cat:'admin',target:'user',targetId:id}); }
+  else { recordUserEdit(id,fields); audit('user_update',{label:'Updated user “'+name+'” (group '+roleLabel(role)+', '+fields.dept+(fields.active===false?', inactive':'')+')',cat:'admin',target:'user',targetId:id}); }
+  closeModal(); if(S.profile&&id===S.profile.id){ try{updateSidebarAvatar();}catch(e){} } renderAdmin(); toast(isNew?'User added':'User saved');
+}
+function userRemove(id){ if(S.profile&&id===S.profile.id){ toast("You can't remove yourself"); return; } const p=S.profiles.find(x=>x.id===id); recordUserEdit(id,{removed:true,active:false}); audit('user_remove',{label:'Removed user “'+(p?p.full_name:id)+'”',cat:'admin',target:'user',targetId:id}); closeModal(); renderAdmin(); toast('User removed'); }
+function userRestore(id){ const p=S.profiles.find(x=>x.id===id); recordUserEdit(id,{removed:false,active:true}); audit('user_restore',{label:'Restored user “'+(p?p.full_name:id)+'”',cat:'admin',target:'user',targetId:id}); renderAdmin(); toast('User restored'); }
 
 // ── FAVORITES / WATCHED PROJECTS ──────────────────────────────
 let WATCHED=[]; try{ WATCHED=JSON.parse(localStorage.getItem('ss-watch')||'[]'); }catch(e){ WATCHED=[]; }
@@ -4636,7 +4675,7 @@ function oppEdit(id){
     <div class="fg2"><div class="fg"><label class="fl">Stage</label><select class="fc" id="op-stage" onchange="const p=({Lead:10,Qualified:30,Proposal:55,Negotiation:75,Won:100,Lost:0})[this.value];if(p!=null)document.getElementById('op-prob').value=p;">${OPP_STAGES.map(s=>`<option ${o.stage===s?'selected':''}>${s}</option>`).join('')}</select></div>
       <div class="fg"><label class="fl">Probability (%)</label><input class="fc" type="number" min="0" max="100" id="op-prob" value="${o.prob!=null?o.prob:10}"></div></div>
     <div class="fg"><label class="fl">Expected close date</label><input class="fc" type="date" id="op-close" value="${o.close||today()}"></div>
-  </div>`,`${id?`<button class="btn btn-ghost btn-sm" data-need="delete" onclick="oppDelete('${id}')" style="color:#ef4444">🗑 Delete</button>`:''}<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="oppSave(${id?`'${id}'`:'null'})">Save</button>`);
+  </div>`,`${id?`<button class="btn btn-ghost btn-sm" data-need="delete" onclick="oppDelete('${id}')" style="color:#ef4444">🗑 Delete</button>`:''}<button class="btn btn-primary btn-sm" onclick="oppSave(${id?`'${id}'`:'null'})">Save</button>`);
 }
 function oppSave(id){
   const agency=$('op-agency').value.trim(); if(!agency){ toast('Agency required'); return; }
@@ -4690,7 +4729,7 @@ function srProcess(id){
     <label class="fl" style="margin-top:10px">Add a processing note</label>
     <textarea class="fc" id="sr-p-note" rows="3" placeholder="Note for the record…"></textarea>
     ${hist?`<div style="margin-top:10px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--v-text4);margin-bottom:4px">History</div>${hist}</div>`:'<div style="font-size:11px;color:var(--v-text4);margin-top:8px">No processing history yet.</div>'}
-  `,`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-ghost btn-sm" style="color:#ef4444" onclick="srQuick('${id}','Rejected')">✖ Reject</button><button class="btn btn-sm" style="background:#16a34a;color:#fff" onclick="srQuick('${id}','Approved')">✅ Approve & convert</button><button class="btn btn-primary btn-sm" onclick="srSave('${id}')">💾 Save</button>`);
+  `,`<button class="btn btn-ghost btn-sm" style="color:#ef4444" onclick="srQuick('${id}','Rejected')">✖ Reject</button><button class="btn btn-sm" style="background:#16a34a;color:#fff" onclick="srQuick('${id}','Approved')">✅ Approve & convert</button><button class="btn btn-primary btn-sm" onclick="srSave('${id}')">💾 Save</button>`);
 }
 function srSave(id){ const r=srGet(id); if(!r) return;
   const st=$('sr-p-status').value, as=($('sr-p-assign').value||'').trim(), note=($('sr-p-note').value||'').trim();
@@ -5405,7 +5444,7 @@ function nlScheduleModal(id){
     <div style="font-size:13px;color:var(--v-text2);margin-bottom:10px">Send <strong>${escH(d.subject||d.title)}</strong> to <strong>${escH(d.audience)}</strong> (${nlAudienceCount(d.audience).toLocaleString()} recipients).</div>
     <label style="font-size:11px;color:var(--v-text3)">Send date</label>
     <input class="fc" type="date" id="nl-schd" value="${today()}" min="${today()}">
-    `,`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="nlDoSchedule(${id?id:'null'})">🕓 Schedule</button>`);
+    `,`<button class="btn btn-primary btn-sm" onclick="nlDoSchedule(${id?id:'null'})">🕓 Schedule</button>`);
 }
 function nlDoSchedule(id){ const dt=$('nl-schd')?.value||today(); const d=nlCollect(); const n=nlUpsert(id,d,'Scheduled',dt); audit('newsletter_schedule',{label:'Scheduled newsletter “'+d.title+'” for '+fmt(dt)+' → '+d.audience,cat:'comms',target:'newsletter',targetId:n.id}); closeModal(); _nlCompose=null; _nlView=n.id; renderNewsletters(); toast('Scheduled for '+fmt(dt)); }
 function nlSendModal(id){
@@ -5416,7 +5455,7 @@ function nlSendModal(id){
     <div class="card" style="padding:12px;margin:10px 0"><div style="font-weight:700;color:var(--v-text)">${escH(d.subject||d.title)}</div>
       <div style="font-size:12px;color:var(--v-text3);margin-top:4px">To <strong>${escH(d.audience)}</strong> · ${cnt.toLocaleString()} recipients · from ${escH(d.author)}</div></div>
     <div style="font-size:11px;color:var(--v-text4)">${(typeof SB_URL!=='undefined'&&SB_URL==='YOUR_SUPABASE_URL')?'Preview mode — this simulates a send on test data. No real emails go out until the mail service is connected at go-live.':'This will send to all recipients in the segment.'}</div>
-  `,`<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-sm" style="background:#16a34a;color:#fff" onclick="nlDoSend(${id?id:'null'})">🚀 Send to ${cnt.toLocaleString()}</button>`);
+  `,`<button class="btn btn-sm" style="background:#16a34a;color:#fff" onclick="nlDoSend(${id?id:'null'})">🚀 Send to ${cnt.toLocaleString()}</button>`);
 }
 function nlDoSend(id){ const d=nlCollect(); const cnt=nlAudienceCount(d.audience); const n=nlUpsert(id,d,'Sent',today()); n.recipients=cnt; n.opens=0; n.clicks=0; audit('newsletter_send',{label:'Sent newsletter “'+d.title+'” to '+d.audience+' ('+cnt.toLocaleString()+' recipients)',cat:'comms',target:'newsletter',targetId:n.id}); closeModal(); _nlCompose=null; _nlView=n.id; renderNewsletters(); toast('🚀 Campaign sent to '+cnt.toLocaleString()+' recipients'); }
 function nlDuplicate(id){ const n=nlGet(id); if(!n)return; const c={id:nlNextId(),title:n.title+' (copy)',subject:n.subject,preheader:n.preheader,audience:n.audience,author:n.author,body:n.body,status:'Draft',date:today(),recipients:0,opens:0,clicks:0}; NEWSLETTERS.push(c); _nlView=null; _nlCompose=c.id; renderNewsletters(); toast('Duplicated to a new draft'); }
@@ -6751,7 +6790,7 @@ function renderTeam(){
   const openFor=nm=>S.tasks.filter(t=>!['done','na'].includes(t.status)&&(t.assignee_name||'').toLowerCase()===nm.toLowerCase()).length;
   const roleColor={Admin:'#f59e0b',PM:'#3b82f6',Sales:'#22c55e','KB Editor':'#a855f7'};
   const card=d=>{const open=openFor(d.name);const tel=(d.phone||'').replace(/[^0-9+]/g,'');return `
-      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0;height:100%">
         <div style="display:flex;align-items:center;gap:11px;min-width:0">
           <div class="ava" style="width:42px;height:42px;min-width:42px;font-size:14px;background:#334155;color:var(--v-text);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700">${initials(d.name)}</div>
           <div style="min-width:0;flex:1">
@@ -6759,12 +6798,12 @@ function renderTeam(){
             <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(d.title||'—')}</div>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--v-text2);border-top:1px solid #ffffff0d;padding-top:9px">
-          ${d.ext?`<div style="display:flex;gap:6px"><span style="color:var(--v-text4);min-width:52px">Ext</span><span>${escH(d.ext)}</span></div>`:''}
-          ${d.phone?`<div style="display:flex;gap:6px"><span style="color:var(--v-text4);min-width:52px">Phone</span><a href="tel:${escH(tel)}" style="color:#60a5fa">${escH(d.phone)}</a></div>`:''}
-          ${d.email?`<div style="display:flex;gap:6px;min-width:0"><span style="color:var(--v-text4);min-width:52px">Email</span><a href="mailto:${escH(d.email)}" style="color:#60a5fa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(d.email)}</a></div>`:''}
+        <div style="flex:1;display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--v-text2);border-top:1px solid #ffffff0d;padding-top:9px">
+          <div style="display:flex;gap:6px"><span style="color:var(--v-text4);min-width:52px">Ext</span><span>${d.ext?escH(d.ext):'<span style="color:var(--v-text4)">—</span>'}</span></div>
+          <div style="display:flex;gap:6px"><span style="color:var(--v-text4);min-width:52px">Phone</span>${d.phone?`<a href="tel:${escH(tel)}" style="color:#60a5fa">${escH(d.phone)}</a>`:'<span style="color:var(--v-text4)">—</span>'}</div>
+          <div style="display:flex;gap:6px;min-width:0"><span style="color:var(--v-text4);min-width:52px">Email</span>${d.email?`<a href="mailto:${escH(d.email)}" style="color:#60a5fa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escH(d.email)}</a>`:'<span style="color:var(--v-text4)">—</span>'}</div>
         </div>
-        ${(d.roles||[]).length||open?`<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;border-top:1px solid #ffffff0d;padding-top:9px">${(d.roles||[]).map(r=>`<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;color:${roleColor[r]||'var(--v-text3)'};background:${(roleColor[r]||'var(--v-text3)')}22">${r}</span>`).join('')}${open?`<span style="font-size:10px;color:var(--v-text3);margin-left:auto">${open} open</span>`:''}</div>`:''}
+        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;border-top:1px solid #ffffff0d;padding-top:9px;min-height:22px">${(d.roles||[]).map(r=>`<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;color:${roleColor[r]||'var(--v-text3)'};background:${(roleColor[r]||'var(--v-text3)')}22">${r}</span>`).join('')}${open?`<span style="font-size:10px;color:var(--v-text3);margin-left:auto">${open} open</span>`:'<span style="font-size:10px;color:var(--v-text4);margin-left:auto">0 open</span>'}</div>
       </div>`;};
   const draw=()=>{
     const q=$('tm-s').value.toLowerCase(), df=$('tm-dept').value, rf=$('tm-role').value;
@@ -6779,7 +6818,7 @@ function renderTeam(){
           <span style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--v-text2)">${dp}</span>
           <span style="font-size:11px;color:var(--v-text4)">${people.length}</span>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;align-items:start">${people.map(card).join('')}</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;align-items:stretch">${people.map(card).join('')}</div>
       </div>`;
     }).join('')||`<div class="empty"><div class="empty-i">👥</div><div class="empty-h">No staff match</div></div>`;
   };
