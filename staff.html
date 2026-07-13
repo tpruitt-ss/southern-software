@@ -786,7 +786,9 @@ a#skip-link:focus{left:8px}
           <div class="sb-label" onclick="toggleGroup('mywork')">My Work<span class="sb-chev">▾</span></div>
           <div class="sb-gitems">
             <div class="sb-item active" data-v="overview"><span class="i">📊</span>Overview</div>
+            <div class="sb-item" data-v="myweek"><span class="i">🗓️</span>My Week</div>
             <div class="sb-item" data-v="mine"><span class="i">✅</span>My Tasks<span class="sb-badge" id="mine-badge" style="display:none"></span></div>
+            <div class="sb-item" data-v="approvals"><span class="i">✔️</span>Approvals<span class="sb-badge" id="approvals-badge" style="display:none"></span></div>
             <div class="sb-item" data-v="mysites"><span class="i">📍</span>My Sites</div>
             <div class="sb-item" data-v="followup"><span class="i">📞</span>Follow-ups</div>
             <div class="sb-item" data-v="myagenda"><span class="i">📝</span>My Training</div>
@@ -817,6 +819,7 @@ a#skip-link:focus{left:8px}
             <div class="sb-item" data-v="heatmap" data-requires="view_customers"><span class="i">🌡️</span>Customer Heat Map</div>
             <div class="sb-item" data-v="map" data-requires="view_customers"><span class="i">🗺️</span>Customer Point Map</div>
             <div class="sb-item" data-v="mastersearch" data-requires="view_customers"><span class="i">🔎</span>Master Customer Search</div>
+            <div class="sb-item" data-v="contacts" data-requires="view_customers"><span class="i">📇</span>Contacts Directory</div>
             <div class="sb-item" data-v="supportagr" data-requires="view_reports"><span class="i">📑</span>Support Agreements</div>
             <div class="sb-item" data-v="revenue" data-requires="view_reports"><span class="i">💵</span>Support Revenue</div>
             <div class="sb-item" data-v="supportan" data-requires="view_reports"><span class="i">📈</span>Support Analytics</div>
@@ -1677,7 +1680,7 @@ const VIEW_TITLES = { handbook:'Employee Handbook', activity:'Activity Feed', ad
   blog:'Company Blog', citizen:'Citizen Connect', myagenda:'My Training',
   prayer:'Prayer List', whatsnew:"What's New",
   supportan:'Support Analytics', revenue:'Support Revenue', reconcile:'Sales / Project Check', collections:'Collections', profile:'My Profile', favorites:'Watched Projects',
-  templates:'Project Templates',
+  templates:'Project Templates', myweek:'My Week', approvals:'Approvals', contacts:'Contacts Directory',
 };
 
 /* ─── ACTIVITY VIEW (fixes ReferenceError that froze all navigation) ─── */
@@ -1752,6 +1755,11 @@ function seedDemoData(){
        ['Payroll tax table update for new fiscal year','FMS','todo'],['Citizen Connect push notifications delayed','Citizen Connect','inprogress']
       ].forEach((m,i)=>S.issues.push({id:'i-seed-'+i,title:m[0],product:m[1],status:m[2],type:'bug',customer_id:cids[i%cids.length],assignee_id:(i%3===0?meId:null),assignee_name:(i%3===0?meNm:null)}));
     }
+    // example collaboration data attached to a real customer/project
+    const c0=S.customers[0], p0=act[0]||S.projects[0];
+    if(c0 && typeof COMMENTS!=='undefined' && !COMMENTS.length){ COMMENTS.push({id:'c1',type:'customer',eid:c0.id,by:'Jennifer Meggs',text:'Confirmed the go-live date with the chief. @'+meNm+' can you check the hardware ship date?',at:'Jul 10'}); }
+    if(c0 && typeof FILES!=='undefined' && !FILES.length){ FILES.push({id:'f1',type:'customer',eid:c0.id,name:'Signed Contract.pdf',size:284000,by:'Janet Benson',date:'2026-06-30'},{id:'f2',type:'customer',eid:c0.id,name:'Hardware Spec Sheet.xlsx',size:41000,by:'Joe Sharpe',date:'2026-07-02'}); }
+    if(p0 && typeof RECORDINGS!=='undefined' && !RECORDINGS.length){ RECORDINGS.push({id:'rec1',projectId:p0.id,customerId:p0.customer_id,title:'Kickoff call — implementation scope',kind:'Plaud',date:'2026-07-09',by:meNm,durationMin:34,transcript:'Discussed the CAD and RMS rollout timeline. The agency wants go-live before the new fiscal year. Need to confirm hardware shipment and schedule dispatcher training. Chief asked about the mobile app demo. Action: send the updated project schedule and confirm the NCIC interface contact.',summary:'Kickoff for the CAD/RMS rollout; agency wants go-live before the new fiscal year.',actions:['Send the updated project schedule','Confirm hardware shipment','Schedule dispatcher training','Confirm the NCIC interface contact']}); }
   }catch(e){ console.warn('seed:',e); }
 }
 function daysUntil(d){ if(!d) return null; return Math.round((new Date(d+'T12:00:00')-new Date(today()+'T12:00:00'))/86400000); }
@@ -3279,6 +3287,9 @@ function paletteCommands(){
     ['✨','Capture Notes (meeting → tasks)','Create',()=>captureNotes()],
     ['🎙️','Add Recording (Plaud / AI)','Create',()=>addRecordingModal({})],
     ['🧩','Project Templates','Create',()=>navigate('templates')],
+    ['🗓️','My Week','Create',()=>navigate('myweek')],
+    ['✔️','Approvals inbox','Create',()=>navigate('approvals')],
+    ['📇','Contacts Directory','Create',()=>navigate('contacts')],
   ].map(a=>({icon:a[0],t:a[1],grp:a[2],run:a[3]}));
   const settings=[
     ['🌓',(document.documentElement.getAttribute('data-theme')==='light'?'Switch to dark mode':'Switch to light mode'),()=>toggleTheme()],
@@ -3757,9 +3768,7 @@ function tplAddTask(k,pi){ const el=$('tt-'+k+'-'+pi); const v=el&&el.value.trim
 function tplDelTask(k,pi,ti){ PROJECT_TEMPLATES[k].phases[pi].tasks.splice(ti,1); saveTemplates(); renderTemplates(); }
 
 // ── PROJECT RECORDINGS (Plaud / AI meeting capture) ───────────
-let RECORDINGS=[
-  {id:'rec1',projectId:(S.projects[0]&&S.projects[0].id)||null,customerId:(S.projects[0]&&S.projects[0].customer_id)||(S.customers[0]&&S.customers[0].id),title:'Kickoff call — implementation scope',kind:'Plaud',date:'2026-07-09',by:'Travis Pruitt',durationMin:34,transcript:'Discussed the CAD and RMS rollout timeline. The agency wants go-live before the new fiscal year. Need to confirm hardware shipment and schedule dispatcher training. Chief asked about the mobile app demo. Action: send the updated project schedule and confirm the NCIC interface contact.',summary:'Kickoff for the CAD/RMS rollout; agency wants go-live before the new fiscal year.',actions:['Send the updated project schedule','Confirm hardware shipment','Schedule dispatcher training','Confirm the NCIC interface contact']},
-];
+let RECORDINGS=[]; // seeded in seedDemoData once projects load
 const REC_KINDS=['Plaud','Meeting','Site visit','Call'];
 function custRecordingsHTML(custId){
   const recs=RECORDINGS.filter(r=>r.customerId===custId).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
@@ -3822,6 +3831,126 @@ function recActionsToTasks(id){
   toast(acts.length+' task'+(acts.length!==1?'s':'')+' created'); closeModal();
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   COMMENTS & @MENTIONS · FILES · MY WEEK · APPROVALS · CONTACTS
+   ═══════════════════════════════════════════════════════════════════ */
+function _initials(n){ return String(n||'?').split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+function _wkDate(iso){ return iso? new Date(iso+'T12:00:00') : null; }
+
+// ── COMMENTS & @MENTIONS ──────────────────────────────────────
+let COMMENTS=[]; // seeded in seedDemoData once customers load
+function _mentionNames(){ const set=new Set(); (S.profiles||[]).forEach(p=>p.full_name&&set.add(p.full_name)); (typeof STAFF_DIR!=='undefined'?STAFF_DIR:[]).forEach(p=>p.name&&set.add(p.name)); return [...set]; }
+function mentionHi(text){ return escH(text).replace(/@([A-Za-z][A-Za-z.'’-]*(?:\s+[A-Z][A-Za-z.'’-]*)?)/g,'<span style="color:var(--bluel);font-weight:600">@$1</span>'); }
+function getComments(type,eid){ return COMMENTS.filter(c=>c.type===type&&c.eid===eid).sort((a,b)=>(a.at||'').localeCompare(b.at||'')); }
+function addComment(type,eid,text){
+  const by=meName();
+  COMMENTS.push({id:'c-'+Math.random().toString(36).slice(2,7),type,eid,by,text,at:'now'});
+  // @mention → notify
+  const names=_mentionNames(); const hit=new Set();
+  names.forEach(nm=>{ const first=nm.split(' ')[0]; const re=new RegExp('@('+nm.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'|'+first+')\\b','i'); if(re.test(text)) hit.add(nm); });
+  if(hit.size&&typeof SS_ALERTS!=='undefined'){ [...hit].forEach(nm=>{ SS_ALERTS.unshift({id:Math.max(0,...SS_ALERTS.map(a=>a.id))+1,topic:'Mention',priority:'Normal',message:by+' mentioned you: “'+text.slice(0,80)+(text.length>80?'…':'')+'”',by,when:new Date().toISOString().slice(0,10),groups:['All'],read:false}); }); if(typeof renderNotifs==='function')renderNotifs(); toast('Notified '+[...hit].join(', ')); }
+}
+function commentThread(type,eid){
+  const cs=getComments(type,eid);
+  return `<div>${cs.map(c=>`<div style="display:flex;gap:8px;margin-bottom:9px"><div class="sb-avatar" style="width:26px;height:26px;font-size:10px;flex-shrink:0">${_initials(c.by)}</div><div style="flex:1;min-width:0"><div style="font-size:12px"><b style="color:var(--v-text)">${escH(c.by)}</b> <span style="color:var(--v-text4);font-size:11px">${escH(c.at)}</span></div><div style="font-size:13px;color:var(--v-text2)">${mentionHi(c.text)}</div></div></div>`).join('')||'<div style="font-size:12px;color:var(--v-text4);margin-bottom:6px">No comments yet.</div>'}
+    <div style="display:flex;gap:6px;margin-top:4px"><input id="cmt-${type}-${eid}" class="fc" placeholder="Comment… @name to notify" style="flex:1" onkeydown="if(event.key==='Enter')postCommentUI('${type}','${eid}')"><button class="btn btn-primary btn-sm" onclick="postCommentUI('${type}','${eid}')">Post</button></div></div>`;
+}
+function postCommentUI(type,eid){ const el=document.getElementById('cmt-'+type+'-'+eid); const t=el&&el.value.trim(); if(!t)return; addComment(type,eid,t); el.value=''; if(type==='customer')showCustDetail(eid); else if(type==='project'){try{openProject(eid);}catch(e){}} else if(type==='task'){try{openPanel(eid);}catch(e){}} }
+
+// ── FILES & DOCUMENTS ─────────────────────────────────────────
+let FILES=[]; // seeded in seedDemoData once customers load
+function getFiles(type,eid){ return FILES.filter(f=>f.type===type&&f.eid===eid).sort((a,b)=>(b.date||'').localeCompare(a.date||'')); }
+function fileIcon(n){ const e=(n||'').split('.').pop().toLowerCase(); return {pdf:'📕',xlsx:'📗',xls:'📗',docx:'📘',doc:'📘',png:'🖼️',jpg:'🖼️',jpeg:'🖼️',zip:'🗜️'}[e]||'📄'; }
+function filesHTML(type,eid){
+  const fs=getFiles(type,eid);
+  return `<div>${fs.map(f=>`<div class="d-row" style="cursor:default"><span>${fileIcon(f.name)}</span><span class="m">${escH(f.name)}</span><span class="s">${Math.round(f.size/1024)} KB · ${escH(f.by||'')}</span><button class="btn btn-ghost btn-xs" onclick="delFile('${f.id}','${type}','${eid}')">×</button></div>`).join('')||'<div style="font-size:12px;color:var(--v-text4);padding:2px">No documents yet.</div>'}
+    <label class="btn btn-ghost btn-xs" style="margin-top:6px;cursor:pointer">📎 Attach file<input type="file" multiple style="display:none" onchange="addFileToEntity(this,'${type}','${eid}')"></label></div>`;
+}
+function _refreshEntity(type,eid){ if(type==='customer')showCustDetail(eid); else if(type==='project'){try{openProject(eid);}catch(e){}} else if(type==='task'){try{openPanel(eid);}catch(e){}} }
+function addFileToEntity(inp,type,eid){ [...inp.files].forEach(f=>FILES.unshift({id:'f-'+Math.random().toString(36).slice(2,7),type,eid,name:f.name,size:f.size,by:meName(),date:new Date().toISOString().slice(0,10)})); toast(inp.files.length+' file'+(inp.files.length!==1?'s':'')+' attached'); _refreshEntity(type,eid); }
+function delFile(id,type,eid){ FILES=FILES.filter(f=>f.id!==id); _refreshEntity(type,eid); }
+
+// ── MY WEEK (unified calendar) ────────────────────────────────
+let _weekOffset=0;
+function renderMyWeek(){
+  $('topbar-actions').innerHTML=`<button class="btn btn-ghost btn-sm" onclick="_weekOffset--;renderMyWeek()">‹ Prev</button><button class="btn btn-ghost btn-sm" onclick="_weekOffset=0;renderMyWeek()">This week</button><button class="btn btn-ghost btn-sm" onclick="_weekOffset++;renderMyWeek()">Next ›</button>`;
+  const now=new Date(); now.setHours(0,0,0,0); const dow=(now.getDay()+6)%7; // Mon=0
+  const monday=new Date(now); monday.setDate(now.getDate()-dow+_weekOffset*7);
+  const days=[...Array(7)].map((_,i)=>{ const d=new Date(monday); d.setDate(monday.getDate()+i); return d; });
+  const iso=d=>d.toISOString().slice(0,10);
+  const range=days.map(iso);
+  const items={}; range.forEach(k=>items[k]=[]);
+  const push=(date,it)=>{ if(items[date]) items[date].push(it); };
+  // my tasks
+  S.tasks.filter(t=>isMine(t)&&!['done','na'].includes(t.status)&&t.due_date).forEach(t=>push(t.due_date,{icon:'✅',label:t.title,sub:'Task',color:'#3b82f6',act:`openPanel('${t.id}')`}));
+  // go-lives on my projects (or all)
+  S.projects.filter(p=>!['complete','cancelled'].includes(p.status)).forEach(p=>{ const d=p.go_live||p.target_date; if(d) push(d,{icon:'🚀',label:'Go-live: '+p.name,sub:'Go-Live',color:'#a855f7',act:`openProject('${p.id}')`}); });
+  // my time off
+  (typeof TIME_OFF!=='undefined'?TIME_OFF:[]).filter(t=>t.who===meName()).forEach(t=>{ if(items[t.begin]) push(t.begin,{icon:'🏖️',label:t.type+(t.status!=='Approved'?' ('+t.status+')':''),sub:'Time Off',color:'#22c55e',act:`navigate('timeoff')`}); });
+  // training I'm registered for
+  (typeof TRAIN_SESSIONS!=='undefined'?TRAIN_SESSIONS:[]).filter(s=>typeof sReg==='function'&&sReg(s.id).registered).forEach(s=>push(s.date,{icon:'🎓',label:s.title,sub:s.time+' · '+s.room,color:'#f59e0b',act:`navigate('myagenda')`}));
+  const total=range.reduce((n,k)=>n+items[k].length,0);
+  const fmtD=d=>d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  const todayIso=iso(now);
+  $('content').innerHTML=`<div style="max-width:820px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:12px;color:var(--v-text4);margin-bottom:12px">${fmtD(days[0])} – ${fmtD(days[6])} · ${total} item${total!==1?'s':''} — your tasks, go-lives, time-off and training in one place.</div>
+    ${days.map((d,i)=>{ const k=iso(d); const its=items[k]; const isToday=k===todayIso; return `<div style="margin-bottom:10px">
+      <div style="font-size:12px;font-weight:700;color:${isToday?'var(--bluel)':'var(--v-text3)'};margin-bottom:4px">${fmtD(d)}${isToday?' · Today':''}</div>
+      ${its.length?its.map(it=>`<div class="d-row" onclick="${it.act}" style="border-left:3px solid ${it.color}"><span>${it.icon}</span><span class="m">${escH(it.label)}</span><span class="s">${escH(it.sub)}</span></div>`).join(''):'<div style="font-size:12px;color:var(--v-text4);padding:2px 8px">—</div>'}
+    </div>`;}).join('')}
+  </div>`;
+}
+
+// ── APPROVALS INBOX ───────────────────────────────────────────
+function approvalItems(){
+  const out=[];
+  (typeof TIME_OFF!=='undefined'?TIME_OFF:[]).forEach((t,i)=>{ if(t.status==='Pending') out.push({kind:'Time Off',icon:'🏖️',who:t.who,detail:t.type+' · '+(t.begin?fmt(t.begin):'')+(t.hours?' · '+t.hours+'h':''),approve:`toDecide(${TIME_OFF.indexOf(t)},'Approved');renderApprovals()`,deny:`toDecide(${TIME_OFF.indexOf(t)},'Denied');renderApprovals()`}); });
+  (typeof SALES_REQS!=='undefined'?SALES_REQS:[]).forEach(r=>{ if(r.status==='New'||r.status==='Assigned') out.push({kind:'Sales Request',icon:'📥',who:r.requestedBy||'',detail:r.agency+' · '+(r.product||''),approve:`salesReqDecide('${r.agency}','Approved')`,deny:`salesReqDecide('${r.agency}','Rejected')`}); });
+  return out;
+}
+function salesReqDecide(agency,st){ const r=(typeof SALES_REQS!=='undefined'?SALES_REQS:[]).find(x=>x.agency===agency); if(r)r.status=st; toast('Sales request '+st.toLowerCase()); renderApprovals(); updateApprovalsBadge(); }
+function updateApprovalsBadge(){ const el=document.getElementById('approvals-badge'); if(!el)return; const n=approvalItems().length; el.textContent=n; el.style.display=n?'':'none'; }
+function renderApprovals(){
+  $('topbar-actions').innerHTML='';
+  const items=approvalItems();
+  $('content').innerHTML=`<div style="max-width:820px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:12px;color:var(--v-text4);margin-bottom:12px">Everything waiting on your sign-off, in one place.</div>
+    ${items.length?`<div class="proj-list">${items.map(it=>`<div class="proj-row" style="cursor:default"><span style="font-size:1.1rem">${it.icon}</span>
+      <div class="proj-info"><div class="proj-name">${escH(it.who)} <span style="font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;color:#f59e0b;background:#f59e0b22">${it.kind}</span></div><div class="proj-meta">${escH(it.detail)}</div></div>
+      <div class="proj-right"><button class="btn btn-ghost btn-xs" style="color:#22c55e" onclick="${it.approve};updateApprovalsBadge()">Approve</button><button class="btn btn-ghost btn-xs" style="color:#ef4444" onclick="${it.deny};updateApprovalsBadge()">Deny</button></div></div>`).join('')}</div>`
+    :`<div class="empty"><div class="empty-i">✅</div><div class="empty-h">Nothing needs your approval</div><div style="font-size:13px;color:var(--v-text4)">You're all caught up.</div></div>`}
+  </div>`;
+  updateApprovalsBadge();
+}
+
+// ── CONTACTS DIRECTORY ────────────────────────────────────────
+let _contactsMode='agency';
+function allAgencyContacts(){
+  const cx=(typeof CUST_EXTRA!=='undefined')?CUST_EXTRA:{}; const out=[];
+  S.customers.forEach(c=>{ const x=cx[c.id]||{}; (x.contacts||[]).forEach(ct=>{ if(ct.name) out.push({name:ct.name,role:ct.role||'',email:ct.email||'',phone:x.phone||'',agency:c.name,state:c.state||'',cid:c.id}); }); });
+  return out;
+}
+function renderContacts(){
+  $('topbar-actions').innerHTML='';
+  const agency=allAgencyContacts();
+  const staff=(typeof STAFF_DIR!=='undefined'?STAFF_DIR:[]).map(p=>({name:p.name,role:p.title||'',email:p.email||'',phone:p.phone||'',ext:p.ext||'',agency:'Southern Software',state:'',dept:p.dept||''}));
+  $('content').innerHTML=`<div style="max-width:900px;margin:0 auto;padding:12px 6px">
+    <div style="display:flex;gap:6px;margin-bottom:12px"><button class="btn btn-sm ${_contactsMode==='agency'?'btn-primary':'btn-ghost'}" onclick="_contactsMode='agency';renderContacts()">🏛️ Agency (${agency.length})</button><button class="btn btn-sm ${_contactsMode==='staff'?'btn-primary':'btn-ghost'}" onclick="_contactsMode='staff';renderContacts()">👥 Staff (${staff.length})</button></div>
+    <div class="search-wrap" style="margin-bottom:10px"><span class="search-i">🔍</span><input class="search-fc" id="ct-s" placeholder="Search name, agency, role…" style="width:280px"></div>
+    <div id="ct-list"></div></div>`;
+  const list=_contactsMode==='agency'?agency:staff;
+  const draw=()=>{
+    const q=$('ct-s').value.toLowerCase();
+    const f=list.filter(c=>!q||[c.name,c.role,c.agency,c.state,c.dept].join(' ').toLowerCase().includes(q));
+    $('ct-list').innerHTML=f.map(c=>`<div class="proj-row" style="cursor:${c.cid?'pointer':'default'}" ${c.cid?`onclick="showCustDetail('${c.cid}')"`:''}>
+      <div class="sb-avatar" style="width:34px;height:34px;font-size:12px;flex-shrink:0">${_initials(c.name)}</div>
+      <div class="proj-info"><div class="proj-name">${escH(c.name)} <span style="font-size:12px;color:var(--v-text4)">${escH(c.role)}</span></div>
+      <div class="proj-meta">${escH(c.agency)}${c.state?' · '+escH(c.state):''}${c.dept?' · '+escH(c.dept):''}</div></div>
+      <div class="proj-right" onclick="event.stopPropagation()" style="display:flex;gap:6px">${c.phone?`<a href="tel:${escH(c.phone)}" class="btn btn-ghost btn-xs">📞</a>`:''}${c.ext?`<span style="font-size:11px;color:var(--v-text4)">x${escH(c.ext)}</span>`:''}${c.email?`<a href="mailto:${escH(c.email)}" class="btn btn-ghost btn-xs">✉️</a>`:''}</div></div>`).join('')||`<div class="empty"><div class="empty-i">👤</div><div class="empty-h">No contacts match</div></div>`;
+  };
+  $('ct-s').oninput=draw; draw();
+}
+
 function navigate(v, extra={}) {
   S.view = v;
   _mount='content';
@@ -3854,10 +3983,11 @@ function navigate(v, extra={}) {
     blog:renderBlog, citizen:renderCitizen, myagenda:renderMyAgenda,
     prayer:renderPrayer, whatsnew:renderWhatsNew,
     supportan:renderSupportAnalytics, revenue:renderRevenue, reconcile:renderReconcile, collections:renderCollections, profile:renderProfile, favorites:renderFavorites,
-    templates:renderTemplates,
+    templates:renderTemplates, myweek:renderMyWeek, approvals:renderApprovals, contacts:renderContacts,
     activity:renderActivity, admin:renderAdmin})[v]?.(extra);
   updateSidebarBadges();
   try{ updatePinBtn(); }catch(e){}
+  try{ updateApprovalsBadge(); }catch(e){}
   closeSidebar();
 }
 
@@ -5220,8 +5350,8 @@ async function quickAddTask(projId, secId, input) {
 async function openPanel(id) {
   S.taskId = id;
   const task     = S.tasks.find(t=>t.id===id) || (await db.from('tasks').select('*').eq('id',id).single()).data || {};
-  const cmts     = SB_URL==='YOUR_SUPABASE_URL' ? [] : ((await db.from('comments').select('*,profiles(full_name,avatar_url)').eq('task_id',id).order('created_at')).data||[]);
-  const attaches = SB_URL==='YOUR_SUPABASE_URL' ? [] : ((await db.from('attachments').select('*').eq('task_id',id)).data||[]);
+  const cmts     = SB_URL==='YOUR_SUPABASE_URL' ? getComments('task',id).map(c=>({profiles:{full_name:c.by},created_at:new Date().toISOString(),body:c.text})) : ((await db.from('comments').select('*,profiles(full_name,avatar_url)').eq('task_id',id).order('created_at')).data||[]);
+  const attaches = SB_URL==='YOUR_SUPABASE_URL' ? getFiles('task',id).map(f=>({name:f.name,size_bytes:f.size,storage_path:''})) : ((await db.from('attachments').select('*').eq('task_id',id)).data||[]);
   const subs = S.tasks.filter(t=>t.parent_id===id);
   const proj = S.projects.find(p=>p.id===task.project_id);
 
@@ -5276,7 +5406,7 @@ async function openPanel(id) {
       <span class="attach-sz">${a.size_bytes?Math.round(a.size_bytes/1024)+'KB':''}</span>
     </div>`).join('') || '<span style="font-size:12px;color:var(--dim)">None</span>'}</div>
     <label class="btn btn-ghost btn-xs" style="margin-top:.4rem;cursor:pointer">
-      📎 Attach<input type="file" multiple style="display:none" onchange="uploadFiles(this.files,'${id}',null)">
+      📎 Attach<input type="file" multiple style="display:none" onchange="(SB_URL==='YOUR_SUPABASE_URL')?addFileToEntity(this,'task','${id}'):uploadFiles(this.files,'${id}',null)">
     </label>
   </div>
   <div class="pf">
@@ -5294,7 +5424,8 @@ async function openPanel(id) {
   $('c-submit').onclick = async() => {
     const body = $('c-input').value.trim();
     if(!body) return;
-    await db.from('comments').insert({task_id:id,author_id:(S.profile?.id||null),body});
+    if(SB_URL==='YOUR_SUPABASE_URL'){ addComment('task',id,body); }
+    else { await db.from('comments').insert({task_id:id,author_id:(S.profile?.id||null),body}); }
     $('c-input').value='';
     toast('Comment posted');
     openPanel(id);
@@ -5530,6 +5661,8 @@ function showCustDetail(id){
     ${sec('📁 Projects',projs.length,projHtml,false)}
     ${sec('👤 Contacts',contacts.length,contHtml,false)}
     ${sec('🎙️ Recordings & meetings',(typeof RECORDINGS!=='undefined'?RECORDINGS.filter(r=>r.customerId===id).length:0),custRecordingsHTML(id),(typeof RECORDINGS!=='undefined'&&RECORDINGS.some(r=>r.customerId===id)))}
+    ${sec('💬 Discussion',getComments('customer',id).length,commentThread('customer',id),getComments('customer',id).length>0)}
+    ${sec('📎 Documents',getFiles('customer',id).length,filesHTML('customer',id),getFiles('customer',id).length>0)}
     ${sec('🖥️ Hardware',hw.length,hwHtml,false)}
     ${sec('🔑 Licenses',lics.length,licHtml,false)}
     ${sec('📚 Knowledge Base for this site',kbMatch.length,kbHtml,false)}
