@@ -718,6 +718,7 @@ a#skip-link:focus{left:8px}
         <div class="sb-label">Annual Support</div>
         <div class="sb-item" data-v="supportagr" data-requires="view_reports"><span class="i">📑</span>Support Agreements</div>
         <div class="sb-item" data-v="supportfees" data-requires="view_reports"><span class="i">💲</span>Support Fees</div>
+        <div class="sb-item" data-v="licenses" data-requires="view_reports"><span class="i">🔑</span>Licenses &amp; Products</div>
         <div class="sb-item" data-v="supportreports" data-requires="view_reports"><span class="i">📊</span>Support Analytics</div>
         <div class="sb-item" data-v="supportaudit" data-requires="view_reports"><span class="i">🧾</span>Support Audit</div>
 
@@ -1532,7 +1533,7 @@ const VIEW_TITLES = { handbook:'Employee Handbook', activity:'Activity Feed', ad
   heatmap:'Customer Heat Map', mastersearch:'Master Customer Search', projsearch:'Projects — Search All', projclosed:'Projects Closed',
   kbfms:'KB — FMS', kbps:'KB — Public Safety', kbfmsint:'KB — FMS Internal', kbpsint:'KB — PS Internal', kbcreate:'Create KB Article',
   trainingfms:'Learning Tracks — FMS', trainingps:'Learning Tracks — PS', editappversions:'Edit App Versions', trainconf:'Conferences / Training',
-  supportagr:'Support Agreements & Renewals', supportfees:'Support Fees', supportreports:'Support Analytics', announce:'Website Announcement', hwspecs:'Update Hardware Specs',
+  supportagr:'Support Agreements & Renewals', supportfees:'Support Fees', supportreports:'Support Analytics', licenses:'Licenses & Products', announce:'Website Announcement', hwspecs:'Update Hardware Specs',
   alerts:'Notifications & Alerts', chat:'Team Chat', empstatus:"Who's In", timesheets:'Time Tracking',
   blog:'Company Blog', citizen:'Citizen Connect', myagenda:'My Training',
   collections:'Collections', approveusers:'Approve Users', supportaudit:'Support / Record Audit',
@@ -2319,11 +2320,15 @@ function buildAgreements(){
     if(org==='PS'){ const licText=lic.map(l=>(l.product||'')+' '+(l.type||'')).join(' '); chosen=PS_TYPES.filter(t=>t.match.test(licText)); if(!chosen.length) chosen=[PS_TYPES[0]]; }
     else { chosen=FMS_TYPES.slice(0,1+(_agrHash(c.id+'n')%2)); }
     chosen=chosen.slice(0,3);
+    const prim=(Array.isArray(x.contacts)&&x.contacts[0])||{};
     chosen.forEach(t=>{
       const hh=_agrHash(c.id+t.code);
-      let seats;
-      if(org==='PS'){ const s=lic.filter(l=>t.match.test((l.product||'')+' '+(l.type||''))).reduce((a,l)=>{const n=parseInt(l.count,10)||0;return a+(n>500?0:Math.min(n,60));},0); seats=Math.min(s||(3+hh%15),120); }
-      else { seats=3+hh%22; }
+      // covered products come from the agency's actual licenses (tblLicense parity)
+      let covered=[];
+      if(org==='PS'){ covered=lic.filter(l=>t.match.test((l.product||'')+' '+(l.type||''))).map(l=>{const raw=parseInt(l.count,10)||0; const site=raw>=9999; return {d:l.type||l.product||'License',n:site?0:raw,site};}).filter(l=>l.site||(l.n>0&&l.n<=500)); }
+      const hasSite=covered.some(l=>l.site);
+      const licSeats=covered.reduce((a,l)=>a+(l.site?0:Math.min(l.n,60)),0);
+      let seats=Math.min(licSeats||(org==='PS'?3+hh%15:3+hh%22),140);
       let fee=Math.round((t.base+seats*t.per)/50)*50;
       const bump=2+(hh%4);                                   // typical 2–5% YoY increase
       let feePrior=Math.round((fee/(1+bump/100))/50)*50;
@@ -2337,8 +2342,10 @@ function buildAgreements(){
       const days=renewal?Math.round((new Date(renewal+'T00:00:00')-today)/86400000):null;
       const status=!renewal?'No renewal':fee===0?'No fee':days<0?'Expired':days<=60?'Expiring':'Current';
       rows.push({ id:c.id+'-'+t.code, custId:c.id, name:c.name||'', state:c.state||'', line, org,
-        supportType:t.desc, code:t.code, seats, fee, feePrior, renewal, days, status,
-        owner:x.sales_owner||'', type:c.agency_type||'', active:true,
+        supportType:t.desc, code:t.code, seats, covered, site:hasSite, perSeat:t.per, baseFee:t.base,
+        fee, feePrior, originalFee:feePrior, startDate:'',
+        renewal, days, status, owner:x.sales_owner||'', type:c.agency_type||'', active:true,
+        contactName:prim.name||'', contactEmail:prim.email||'', contactPhone:'',
         mailBatch:((c.state||'').toUpperCase()==='TX')?'March':'December',
         hours:t.h247?'24/7/365':'Bus. hrs · M–F 8:30–5 ET' });
     });
@@ -2439,8 +2446,8 @@ function agrDoc(a){
       <div class="agr-title">Annual Software Support Agreement</div>
       <div class="agr-sub">${escH(a.name)}${a.state?', '+escH(a.state):''}</div>
       <div class="agr-sub2">${escH(a.supportType||a.line)} &nbsp;·&nbsp; Coverage ${d.begin} – ${d.end}</div></div>
-    <h2>1. Parties</h2><p>This Annual Software Support Agreement ("Agreement") is entered into between <b>Southern Software, Inc.</b> ("Provider") and <b>${escH(a.name)}</b> ("Customer")${a.state?', located in '+escH(a.state):''}.</p>
-    <h2>2. Covered Products</h2><p>Provider will furnish maintenance and technical support for the Customer's licensed <b>${escH(a.supportType||a.line)}</b> (${escH(a.line)} · ${a.seats} licensed seats).</p>
+    <h2>1. Parties</h2><p>This Annual Software Support Agreement ("Agreement") is entered into between <b>Southern Software, Inc.</b> ("Provider") and <b>${escH(a.name)}</b> ("Customer")${a.state?', located in '+escH(a.state):''}.${a.contactName?' Attn: '+escH(a.contactName)+(a.contactEmail?' · '+escH(a.contactEmail):''):''}</p>
+    <h2>2. Covered Products</h2><p>Provider will furnish maintenance and technical support for the Customer's licensed <b>${escH(a.supportType||a.line)}</b> (${escH(a.line)} · ${a.seats} licensed seats).${(a.covered&&a.covered.filter(l=>l.n>0||l.site).length)?' Covered products: '+a.covered.filter(l=>l.n>0||l.site).map(l=>l.site?escH(l.d)+' (Site License)':escH(l.d)+' ('+l.n+')').join(', ')+'.':''}</p>
     <h2>3. Term &amp; Coverage Period</h2><p>This Agreement covers the period beginning <b>${d.begin}</b> and ending <b>${d.end}</b>, and renews annually unless terminated in writing by either party.</p>
     <h2>4. Support Hours</h2><p>Telephone and remote technical support are provided ${_agrHours(a)}.</p>
     <h2>5. Annual Support Fee</h2><p>The annual support fee for the coverage period is <b>${money(a.fee)}</b>, due upon renewal on <b>${d.begin}</b>.</p>
@@ -2510,7 +2517,7 @@ function renderSupportFees(){
       <tbody>${f.map(a=>{const dpct=(a.feePrior>0&&a.fee>0)?Math.round((a.fee-a.feePrior)/a.feePrior*1000)/10:null;const dcol=dpct==null?'#94a3b8':dpct<0?'#ef4444':dpct>50?'#eab308':'#22c55e';return `<tr style="border-top:1px solid #ffffff0d">
         <td style="padding:6px 8px;color:#e2e8f0">${escH(a.name)}${a.active===false?' <span style="font-size:10px;color:#64748b">(inactive)</span>':''}</td>
         <td style="padding:6px 8px;color:#94a3b8">${escH(a.state||'—')}</td>
-        <td style="padding:6px 8px">${escH(a.supportType)}<div style="font-size:10px;color:#64748b">${escH(a.hours)}</div></td>
+        <td style="padding:6px 8px">${escH(a.supportType)}${a.site?' <span style="font-size:9px;font-weight:700;color:#f59e0b">SITE</span>':''}<div style="font-size:10px;color:#64748b">${escH(a.hours)}</div></td>
         <td style="padding:6px 8px;text-align:right">${a.seats}</td>
         <td style="padding:6px 8px;text-align:right;color:#94a3b8">${a.feePrior?money(a.feePrior):'—'}</td>
         <td style="padding:6px 8px;text-align:right;color:#e2e8f0;font-weight:600">${a.fee?money(a.fee):'<span style="color:#eab308">—</span>'}</td>
@@ -2524,22 +2531,39 @@ function renderSupportFees(){
 function feeEdit(id){ const a=getAgreements().find(x=>x.id===id); if(!a){toast('Not found','warn');return;}
   const base=a.feePrior||a.fee||0;
   const sugg=[1,2,3,4,5].map(p=>`<button type="button" class="btn btn-ghost btn-xs" onclick="document.getElementById('fe-fee').value=${agrPct(base,p)}">${p}% · ${money(agrPct(base,p))}</button>`).join(' ');
+  const cov=(a.covered||[]).filter(l=>l.n>0||l.site);
+  const licSeats=cov.reduce((s,l)=>s+(l.site?0:Math.min(l.n,60)),0);
+  const estFromLic=Math.round((a.baseFee+(licSeats||a.seats)*a.perSeat)/50)*50;
+  const covHTML=cov.length
+    ? `<div style="font-size:12px;color:#cbd5e1">Covered products (from this agency's licenses):</div>
+       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${cov.map(l=>`<span style="font-size:11px;background:#1e293b;border:1px solid #ffffff14;border-radius:999px;padding:2px 9px;color:#cbd5e1">${escH(l.d)} ${l.site?'<b style="color:#f59e0b">Site</b>':'× '+l.n}</span>`).join('')}</div>
+       <div style="font-size:11px;color:#64748b;margin-top:6px">${licSeats} licensed seats${a.site?' + site license':''} · <button type="button" class="btn btn-ghost btn-xs" onclick="document.getElementById('fe-fee').value=${estFromLic}">Estimate from licenses: ${money(estFromLic)}</button></div>`
+    : `<div style="font-size:12px;color:#64748b">No matched licenses on file for this support type — fee is set manually.</div>`;
   showModal('Edit Support Fee — '+escH(a.name),`<div class="fstack">
     <div style="font-size:12px;color:#94a3b8">${escH(a.supportType)} · ${escH(a.state||'—')}${a.type?' · '+escH(a.type):''} · ${escH(a.hours)}</div>
+    <div style="background:#0f172a80;border:1px solid #ffffff12;border-radius:8px;padding:9px 11px">${covHTML}</div>
     <div style="background:#0f172a80;border:1px solid #ffffff12;border-radius:8px;padding:9px 11px;font-size:12px;color:#cbd5e1">
       Prior year (${AGR_PRIOR_YEAR}) fee: <b>${a.feePrior?money(a.feePrior):'—'}</b>
       <div style="margin-top:6px;color:#94a3b8">Suggested increase off prior year:</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${sugg}</div></div>
     <div class="fg2"><div class="fg"><label class="fl">${AGR_CUR_YEAR} Fee ($)</label><input class="fc" id="fe-fee" type="number" min="0" value="${a.fee}"></div>
       <div class="fg"><label class="fl">Licensed Seats</label><input class="fc" id="fe-seats" type="number" min="0" value="${a.seats}"></div></div>
-    <div class="fg2"><div class="fg"><label class="fl">Product Line</label><select class="fc" id="fe-line"><option${a.line==='Public Safety'?' selected':''}>Public Safety</option><option${a.line==='FMS'?' selected':''}>FMS</option></select></div>
+    <div class="fg2"><div class="fg"><label class="fl">Original Fee ($)</label><input class="fc" id="fe-orig" type="number" min="0" value="${a.originalFee||''}"></div>
+      <div class="fg"><label class="fl">Product Line</label><select class="fc" id="fe-line"><option${a.line==='Public Safety'?' selected':''}>Public Safety</option><option${a.line==='FMS'?' selected':''}>FMS</option></select></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">Start Date</label><input class="fc" id="fe-start" type="date" value="${escH(a.startDate||'')}"></div>
       <div class="fg"><label class="fl">Renewal Date</label><input class="fc" id="fe-ren" type="date" value="${escH(a.renewal||'')}"></div></div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;margin-top:2px">Agreement contact (who the agreement is mailed to)</div>
+    <div class="fg2"><div class="fg"><label class="fl">Contact name</label><input class="fc" id="fe-cn" value="${escH(a.contactName||'')}"></div>
+      <div class="fg"><label class="fl">Contact phone</label><input class="fc" id="fe-cp" value="${escH(a.contactPhone||'')}"></div></div>
+    <div class="fg"><label class="fl">Contact email</label><input class="fc" id="fe-ce" value="${escH(a.contactEmail||'')}"></div>
     <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#cbd5e1"><input type="checkbox" id="fe-active" ${a.active!==false?'checked':''}> Active (billable)</label>
-    <div style="font-size:11px;color:#64748b">Saving keeps this year's amount as the new fee and rolls the current value into the prior-year column for next year's comparison.</div></div>`,
+    <div style="font-size:11px;color:#64748b">The fee is a manually-set dollar amount (same as the old portal — it isn't auto-calculated from licenses). The license panel above shows the product basis; use the estimate as a guide if helpful.</div></div>`,
     `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="feeSave('${a.id}')">Save Fee</button>`); }
 function feeSave(id){ const a=getAgreements().find(x=>x.id===id); if(!a) return;
   a.line=$('fe-line').value; a.seats=+($('fe-seats').value||0); a.fee=+($('fe-fee').value||0);
-  a.renewal=$('fe-ren').value||''; a.active=$('fe-active').checked; _agrRecompute(a);
+  a.originalFee=+($('fe-orig').value||0); a.startDate=$('fe-start').value||''; a.renewal=$('fe-ren').value||'';
+  a.contactName=$('fe-cn').value; a.contactPhone=$('fe-cp').value; a.contactEmail=$('fe-ce').value;
+  a.active=$('fe-active').checked; _agrRecompute(a);
   closeModal(); toast('Support fee updated'); renderSupportFees(); }
 /* Bulk fee adjustment (RECOMMENDATION — the old portal had no master rate; this raises
    every active line at once so you don't have to touch each agency). */
@@ -2612,6 +2636,88 @@ function renderSupportReports(){
       ${qa('Fee up &gt;150% vs prior',spike,'#f59e0b')}
     </div></div>`;
 }
+
+/* ═══ LICENSES  (parity: tblLicense — products & license totals per agency;
+   old screens addmultiplelicense / editLicense / Licenses report) ═══ */
+let LICENSE_LINES=null;
+function getLicenses(){
+  if(LICENSE_LINES) return LICENSE_LINES;
+  const cx=(typeof CUST_EXTRA!=='undefined')?CUST_EXTRA:{};
+  LICENSE_LINES=[];
+  _agrCustList().forEach(c=>{
+    const lic=(cx[c.id]&&Array.isArray(cx[c.id].licenses))?cx[c.id].licenses:[];
+    lic.forEach((l,i)=>{ let raw=parseInt(l.count,10)||0; const site=raw>=9999; const cnt=site?0:raw; // 9999 / 999959 = Site License (unlimited)
+      LICENSE_LINES.push({ id:c.id+'-lic-'+i, custId:c.id, name:c.name||'', state:c.state||'',
+        product:l.product||l.type||'—', type:l.type||'', count:cnt, site, support:l.support||'', expires:l.expires||'' }); });
+  });
+  return LICENSE_LINES;
+}
+function licsFor(custId){ return getLicenses().filter(l=>l.custId===custId); }
+function renderLicenses(){
+  if(!can('view_customers')&&!can('view_reports')&&!isAdmin()){ $('content').innerHTML='<div class="empty"><div class="empty-i">🔒</div><div class="empty-h">Access Denied</div></div>'; return; }
+  const L=getLicenses();
+  const totalSeats=L.filter(l=>!l.site).reduce((s,l)=>s+(l.count||0),0);
+  const siteCount=L.filter(l=>l.site).length;
+  const prods={}; L.forEach(l=>{const k=l.product||'—';prods[k]=(prods[k]||0)+(l.site?0:(l.count||0));});
+  const prodList=Object.keys(prods).sort();
+  $('topbar-actions').innerHTML='<button class="btn btn-primary btn-sm" onclick="licAdd()">+ Add License</button>';
+  $('content').innerHTML=`<div style="max-width:1180px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:11px;color:#64748b;margin-bottom:12px">Products &amp; license totals per agency (parity: old <i>Add / Edit Licenses</i> → <code>tblLicense</code>). This is the product basis behind the support fees — each support line is priced by staff off the products &amp; seat counts here (the old system stores the fee manually; it is not auto-calculated). <b>Site License</b> = unlimited/site-wide (stored as 9999 in the old data).</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+      ${statTile(L.length,'License lines','#3b82f6')}
+      ${statTile(totalSeats.toLocaleString(),'Total licensed seats','#a855f7')}
+      ${statTile(siteCount,'Site licenses','#f59e0b')}
+      ${statTile(prodList.length,'Distinct products','#0ea5e9')}
+    </div>
+    <div class="toolbar">
+      <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="lc-s" placeholder="Search agency, product, type…" style="width:240px"></div>
+      <select class="fc" id="lc-p" style="width:auto;padding:6px 10px"><option value="">All Products</option>${prodList.map(p=>`<option>${escH(p)}</option>`).join('')}</select>
+      <span id="lc-count" style="font-size:12px;color:#64748b;align-self:center"></span>
+    </div>
+    <div id="lc-table" style="margin-top:10px;overflow-x:auto"></div></div>`;
+  const draw=()=>{
+    const q=$('lc-s').value.toLowerCase(), pf=$('lc-p').value;
+    const f=L.filter(l=>(!pf||l.product===pf)&&(!q||[l.name,l.product,l.type,l.state,l.support].join(' ').toLowerCase().includes(q))).sort((a,b)=>String(a.name).localeCompare(String(b.name))||String(a.product).localeCompare(String(b.product)));
+    $('lc-count').textContent=`${f.length} lines · ${f.filter(l=>!l.site).reduce((s,l)=>s+(l.count||0),0).toLocaleString()} seats · ${f.filter(l=>l.site).length} site`;
+    $('lc-table').innerHTML=`<table class="tbl" style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#64748b">
+      <th style="padding:6px 8px">Agency</th><th style="padding:6px 8px">St</th><th style="padding:6px 8px">Product</th><th style="padding:6px 8px">Type</th><th style="padding:6px 8px;text-align:right">Count</th><th style="padding:6px 8px">Support</th><th style="padding:6px 8px">Expires</th><th style="padding:6px 8px"></th></tr></thead>
+      <tbody>${f.map(l=>`<tr style="border-top:1px solid #ffffff0d">
+        <td style="padding:6px 8px;color:#e2e8f0">${escH(l.name)}</td>
+        <td style="padding:6px 8px;color:#94a3b8">${escH(l.state||'—')}</td>
+        <td style="padding:6px 8px">${escH(l.product)}</td>
+        <td style="padding:6px 8px;color:#cbd5e1">${escH(l.type||'—')}</td>
+        <td style="padding:6px 8px;text-align:right;color:#e2e8f0;font-weight:600">${l.site?'<span style="font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;color:#f59e0b;background:#f59e0b22">Site</span>':(l.count||0)}</td>
+        <td style="padding:6px 8px;color:#94a3b8">${escH(l.support||'—')}</td>
+        <td style="padding:6px 8px;color:#94a3b8">${l.expires?fmt(l.expires):'—'}</td>
+        <td style="padding:6px 8px"><button class="btn btn-ghost btn-xs" onclick="licEdit('${l.id}')">Edit</button></td></tr>`).join('')||`<tr><td colspan="8" style="padding:16px;text-align:center;color:#64748b">No licenses match.</td></tr>`}</tbody></table>`;
+  };
+  ['lc-s','lc-p'].forEach(id=>{const el=$(id);el.oninput=draw;el.onchange=draw;}); draw();
+}
+function licEdit(id){ const l=getLicenses().find(x=>x.id===id); if(!l){toast('Not found','warn');return;}
+  showModal('Edit License — '+escH(l.name),`<div class="fstack">
+    <div style="font-size:12px;color:#94a3b8">${escH(l.state||'—')}</div>
+    <div class="fg2"><div class="fg"><label class="fl">Product</label><input class="fc" id="le-prod" value="${escH(l.product||'')}"></div>
+      <div class="fg"><label class="fl">Type</label><input class="fc" id="le-type" value="${escH(l.type||'')}"></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">Count</label><input class="fc" id="le-cnt" type="number" min="0" value="${l.count||0}" ${l.site?'disabled':''}></div>
+      <div class="fg"><label class="fl">Support</label><input class="fc" id="le-sup" value="${escH(l.support||'')}"></div></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#cbd5e1"><input type="checkbox" id="le-site" ${l.site?'checked':''} onchange="document.getElementById('le-cnt').disabled=this.checked"> Site license (unlimited / site-wide)</label>
+    <div class="fg"><label class="fl">Expires</label><input class="fc" id="le-exp" type="date" value="${escH(l.expires||'')}"></div></div>`,
+    `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="licSave('${l.id}')">Save License</button>`); }
+function licSave(id){ const l=getLicenses().find(x=>x.id===id); if(!l) return;
+  l.product=$('le-prod').value; l.type=$('le-type').value; l.site=$('le-site').checked; l.count=l.site?0:+($('le-cnt').value||0); l.support=$('le-sup').value; l.expires=$('le-exp').value||'';
+  closeModal(); toast('License updated'); renderLicenses(); }
+function licAdd(){ showModal('Add License',`<div class="fstack">
+    <div class="fg"><label class="fl">Agency *</label><select class="fc" id="la-ag"><option value="">Select…</option>${_agencyOpts()}</select></div>
+    <div class="fg2"><div class="fg"><label class="fl">Product</label><input class="fc" id="la-prod" placeholder="e.g. CAD"></div>
+      <div class="fg"><label class="fl">Type</label><input class="fc" id="la-type" placeholder="e.g. .Net CAD"></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">Count</label><input class="fc" id="la-cnt" type="number" min="0" value="1"></div>
+      <div class="fg"><label class="fl">Support</label><input class="fc" id="la-sup" placeholder="24/7 / Bus. hrs"></div></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#cbd5e1"><input type="checkbox" id="la-site" onchange="document.getElementById('la-cnt').disabled=this.checked"> Site license (unlimited / site-wide)</label></div>`,
+    `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="licAddSave()">Add License</button>`); }
+function licAddSave(){ const ag=$('la-ag').value; if(!ag){toast('Pick an agency','warn');return;}
+  const c=(S.customers||[]).find(x=>x.id===ag)||{}; const site=$('la-site').checked;
+  getLicenses().unshift({id:ag+'-lic-'+Date.now(),custId:ag,name:c.name||'',state:c.state||'',product:$('la-prod').value||'—',type:$('la-type').value||'',count:site?0:+($('la-cnt').value||0),site,support:$('la-sup').value||'',expires:''});
+  closeModal(); toast('License added'); renderLicenses(); }
 
 // ── WEBSITE ANNOUNCEMENT ───────────────────────────────────────
 let ANNOUNCEMENTS=[
@@ -3125,7 +3231,7 @@ function navigate(v, extra={}) {
     kbfmsint:()=>renderKB({ps:'FMS',internalMode:'int'}), kbpsint:()=>renderKB({ps:'PS',internalMode:'int'}),
     kbcreate:renderKBCreate, trainingfms:()=>renderTraining({ps:'FMS'}), trainingps:()=>renderTraining({ps:'PS'}), trainconf:renderTrainConf,
     editappversions:renderAppVersions,
-    supportagr:renderSupportAgr, supportfees:renderSupportFees, supportreports:renderSupportReports, announce:renderAnnounce, hwspecs:renderHWSpecs,
+    supportagr:renderSupportAgr, supportfees:renderSupportFees, supportreports:renderSupportReports, licenses:renderLicenses, announce:renderAnnounce, hwspecs:renderHWSpecs,
     alerts:renderAlerts, chat:renderChat, empstatus:renderEmpStatus, timesheets:renderTimesheets,
     blog:renderBlog, citizen:renderCitizen, myagenda:renderMyAgenda,
     collections:renderCollections, approveusers:renderApproveUsers, supportaudit:renderSupportAudit,
