@@ -711,10 +711,14 @@ a#skip-link:focus{left:8px}
         <div class="sb-item" data-v="heatmap" data-requires="view_customers"><span class="i">🌡️</span>Customer Heat Map</div>
         <div class="sb-item" data-v="map" data-requires="view_customers"><span class="i">🗺️</span>Customer Point Map</div>
         <div class="sb-item" data-v="mastersearch" data-requires="view_customers"><span class="i">🔎</span>Master Customer Search</div>
-        <div class="sb-item" data-v="supportagr" data-requires="view_reports"><span class="i">📑</span>Support Agreements</div>
         <div class="sb-item" data-v="citizen" data-requires="view_customers"><span class="i">📱</span>Citizen Connect</div>
         <div class="sb-item" data-v="collections" data-requires="view_reports"><span class="i">💵</span>Collections</div>
         <div class="sb-item" data-v="jennifer" data-requires="view_reports"><span class="i">📊</span>Customer DB (Jennifer)</div>
+
+        <div class="sb-label">Annual Support</div>
+        <div class="sb-item" data-v="supportagr" data-requires="view_reports"><span class="i">📑</span>Support Agreements</div>
+        <div class="sb-item" data-v="supportfees" data-requires="view_reports"><span class="i">💲</span>Support Fees</div>
+        <div class="sb-item" data-v="supportaudit" data-requires="view_reports"><span class="i">🧾</span>Support Audit</div>
 
         <div class="sb-label">Projects</div>
         <div class="sb-item" data-v="projects"><span class="i">📁</span>Projects - Active</div>
@@ -1057,7 +1061,7 @@ function renderAdmin() {
     ['✅','Approve Users','Review pending registrations','navigate(\'approveusers\')'],
     ['🧾','Support / Record Audit','Audit trail of record changes','navigate(\'supportaudit\')'],
     ['🔌','Edit Interfaces / Cost','Component & interface pricing','navigate(\'interfacecosts\')'],
-    ['📑','Review Support Fees','Support agreements & renewals','navigate(\'supportagr\')'],
+    ['📑','Review Support Fees','Edit the support-fee records','navigate(\'supportfees\')'],
     ['📆','24/7 Tech Rotation','On-call technician schedule','navigate(\'oncall\')'],
     ['🚑','24/7 Triage Rotation','After-hours triage schedule','navigate(\'oncall\')'],
     ['📱','Edit App Versions','Current released versions','navigate(\'editappversions\')'],
@@ -1527,7 +1531,7 @@ const VIEW_TITLES = { handbook:'Employee Handbook', activity:'Activity Feed', ad
   heatmap:'Customer Heat Map', mastersearch:'Master Customer Search', projsearch:'Projects — Search All', projclosed:'Projects Closed',
   kbfms:'KB — FMS', kbps:'KB — Public Safety', kbfmsint:'KB — FMS Internal', kbpsint:'KB — PS Internal', kbcreate:'Create KB Article',
   trainingfms:'Learning Tracks — FMS', trainingps:'Learning Tracks — PS', editappversions:'Edit App Versions', trainconf:'Conferences / Training',
-  supportagr:'Support Agreements & Renewals', announce:'Website Announcement', hwspecs:'Update Hardware Specs',
+  supportagr:'Support Agreements & Renewals', supportfees:'Support Fees', announce:'Website Announcement', hwspecs:'Update Hardware Specs',
   alerts:'Notifications & Alerts', chat:'Team Chat', empstatus:"Who's In", timesheets:'Time Tracking',
   blog:'Company Blog', citizen:'Citizen Connect', myagenda:'My Training',
   collections:'Collections', approveusers:'Approve Users', supportaudit:'Support / Record Audit',
@@ -2299,49 +2303,71 @@ function buildAgreements(){
     const iso=rd.toISOString().slice(0,10);
     const days=Math.round((rd-today)/86400000);
     const status=days<0?'Expired':days<=60?'Expiring':'Current';
-    return {id:c.id,name:c.name||'',state:c.state||'',line,org,seats,fee,renewal:iso,days,status,owner:x.sales_owner||'',type:c.agency_type||''};
+    const mailBatch=((c.state||'').toUpperCase()==='TX')?'March':'December';
+    const hours=line==='Public Safety'?'24/7/365':'Bus. hrs · M–F 8:30–5 ET';
+    return {id:c.id,name:c.name||'',state:c.state||'',line,org,seats,fee,renewal:iso,days,status,owner:x.sales_owner||'',type:c.agency_type||'',active:true,mailBatch,hours};
   }).sort((a,b)=>a.renewal.localeCompare(b.renewal));
+}
+// Persistent in-memory support-fee store (parity: tblSupportFees). Both the Support
+// Fees editor and the Support Agreements view read/write this, so edits flow through.
+let SUPPORT_FEES=null;
+function getAgreements(){ if(!SUPPORT_FEES) SUPPORT_FEES=buildAgreements(); return SUPPORT_FEES; }
+function _agrRecompute(a){
+  const t=new Date(); t.setHours(0,0,0,0);
+  const rd=new Date(a.renewal+'T00:00:00');
+  a.days=Math.round((rd-t)/86400000);
+  a.status=a.days<0?'Expired':a.days<=60?'Expiring':'Current';
+  a.mailBatch=((a.state||'').toUpperCase()==='TX')?'March':'December';
+  a.hours=a.line==='Public Safety'?'24/7/365':'Bus. hrs · M–F 8:30–5 ET';
 }
 function renderSupportAgr(){
   if(!can('view_reports')&&!isAdmin()){ $('content').innerHTML='<div class="empty"><div class="empty-i">🔒</div><div class="empty-h">Access Denied</div></div>'; return; }
-  const A=buildAgreements();
+  const A=getAgreements();
   const AST={Current:'#22c55e',Expiring:'#f59e0b',Expired:'#ef4444'};
   const totalVal=A.reduce((s,a)=>s+a.fee,0);
   const expiring=A.filter(a=>a.status==='Expiring').length;
   const expired=A.filter(a=>a.status==='Expired').length;
-  $('topbar-actions').innerHTML='<button class="btn btn-primary btn-sm" onclick="agrPrintAllCurrent()">🖨 Print All Agreements</button>';
+  const decN=A.filter(a=>a.mailBatch==='December').length;
+  const txN=A.filter(a=>a.mailBatch==='March').length;
+  $('topbar-actions').innerHTML='<button class="btn btn-ghost btn-sm" onclick="agrPrintBatch(\'December\')" title="Print every non-Texas agreement (year-end mailing)">🖨 December (non-TX)</button>'
+    +'<button class="btn btn-ghost btn-sm" onclick="agrPrintBatch(\'March\')" title="Print every Texas agreement (March mailing)">🖨 March (TX)</button>'
+    +'<button class="btn btn-primary btn-sm" onclick="agrPrintAllCurrent()" title="Print whatever is currently filtered below">🖨 Print Filtered</button>';
   $('content').innerHTML=`<div style="max-width:1100px;margin:0 auto;padding:12px 6px">
-    <div style="font-size:11px;color:#64748b;margin-bottom:12px">Support agreements &amp; renewal schedule — derived from customer license records. Wires to the live SSCustomer support/renewal columns once the backend is connected.</div>
+    <div style="font-size:11px;color:#64748b;margin-bottom:12px">Support agreements &amp; renewal schedule — derived from the support-fee records. <b>Mailing schedule:</b> all agreements print &amp; mail at year-end (December); <b>Texas</b> mails in March. Wires to the live SSCustomer support/renewal columns at go-live.</div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
       ${statTile(A.length,'Active agreements','#3b82f6')}
       ${statTile(money(totalVal),'Annual support value','#a855f7')}
+      ${statTile(decN,'December mailing','#8b5cf6')}
+      ${statTile(txN,'March mailing (TX)','#0ea5e9')}
       ${statTile(expiring,'Expiring ≤ 60 days','#f59e0b')}
       ${statTile(expired,'Expired / lapsed','#ef4444')}
     </div>
     <div class="toolbar">
-      <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="sa-s" placeholder="Search agency, state…" style="width:240px"></div>
+      <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="sa-s" placeholder="Search agency, state…" style="width:220px"></div>
       <select class="fc" id="sa-line" style="width:auto;padding:6px 10px"><option value="">All Product Lines</option><option>FMS</option><option>Public Safety</option></select>
       <select class="fc" id="sa-st" style="width:auto;padding:6px 10px"><option value="">All Statuses</option><option>Current</option><option>Expiring</option><option>Expired</option></select>
+      <select class="fc" id="sa-mail" style="width:auto;padding:6px 10px"><option value="">All Mailings</option><option>December</option><option>March</option></select>
       <span id="sa-count" style="font-size:12px;color:#64748b;align-self:center"></span>
     </div>
     <div id="sa-list" class="proj-list"></div>
   </div>`;
   const draw=()=>{
-    const q=$('sa-s').value.toLowerCase(), ln=$('sa-line').value, st=$('sa-st').value;
-    const f=A.filter(a=>(!ln||a.line===ln)&&(!st||a.status===st)&&(!q||[a.name,a.state,a.type,a.owner].join(' ').toLowerCase().includes(q)));
+    const q=$('sa-s').value.toLowerCase(), ln=$('sa-line').value, st=$('sa-st').value, ml=$('sa-mail').value;
+    const f=A.filter(a=>(!ln||a.line===ln)&&(!st||a.status===st)&&(!ml||a.mailBatch===ml)&&(!q||[a.name,a.state,a.type,a.owner].join(' ').toLowerCase().includes(q)));
     _agrFiltered=f;
     $('sa-count').textContent=`${f.length} · ${money(f.reduce((s,a)=>s+a.fee,0))}/yr`;
     $('sa-list').innerHTML=f.map(a=>{
       const when=a.days<0?`${Math.abs(a.days)}d ago`:`in ${a.days}d`;
+      const mailC=a.mailBatch==='March'?'#0ea5e9':'#8b5cf6';
       return `<div class="proj-row" style="cursor:pointer" onclick="showCustDetail('${a.id}')">
         <span style="font-size:1.1rem">📑</span>
         <div class="proj-info"><div class="proj-name">${escH(a.name)} <span style="font-size:12px;color:#94a3b8">· ${escH(a.line)}</span></div>
         <div class="proj-meta">${escH(a.state)}${a.owner?' · '+escH(a.owner):''} · ${a.seats} seats · renews ${fmtLong(a.renewal)} (${when})</div></div>
-        <div class="proj-right"><span style="font-size:13px;color:#e2e8f0;font-weight:600">${money(a.fee)}</span><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${AST[a.status]};background:${AST[a.status]}22">${a.status}</span><button class="btn btn-ghost btn-xs" onclick="agrView(event,'${a.id}')" title="View / print agreement">📄 Agreement</button></div>
+        <div class="proj-right"><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${mailC};background:${mailC}22" title="Mailing batch">✉ ${a.mailBatch}</span><span style="font-size:13px;color:#e2e8f0;font-weight:600">${money(a.fee)}</span><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${AST[a.status]};background:${AST[a.status]}22">${a.status}</span><button class="btn btn-ghost btn-xs" onclick="agrView(event,'${a.id}')" title="View / print agreement">📄 Agreement</button></div>
       </div>`;
     }).join('')||`<div class="empty"><div class="empty-i">📑</div><div class="empty-h">No agreements match</div></div>`;
   };
-  $('sa-s').oninput=draw; $('sa-line').onchange=draw; $('sa-st').onchange=draw; draw();
+  $('sa-s').oninput=draw; $('sa-line').onchange=draw; $('sa-st').onchange=draw; $('sa-mail').onchange=draw; draw();
 }
 
 /* ═══ SUPPORT AGREEMENT DOCUMENT + PRINTING ═══
@@ -2375,7 +2401,8 @@ function agrDoc(a){
     <div class="agr-cover"><div class="agr-brand">SOUTHERN SOFTWARE, INC.</div>
       <div class="agr-title">Annual Software Support Agreement</div>
       <div class="agr-sub">${escH(a.name)}${a.state?', '+escH(a.state):''}</div>
-      <div class="agr-sub2">${escH(a.line)} &nbsp;·&nbsp; Coverage ${d.begin} – ${d.end}</div></div>
+      <div class="agr-sub2">${escH(a.line)} &nbsp;·&nbsp; Coverage ${d.begin} – ${d.end}</div>
+      <div class="agr-sub2">Renewal mailing: <b>${a.mailBatch}</b>${a.mailBatch==='March'?' (Texas cycle)':''}</div></div>
     <h2>1. Parties</h2><p>This Annual Software Support Agreement ("Agreement") is entered into between <b>Southern Software, Inc.</b> ("Provider") and <b>${escH(a.name)}</b> ("Customer")${a.state?', located in '+escH(a.state):''}.</p>
     <h2>2. Covered Products</h2><p>Provider will furnish maintenance and technical support for the Customer's licensed <b>${escH(a.line)}</b> software (${a.seats} licensed seats).</p>
     <h2>3. Term &amp; Coverage Period</h2><p>This Agreement covers the period beginning <b>${d.begin}</b> and ending <b>${d.end}</b>, and renews annually unless terminated in writing by either party.</p>
@@ -2396,14 +2423,78 @@ function _agrPrint(inner,title){
   const go=()=>{ try{ w.focus(); w.print(); }catch(e){} setTimeout(()=>{ try{f.remove();}catch(e){} },1500); };
   if(d.readyState==='complete') setTimeout(go,250); else f.onload=()=>setTimeout(go,250);
 }
-function agrPrintOne(id){ const a=buildAgreements().find(x=>x.id===id); if(!a){toast('Agreement not found','warn');return;} closeModal(); _agrPrint(agrDoc(a),'Support Agreement — '+a.name); }
-function agrPrintAllCurrent(){ const list=(_agrFiltered&&_agrFiltered.length)?_agrFiltered:buildAgreements(); if(!list.length){toast('No agreements to print','warn');return;}
+function agrPrintOne(id){ const a=getAgreements().find(x=>x.id===id); if(!a){toast('Agreement not found','warn');return;} closeModal(); _agrPrint(agrDoc(a),'Support Agreement — '+a.name); }
+function agrPrintAllCurrent(){ const list=(_agrFiltered&&_agrFiltered.length)?_agrFiltered:getAgreements(); if(!list.length){toast('No agreements to print','warn');return;}
   toast('Preparing '+list.length+' agreements…');
   const inner=list.map((a,i)=>`<div class="${i<list.length-1?'agr-break':''}">${agrDoc(a)}</div>`).join(''); _agrPrint(inner,'Support Agreements ('+list.length+')'); }
-function agrView(ev,id){ if(ev&&ev.stopPropagation)ev.stopPropagation(); const a=buildAgreements().find(x=>x.id===id); if(!a){toast('Not found','warn');return;}
+function agrPrintBatch(batch){ const list=getAgreements().filter(a=>a.mailBatch===batch&&a.active!==false); if(!list.length){toast('No '+batch+' agreements','warn');return;}
+  toast('Preparing '+batch+' mailing — '+list.length+' agreements…');
+  const inner=list.map((a,i)=>`<div class="${i<list.length-1?'agr-break':''}">${agrDoc(a)}</div>`).join(''); _agrPrint(inner,batch+' Mailing ('+list.length+' agreements)'); }
+function agrView(ev,id){ if(ev&&ev.stopPropagation)ev.stopPropagation(); const a=getAgreements().find(x=>x.id===id); if(!a){toast('Not found','warn');return;}
   showModal('📑 '+escH(a.name)+' — Support Agreement',
     '<style>'+AGR_CSS+'</style><div style="max-height:62vh;overflow:auto;background:#fff;border-radius:8px">'+agrDoc(a)+'</div>',
     `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-primary btn-sm" onclick="agrPrintOne('${a.id}')">🖨 Print / Save PDF</button>`); }
+
+/* ═══ SUPPORT FEES TABLE  (parity: old "Review Support Fees" → tblSupportFees) ═══
+   The editable data behind every agreement. Edits flow into Support Agreements + printing. */
+function renderSupportFees(){
+  if(!can('view_reports')&&!isAdmin()){ $('content').innerHTML='<div class="empty"><div class="empty-i">🔒</div><div class="empty-h">Access Denied</div></div>'; return; }
+  const F=getAgreements();
+  const active=F.filter(a=>a.active!==false);
+  const totalVal=active.reduce((s,a)=>s+a.fee,0);
+  const decN=active.filter(a=>a.mailBatch==='December').length, txN=active.filter(a=>a.mailBatch==='March').length;
+  $('topbar-actions').innerHTML='<button class="btn btn-primary btn-sm" onclick="navigate(\'supportagr\')">📑 Go to Agreements</button>';
+  $('content').innerHTML=`<div style="max-width:1180px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:11px;color:#64748b;margin-bottom:12px">The support-fee records behind every agreement (parity: old <i>Review Support Fees</i> → <code>tblSupportFees</code>). Edit a fee, seat count, renewal date, or active status and it flows straight into the agreements &amp; printing. <b>Mailing:</b> Texas mails in March, all other states December. In-memory in preview.</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+      ${statTile(active.length,'Active support lines','#3b82f6')}
+      ${statTile(money(totalVal),'Total annual fees','#a855f7')}
+      ${statTile(decN,'December mailing','#8b5cf6')}
+      ${statTile(txN,'March mailing (TX)','#0ea5e9')}
+    </div>
+    <div class="toolbar">
+      <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="sf-s" placeholder="Search agency, state…" style="width:220px"></div>
+      <select class="fc" id="sf-line" style="width:auto;padding:6px 10px"><option value="">All Product Lines</option><option>FMS</option><option>Public Safety</option></select>
+      <select class="fc" id="sf-mail" style="width:auto;padding:6px 10px"><option value="">All Mailings</option><option>December</option><option>March</option></select>
+      <label style="font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:5px"><input type="checkbox" id="sf-active" checked> Active only</label>
+      <span id="sf-count" style="font-size:12px;color:#64748b;align-self:center"></span>
+    </div>
+    <div id="sf-table" style="margin-top:10px;overflow-x:auto"></div></div>`;
+  const draw=()=>{
+    const q=$('sf-s').value.toLowerCase(), ln=$('sf-line').value, ml=$('sf-mail').value, ao=$('sf-active').checked;
+    const f=F.filter(a=>(!ao||a.active!==false)&&(!ln||a.line===ln)&&(!ml||a.mailBatch===ml)&&(!q||[a.name,a.state,a.type].join(' ').toLowerCase().includes(q))).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+    $('sf-count').textContent=`${f.length} lines · ${money(f.reduce((s,a)=>s+a.fee,0))}/yr`;
+    const AST={Current:'#22c55e',Expiring:'#f59e0b',Expired:'#ef4444'};
+    $('sf-table').innerHTML=`<table class="tbl" style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#64748b">
+      <th style="padding:6px 8px">Agency</th><th style="padding:6px 8px">St</th><th style="padding:6px 8px">Line</th><th style="padding:6px 8px">Support hrs</th><th style="padding:6px 8px;text-align:right">Seats</th><th style="padding:6px 8px;text-align:right">Annual fee</th><th style="padding:6px 8px">Renewal</th><th style="padding:6px 8px">Mailing</th><th style="padding:6px 8px">Status</th><th style="padding:6px 8px"></th></tr></thead>
+      <tbody>${f.map(a=>{const mailC=a.mailBatch==='March'?'#0ea5e9':'#8b5cf6';return `<tr style="border-top:1px solid #ffffff0d">
+        <td style="padding:6px 8px;color:#e2e8f0">${escH(a.name)}${a.active===false?' <span style="font-size:10px;color:#64748b">(inactive)</span>':''}</td>
+        <td style="padding:6px 8px;color:#94a3b8">${escH(a.state||'—')}</td>
+        <td style="padding:6px 8px">${escH(a.line)}</td>
+        <td style="padding:6px 8px;color:#94a3b8">${escH(a.hours||'')}</td>
+        <td style="padding:6px 8px;text-align:right">${a.seats}</td>
+        <td style="padding:6px 8px;text-align:right;color:#e2e8f0;font-weight:600">${money(a.fee)}</td>
+        <td style="padding:6px 8px;color:#94a3b8">${fmtLong(a.renewal)}</td>
+        <td style="padding:6px 8px"><span style="font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;color:${mailC};background:${mailC}22">✉ ${a.mailBatch}</span></td>
+        <td style="padding:6px 8px"><span style="font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;color:${AST[a.status]};background:${AST[a.status]}22">${a.status}</span></td>
+        <td style="padding:6px 8px"><button class="btn btn-ghost btn-xs" onclick="feeEdit('${a.id}')">Edit</button></td></tr>`;}).join('')||`<tr><td colspan="10" style="padding:16px;text-align:center;color:#64748b">No support lines match.</td></tr>`}</tbody></table>`;
+  };
+  ['sf-s','sf-line','sf-mail','sf-active'].forEach(id=>{const el=$(id);el.oninput=draw;el.onchange=draw;}); draw();
+}
+function feeEdit(id){ const a=getAgreements().find(x=>x.id===id); if(!a){toast('Not found','warn');return;}
+  showModal('Edit Support Fee — '+escH(a.name),`<div class="fstack">
+    <div style="font-size:12px;color:#94a3b8">${escH(a.state||'—')}${a.type?' · '+escH(a.type):''} · mails <b>${a.mailBatch}</b></div>
+    <div class="fg2"><div class="fg"><label class="fl">Product Line</label><select class="fc" id="fe-line"><option${a.line==='Public Safety'?' selected':''}>Public Safety</option><option${a.line==='FMS'?' selected':''}>FMS</option></select></div>
+      <div class="fg"><label class="fl">Licensed Seats</label><input class="fc" id="fe-seats" type="number" min="0" value="${a.seats}"></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">Annual Fee ($)</label><input class="fc" id="fe-fee" type="number" min="0" value="${a.fee}"></div>
+      <div class="fg"><label class="fl">Renewal Date</label><input class="fc" id="fe-ren" type="date" value="${escH(a.renewal)}"></div></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#cbd5e1"><input type="checkbox" id="fe-active" ${a.active!==false?'checked':''}> Active (billable)</label>
+    <div style="font-size:11px;color:#64748b">Support hours &amp; mailing batch follow the product line and state automatically.</div></div>`,
+    `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="feeSave('${a.id}')">Save Fee</button>`); }
+function feeSave(id){ const a=getAgreements().find(x=>x.id===id); if(!a) return;
+  a.line=$('fe-line').value; a.seats=+($('fe-seats').value||0); a.fee=+($('fe-fee').value||0);
+  a.renewal=$('fe-ren').value||a.renewal; a.active=$('fe-active').checked; _agrRecompute(a);
+  closeModal(); toast('Support fee updated'); renderSupportFees(); }
 
 // ── WEBSITE ANNOUNCEMENT ───────────────────────────────────────
 let ANNOUNCEMENTS=[
@@ -2917,7 +3008,7 @@ function navigate(v, extra={}) {
     kbfmsint:()=>renderKB({ps:'FMS',internalMode:'int'}), kbpsint:()=>renderKB({ps:'PS',internalMode:'int'}),
     kbcreate:renderKBCreate, trainingfms:()=>renderTraining({ps:'FMS'}), trainingps:()=>renderTraining({ps:'PS'}), trainconf:renderTrainConf,
     editappversions:renderAppVersions,
-    supportagr:renderSupportAgr, announce:renderAnnounce, hwspecs:renderHWSpecs,
+    supportagr:renderSupportAgr, supportfees:renderSupportFees, announce:renderAnnounce, hwspecs:renderHWSpecs,
     alerts:renderAlerts, chat:renderChat, empstatus:renderEmpStatus, timesheets:renderTimesheets,
     blog:renderBlog, citizen:renderCitizen, myagenda:renderMyAgenda,
     collections:renderCollections, approveusers:renderApproveUsers, supportaudit:renderSupportAudit,
