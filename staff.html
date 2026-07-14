@@ -2309,7 +2309,7 @@ function renderSupportAgr(){
   const totalVal=A.reduce((s,a)=>s+a.fee,0);
   const expiring=A.filter(a=>a.status==='Expiring').length;
   const expired=A.filter(a=>a.status==='Expired').length;
-  $('topbar-actions').innerHTML='<button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>';
+  $('topbar-actions').innerHTML='<button class="btn btn-primary btn-sm" onclick="agrPrintAllCurrent()">🖨 Print All Agreements</button>';
   $('content').innerHTML=`<div style="max-width:1100px;margin:0 auto;padding:12px 6px">
     <div style="font-size:11px;color:#64748b;margin-bottom:12px">Support agreements &amp; renewal schedule — derived from customer license records. Wires to the live SSCustomer support/renewal columns once the backend is connected.</div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
@@ -2329,6 +2329,7 @@ function renderSupportAgr(){
   const draw=()=>{
     const q=$('sa-s').value.toLowerCase(), ln=$('sa-line').value, st=$('sa-st').value;
     const f=A.filter(a=>(!ln||a.line===ln)&&(!st||a.status===st)&&(!q||[a.name,a.state,a.type,a.owner].join(' ').toLowerCase().includes(q)));
+    _agrFiltered=f;
     $('sa-count').textContent=`${f.length} · ${money(f.reduce((s,a)=>s+a.fee,0))}/yr`;
     $('sa-list').innerHTML=f.map(a=>{
       const when=a.days<0?`${Math.abs(a.days)}d ago`:`in ${a.days}d`;
@@ -2336,12 +2337,73 @@ function renderSupportAgr(){
         <span style="font-size:1.1rem">📑</span>
         <div class="proj-info"><div class="proj-name">${escH(a.name)} <span style="font-size:12px;color:#94a3b8">· ${escH(a.line)}</span></div>
         <div class="proj-meta">${escH(a.state)}${a.owner?' · '+escH(a.owner):''} · ${a.seats} seats · renews ${fmtLong(a.renewal)} (${when})</div></div>
-        <div class="proj-right"><span style="font-size:13px;color:#e2e8f0;font-weight:600">${money(a.fee)}</span><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${AST[a.status]};background:${AST[a.status]}22">${a.status}</span></div>
+        <div class="proj-right"><span style="font-size:13px;color:#e2e8f0;font-weight:600">${money(a.fee)}</span><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${AST[a.status]};background:${AST[a.status]}22">${a.status}</span><button class="btn btn-ghost btn-xs" onclick="agrView(event,'${a.id}')" title="View / print agreement">📄 Agreement</button></div>
       </div>`;
     }).join('')||`<div class="empty"><div class="empty-i">📑</div><div class="empty-h">No agreements match</div></div>`;
   };
   $('sa-s').oninput=draw; $('sa-line').onchange=draw; $('sa-st').onchange=draw; draw();
 }
+
+/* ═══ SUPPORT AGREEMENT DOCUMENT + PRINTING ═══
+   Parity with old portal: supportagreement.php / supportagreement_print.php /
+   supportagreement_print_all.php (server DomPDF → browser PDF). Here the document
+   is generated client-side and printed via the browser (Save-as-PDF = same result). */
+let _agrFiltered=[];
+const AGR_CSS=`.agr{font-family:'Times New Roman',Georgia,serif;color:#111;background:#fff;padding:46px 54px;max-width:760px;margin:0 auto;box-sizing:border-box}
+.agr-cover{text-align:center;padding:70px 0 54px;border-bottom:3px double #333;margin-bottom:32px}
+.agr-brand{font-size:15px;letter-spacing:3px;color:#555}
+.agr-title{font-size:29px;font-weight:bold;margin:16px 0 8px}
+.agr-sub{font-size:20px}.agr-sub2{font-size:13px;color:#555;margin-top:8px}
+.agr h2{font-size:15px;margin:18px 0 6px;border-bottom:1px solid #ccc;padding-bottom:3px}
+.agr p,.agr li{font-size:13px;line-height:1.6}
+.agr-sign{width:100%;margin-top:22px;font-size:13px;border-collapse:collapse}
+.agr-sign td{padding:26px 16px 0;vertical-align:top;width:50%}
+.agr-break{page-break-after:always}
+@media print{@page{margin:.6in}}`;
+function _agrDates(a){
+  const rd=new Date(a.renewal+'T00:00:00');
+  const end=new Date(rd); end.setFullYear(end.getFullYear()+1); end.setDate(end.getDate()-1);
+  const f=d=>d.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  return {begin:f(rd),end:f(end)};
+}
+function _agrHours(a){ return a.line==='Public Safety'
+  ? '24 hours a day, 7 days a week, 365 days a year'
+  : 'Monday through Friday, 8:30 AM to 5:00 PM Eastern Time, excluding holidays'; }
+function agrDoc(a){
+  const d=_agrDates(a);
+  return `<div class="agr">
+    <div class="agr-cover"><div class="agr-brand">SOUTHERN SOFTWARE, INC.</div>
+      <div class="agr-title">Annual Software Support Agreement</div>
+      <div class="agr-sub">${escH(a.name)}${a.state?', '+escH(a.state):''}</div>
+      <div class="agr-sub2">${escH(a.line)} &nbsp;·&nbsp; Coverage ${d.begin} – ${d.end}</div></div>
+    <h2>1. Parties</h2><p>This Annual Software Support Agreement ("Agreement") is entered into between <b>Southern Software, Inc.</b> ("Provider") and <b>${escH(a.name)}</b> ("Customer")${a.state?', located in '+escH(a.state):''}.</p>
+    <h2>2. Covered Products</h2><p>Provider will furnish maintenance and technical support for the Customer's licensed <b>${escH(a.line)}</b> software (${a.seats} licensed seats).</p>
+    <h2>3. Term &amp; Coverage Period</h2><p>This Agreement covers the period beginning <b>${d.begin}</b> and ending <b>${d.end}</b>, and renews annually unless terminated in writing by either party.</p>
+    <h2>4. Support Hours</h2><p>Telephone and remote technical support are provided ${_agrHours(a)}.</p>
+    <h2>5. Annual Support Fee</h2><p>The annual support fee for the coverage period is <b>${money(a.fee)}</b>, due upon renewal on <b>${d.begin}</b>.</p>
+    <h2>6. Services Included</h2><ul><li>Telephone and remote technical support during the hours stated above</li><li>Software updates, patches, and maintenance releases for covered products</li><li>Assistance with configuration, troubleshooting, and problem resolution</li></ul>
+    <h2>7. Signatures</h2><table class="agr-sign"><tr>
+      <td>Customer:<br>____________________________<br>Name / Title: _______________________<br>Date: _______________</td>
+      <td>Southern Software, Inc.:<br>____________________________<br>Name / Title: _______________________<br>Date: _______________</td></tr></table>
+  </div>`;
+}
+function _agrPrint(inner,title){
+  const f=document.createElement('iframe'); f.setAttribute('aria-hidden','true');
+  f.style.cssText='position:fixed;right:0;bottom:0;width:1px;height:1px;opacity:0;border:0';
+  document.body.appendChild(f);
+  const w=f.contentWindow,d=w.document;
+  d.open(); d.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+title+'</title><style>'+AGR_CSS+'</style></head><body>'+inner+'</body></html>'); d.close();
+  const go=()=>{ try{ w.focus(); w.print(); }catch(e){} setTimeout(()=>{ try{f.remove();}catch(e){} },1500); };
+  if(d.readyState==='complete') setTimeout(go,250); else f.onload=()=>setTimeout(go,250);
+}
+function agrPrintOne(id){ const a=buildAgreements().find(x=>x.id===id); if(!a){toast('Agreement not found','warn');return;} closeModal(); _agrPrint(agrDoc(a),'Support Agreement — '+a.name); }
+function agrPrintAllCurrent(){ const list=(_agrFiltered&&_agrFiltered.length)?_agrFiltered:buildAgreements(); if(!list.length){toast('No agreements to print','warn');return;}
+  toast('Preparing '+list.length+' agreements…');
+  const inner=list.map((a,i)=>`<div class="${i<list.length-1?'agr-break':''}">${agrDoc(a)}</div>`).join(''); _agrPrint(inner,'Support Agreements ('+list.length+')'); }
+function agrView(ev,id){ if(ev&&ev.stopPropagation)ev.stopPropagation(); const a=buildAgreements().find(x=>x.id===id); if(!a){toast('Not found','warn');return;}
+  showModal('📑 '+escH(a.name)+' — Support Agreement',
+    '<style>'+AGR_CSS+'</style><div style="max-height:62vh;overflow:auto;background:#fff;border-radius:8px">'+agrDoc(a)+'</div>',
+    `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-primary btn-sm" onclick="agrPrintOne('${a.id}')">🖨 Print / Save PDF</button>`); }
 
 // ── WEBSITE ANNOUNCEMENT ───────────────────────────────────────
 let ANNOUNCEMENTS=[
