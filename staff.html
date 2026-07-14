@@ -718,6 +718,7 @@ a#skip-link:focus{left:8px}
         <div class="sb-label">Annual Support</div>
         <div class="sb-item" data-v="supportagr" data-requires="view_reports"><span class="i">📑</span>Support Agreements</div>
         <div class="sb-item" data-v="supportfees" data-requires="view_reports"><span class="i">💲</span>Support Fees</div>
+        <div class="sb-item" data-v="supportreports" data-requires="view_reports"><span class="i">📊</span>Support Analytics</div>
         <div class="sb-item" data-v="supportaudit" data-requires="view_reports"><span class="i">🧾</span>Support Audit</div>
 
         <div class="sb-label">Projects</div>
@@ -1531,7 +1532,7 @@ const VIEW_TITLES = { handbook:'Employee Handbook', activity:'Activity Feed', ad
   heatmap:'Customer Heat Map', mastersearch:'Master Customer Search', projsearch:'Projects — Search All', projclosed:'Projects Closed',
   kbfms:'KB — FMS', kbps:'KB — Public Safety', kbfmsint:'KB — FMS Internal', kbpsint:'KB — PS Internal', kbcreate:'Create KB Article',
   trainingfms:'Learning Tracks — FMS', trainingps:'Learning Tracks — PS', editappversions:'Edit App Versions', trainconf:'Conferences / Training',
-  supportagr:'Support Agreements & Renewals', supportfees:'Support Fees', announce:'Website Announcement', hwspecs:'Update Hardware Specs',
+  supportagr:'Support Agreements & Renewals', supportfees:'Support Fees', supportreports:'Support Analytics', announce:'Website Announcement', hwspecs:'Update Hardware Specs',
   alerts:'Notifications & Alerts', chat:'Team Chat', empstatus:"Who's In", timesheets:'Time Tracking',
   blog:'Company Blog', citizen:'Citizen Connect', myagenda:'My Training',
   collections:'Collections', approveusers:'Approve Users', supportaudit:'Support / Record Audit',
@@ -2284,29 +2285,65 @@ function renderPeople(extra){ _tabbed('people',[['workload','Team Workload',rend
 // ── SUPPORT AGREEMENTS / RENEWALS ──────────────────────────────
 function _agrCustList(){ return (S.customers&&S.customers.length)?S.customers:(typeof DUMMY_DATA!=='undefined'?DUMMY_DATA.customers:[]); }
 function _agrHash(s){let h=0;s=String(s);for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))>>>0;}return h;}
+// Support-type catalog (parity: tbllkpSupportType — Support247 flag + product line).
+// One tblSupportFees ROW per agency per support type; fee is stored per year, adjusted
+// annually by a % the staff choose (the old portal shows 1–5% suggestions, no master rate).
+const PS_TYPES=[
+  {code:'CAD',desc:'CAD / Dispatch Support',h247:true, base:8000,per:300,match:/cad|dispatch|ops view|ncic cad/i},
+  {code:'MDS',desc:'Mobile (MDS) Support',  h247:true, base:6000,per:250,match:/\bmds\b|mdis|mobile|avl/i},
+  {code:'RMS',desc:'RMS Support',           h247:false,base:4000,per:180,match:/rms|records/i},
+  {code:'JMS',desc:'JMS Support',           h247:false,base:3500,per:160,match:/jms|jail/i},
+  {code:'QM', desc:'QuarterMaster Support', h247:false,base:2500,per:140,match:/quarter|\bqm\b/i},
+  {code:'PSA',desc:'PSAware / Citizen',     h247:false,base:2000,per:120,match:/psaware|citizen/i},
+];
+const FMS_TYPES=[
+  {code:'FIN',desc:'Financials Support',     h247:false,base:5000,per:200},
+  {code:'UB', desc:'Utility Billing Support',h247:false,base:4000,per:180},
+  {code:'PAY',desc:'Payroll Support',        h247:false,base:3000,per:150},
+  {code:'TAX',desc:'Tax Billing Support',    h247:false,base:2500,per:140},
+];
+const AGR_STATUS_COL={Current:'#22c55e',Expiring:'#f59e0b',Expired:'#ef4444','No renewal':'#94a3b8','No fee':'#eab308'};
+const AGR_CUR_YEAR=(new Date()).getFullYear(), AGR_PRIOR_YEAR=AGR_CUR_YEAR-1;
+function agrPct(base,pct){ return Math.round(base*(1+pct/100)); }
 function buildAgreements(){
   const cx=(typeof CUST_EXTRA!=='undefined')?CUST_EXTRA:{};
   const today=new Date(); today.setHours(0,0,0,0);
-  return _agrCustList().map(c=>{
+  const rows=[];
+  _agrCustList().forEach(c=>{
     const x=cx[c.id]||{};
     const lic=Array.isArray(x.licenses)?x.licenses:[];
     let org=x.org||'';
-    if(org!=='FMS'&&org!=='PS'){ const t=(c.agency_type||'').toLowerCase(); org=/water|sewer|city|town|county|municipal|tax|financ|utility|school|isd/.test(t)?'FMS':'PS'; }
+    if(org!=='FMS'&&org!=='PS'){ const t=(c.agency_type||'').toLowerCase(); org=/water|sewer|city|town|municipal|tax|financ|utility|school|isd/.test(t)?'FMS':'PS'; }
     const line=org==='FMS'?'FMS':'Public Safety';
-    // license "count" is noisy (some rows hold non-seat values); clamp per-row and total to realistic seats
-    const raw=lic.reduce((s,l)=>{const n=parseInt(l.count,10)||0; return s+(n>500?0:Math.min(n,60));},0);
-    const seats=Math.min(raw||(3+_agrHash(c.id)%18), 220);
-    const rate=org==='FMS'?420:365;
-    const fee=Math.max(1500, seats*rate + (_agrHash(c.id+'f')%9)*250);
-    const h=_agrHash(c.id+'r');
-    const rd=new Date(today.getFullYear(), today.getMonth()+((h%12)-3), 1+(h%27));
-    const iso=rd.toISOString().slice(0,10);
-    const days=Math.round((rd-today)/86400000);
-    const status=days<0?'Expired':days<=60?'Expiring':'Current';
-    const mailBatch=((c.state||'').toUpperCase()==='TX')?'March':'December';
-    const hours=line==='Public Safety'?'24/7/365':'Bus. hrs · M–F 8:30–5 ET';
-    return {id:c.id,name:c.name||'',state:c.state||'',line,org,seats,fee,renewal:iso,days,status,owner:x.sales_owner||'',type:c.agency_type||'',active:true,mailBatch,hours};
-  }).sort((a,b)=>a.renewal.localeCompare(b.renewal));
+    let chosen;
+    if(org==='PS'){ const licText=lic.map(l=>(l.product||'')+' '+(l.type||'')).join(' '); chosen=PS_TYPES.filter(t=>t.match.test(licText)); if(!chosen.length) chosen=[PS_TYPES[0]]; }
+    else { chosen=FMS_TYPES.slice(0,1+(_agrHash(c.id+'n')%2)); }
+    chosen=chosen.slice(0,3);
+    chosen.forEach(t=>{
+      const hh=_agrHash(c.id+t.code);
+      let seats;
+      if(org==='PS'){ const s=lic.filter(l=>t.match.test((l.product||'')+' '+(l.type||''))).reduce((a,l)=>{const n=parseInt(l.count,10)||0;return a+(n>500?0:Math.min(n,60));},0); seats=Math.min(s||(3+hh%15),120); }
+      else { seats=3+hh%22; }
+      let fee=Math.round((t.base+seats*t.per)/50)*50;
+      const bump=2+(hh%4);                                   // typical 2–5% YoY increase
+      let feePrior=Math.round((fee/(1+bump/100))/50)*50;
+      const h2=_agrHash(c.id+t.code+'r');
+      let renewal=new Date(today.getFullYear(),(h2%12),1+(h2%27)).toISOString().slice(0,10);
+      // seed a few anomalies so the QA analytics have real cases to surface
+      if(hh%13===0) feePrior=fee+Math.round(fee*0.06);       // this year < prior (decrease)
+      if(hh%17===0) feePrior=Math.round(fee/1.7/50)*50;      // this year > 150% of prior (spike)
+      if(hh%19===0) renewal='';                              // missing renewal date
+      if(hh%23===0) fee=0;                                   // missing / zero fee
+      const days=renewal?Math.round((new Date(renewal+'T00:00:00')-today)/86400000):null;
+      const status=!renewal?'No renewal':fee===0?'No fee':days<0?'Expired':days<=60?'Expiring':'Current';
+      rows.push({ id:c.id+'-'+t.code, custId:c.id, name:c.name||'', state:c.state||'', line, org,
+        supportType:t.desc, code:t.code, seats, fee, feePrior, renewal, days, status,
+        owner:x.sales_owner||'', type:c.agency_type||'', active:true,
+        mailBatch:((c.state||'').toUpperCase()==='TX')?'March':'December',
+        hours:t.h247?'24/7/365':'Bus. hrs · M–F 8:30–5 ET' });
+    });
+  });
+  return rows.sort((a,b)=>String(a.renewal||'9999').localeCompare(String(b.renewal||'9999'))||String(a.name).localeCompare(String(b.name)));
 }
 // Persistent in-memory support-fee store (parity: tblSupportFees). Both the Support
 // Fees editor and the Support Agreements view read/write this, so edits flow through.
@@ -2314,16 +2351,16 @@ let SUPPORT_FEES=null;
 function getAgreements(){ if(!SUPPORT_FEES) SUPPORT_FEES=buildAgreements(); return SUPPORT_FEES; }
 function _agrRecompute(a){
   const t=new Date(); t.setHours(0,0,0,0);
+  a.mailBatch=((a.state||'').toUpperCase()==='TX')?'March':'December';
+  if(!a.renewal){ a.days=null; a.status='No renewal'; return; }
   const rd=new Date(a.renewal+'T00:00:00');
   a.days=Math.round((rd-t)/86400000);
-  a.status=a.days<0?'Expired':a.days<=60?'Expiring':'Current';
-  a.mailBatch=((a.state||'').toUpperCase()==='TX')?'March':'December';
-  a.hours=a.line==='Public Safety'?'24/7/365':'Bus. hrs · M–F 8:30–5 ET';
+  a.status=a.fee===0?'No fee':a.days<0?'Expired':a.days<=60?'Expiring':'Current';
 }
 function renderSupportAgr(){
   if(!can('view_reports')&&!isAdmin()){ $('content').innerHTML='<div class="empty"><div class="empty-i">🔒</div><div class="empty-h">Access Denied</div></div>'; return; }
   const A=getAgreements();
-  const AST={Current:'#22c55e',Expiring:'#f59e0b',Expired:'#ef4444'};
+  const AST=AGR_STATUS_COL;
   const totalVal=A.reduce((s,a)=>s+a.fee,0);
   const expiring=A.filter(a=>a.status==='Expiring').length;
   const expired=A.filter(a=>a.status==='Expired').length;
@@ -2345,7 +2382,7 @@ function renderSupportAgr(){
     <div class="toolbar">
       <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="sa-s" placeholder="Search agency, state…" style="width:220px"></div>
       <select class="fc" id="sa-line" style="width:auto;padding:6px 10px"><option value="">All Product Lines</option><option>FMS</option><option>Public Safety</option></select>
-      <select class="fc" id="sa-st" style="width:auto;padding:6px 10px"><option value="">All Statuses</option><option>Current</option><option>Expiring</option><option>Expired</option></select>
+      <select class="fc" id="sa-st" style="width:auto;padding:6px 10px"><option value="">All Statuses</option><option>Current</option><option>Expiring</option><option>Expired</option><option>No renewal</option><option>No fee</option></select>
       <select class="fc" id="sa-mail" style="width:auto;padding:6px 10px"><option value="">All Mailings</option><option>December</option><option>March</option></select>
       <span id="sa-count" style="font-size:12px;color:#64748b;align-self:center"></span>
     </div>
@@ -2359,9 +2396,9 @@ function renderSupportAgr(){
     $('sa-list').innerHTML=f.map(a=>{
       const when=a.days<0?`${Math.abs(a.days)}d ago`:`in ${a.days}d`;
       const mailC=a.mailBatch==='March'?'#0ea5e9':'#8b5cf6';
-      return `<div class="proj-row" style="cursor:pointer" onclick="showCustDetail('${a.id}')">
+      return `<div class="proj-row" style="cursor:pointer" onclick="showCustDetail('${a.custId}')">
         <span style="font-size:1.1rem">📑</span>
-        <div class="proj-info"><div class="proj-name">${escH(a.name)} <span style="font-size:12px;color:#94a3b8">· ${escH(a.line)}</span></div>
+        <div class="proj-info"><div class="proj-name">${escH(a.name)} <span style="font-size:12px;color:#94a3b8">· ${escH(a.supportType||a.line)}</span></div>
         <div class="proj-meta">${escH(a.state)}${a.owner?' · '+escH(a.owner):''} · ${a.seats} seats · renews ${fmtLong(a.renewal)} (${when})</div></div>
         <div class="proj-right"><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${mailC};background:${mailC}22" title="Mailing batch">✉ ${a.mailBatch}</span><span style="font-size:13px;color:#e2e8f0;font-weight:600">${money(a.fee)}</span><span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:${AST[a.status]};background:${AST[a.status]}22">${a.status}</span><button class="btn btn-ghost btn-xs" onclick="agrView(event,'${a.id}')" title="View / print agreement">📄 Agreement</button></div>
       </div>`;
@@ -2401,10 +2438,9 @@ function agrDoc(a){
     <div class="agr-cover"><div class="agr-brand">SOUTHERN SOFTWARE, INC.</div>
       <div class="agr-title">Annual Software Support Agreement</div>
       <div class="agr-sub">${escH(a.name)}${a.state?', '+escH(a.state):''}</div>
-      <div class="agr-sub2">${escH(a.line)} &nbsp;·&nbsp; Coverage ${d.begin} – ${d.end}</div>
-      <div class="agr-sub2">Renewal mailing: <b>${a.mailBatch}</b>${a.mailBatch==='March'?' (Texas cycle)':''}</div></div>
+      <div class="agr-sub2">${escH(a.supportType||a.line)} &nbsp;·&nbsp; Coverage ${d.begin} – ${d.end}</div></div>
     <h2>1. Parties</h2><p>This Annual Software Support Agreement ("Agreement") is entered into between <b>Southern Software, Inc.</b> ("Provider") and <b>${escH(a.name)}</b> ("Customer")${a.state?', located in '+escH(a.state):''}.</p>
-    <h2>2. Covered Products</h2><p>Provider will furnish maintenance and technical support for the Customer's licensed <b>${escH(a.line)}</b> software (${a.seats} licensed seats).</p>
+    <h2>2. Covered Products</h2><p>Provider will furnish maintenance and technical support for the Customer's licensed <b>${escH(a.supportType||a.line)}</b> (${escH(a.line)} · ${a.seats} licensed seats).</p>
     <h2>3. Term &amp; Coverage Period</h2><p>This Agreement covers the period beginning <b>${d.begin}</b> and ending <b>${d.end}</b>, and renews annually unless terminated in writing by either party.</p>
     <h2>4. Support Hours</h2><p>Telephone and remote technical support are provided ${_agrHours(a)}.</p>
     <h2>5. Annual Support Fee</h2><p>The annual support fee for the coverage period is <b>${money(a.fee)}</b>, due upon renewal on <b>${d.begin}</b>.</p>
@@ -2442,59 +2478,140 @@ function renderSupportFees(){
   const F=getAgreements();
   const active=F.filter(a=>a.active!==false);
   const totalVal=active.reduce((s,a)=>s+a.fee,0);
-  const decN=active.filter(a=>a.mailBatch==='December').length, txN=active.filter(a=>a.mailBatch==='March').length;
-  $('topbar-actions').innerHTML='<button class="btn btn-primary btn-sm" onclick="navigate(\'supportagr\')">📑 Go to Agreements</button>';
-  $('content').innerHTML=`<div style="max-width:1180px;margin:0 auto;padding:12px 6px">
-    <div style="font-size:11px;color:#64748b;margin-bottom:12px">The support-fee records behind every agreement (parity: old <i>Review Support Fees</i> → <code>tblSupportFees</code>). Edit a fee, seat count, renewal date, or active status and it flows straight into the agreements &amp; printing. <b>Mailing:</b> Texas mails in March, all other states December. In-memory in preview.</div>
+  const withPrior=active.filter(a=>a.feePrior>0&&a.fee>0);
+  const avgInc=withPrior.length?Math.round(withPrior.reduce((s,a)=>s+(a.fee-a.feePrior)/a.feePrior*100,0)/withPrior.length*10)/10:0;
+  const flags=active.filter(a=>a.status==='No fee'||a.status==='No renewal'||(a.feePrior>0&&a.fee>0&&a.fee<a.feePrior)||(a.feePrior>0&&a.fee>a.feePrior*1.5)).length;
+  $('topbar-actions').innerHTML='<button class="btn btn-ghost btn-sm" onclick="bulkAdjustFees()" title="Apply a % increase to every active support line at once">📈 Bulk Adjust Fees</button>'
+    +'<button class="btn btn-ghost btn-sm" onclick="navigate(\'supportreports\')">📊 Analytics</button>'
+    +'<button class="btn btn-primary btn-sm" onclick="navigate(\'supportagr\')">📑 Agreements</button>';
+  $('content').innerHTML=`<div style="max-width:1240px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:11px;color:#64748b;margin-bottom:12px">Support-fee records behind every agreement (parity: old <i>Review Support Fees</i> → <code>tblSupportFees</code>). Each row is one agency + support type, with a fee stored <b>per year</b>. There is no master rate in the old system — fees are set per agency, guided by a 1–5% annual increase off the prior year. <b>Edit</b> a line to set its new fee (with those % suggestions), or <b>Bulk Adjust</b> to raise every active line at once. Changes flow into the agreements &amp; printing.</div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
       ${statTile(active.length,'Active support lines','#3b82f6')}
       ${statTile(money(totalVal),'Total annual fees','#a855f7')}
-      ${statTile(decN,'December mailing','#8b5cf6')}
-      ${statTile(txN,'March mailing (TX)','#0ea5e9')}
+      ${statTile((avgInc>0?'+':'')+avgInc+'%','Avg increase vs '+AGR_PRIOR_YEAR,'#22c55e')}
+      ${statTile(flags,'Need review (flags)','#f59e0b')}
     </div>
     <div class="toolbar">
-      <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="sf-s" placeholder="Search agency, state…" style="width:220px"></div>
+      <div class="search-wrap"><span class="search-i">🔍</span><input class="search-fc" id="sf-s" placeholder="Search agency, type, state…" style="width:220px"></div>
       <select class="fc" id="sf-line" style="width:auto;padding:6px 10px"><option value="">All Product Lines</option><option>FMS</option><option>Public Safety</option></select>
-      <select class="fc" id="sf-mail" style="width:auto;padding:6px 10px"><option value="">All Mailings</option><option>December</option><option>March</option></select>
+      <select class="fc" id="sf-st" style="width:auto;padding:6px 10px"><option value="">All Statuses</option><option>Current</option><option>Expiring</option><option>Expired</option><option>No renewal</option><option>No fee</option></select>
       <label style="font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:5px"><input type="checkbox" id="sf-active" checked> Active only</label>
       <span id="sf-count" style="font-size:12px;color:#64748b;align-self:center"></span>
     </div>
     <div id="sf-table" style="margin-top:10px;overflow-x:auto"></div></div>`;
   const draw=()=>{
-    const q=$('sf-s').value.toLowerCase(), ln=$('sf-line').value, ml=$('sf-mail').value, ao=$('sf-active').checked;
-    const f=F.filter(a=>(!ao||a.active!==false)&&(!ln||a.line===ln)&&(!ml||a.mailBatch===ml)&&(!q||[a.name,a.state,a.type].join(' ').toLowerCase().includes(q))).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+    const q=$('sf-s').value.toLowerCase(), ln=$('sf-line').value, st=$('sf-st').value, ao=$('sf-active').checked;
+    const f=F.filter(a=>(!ao||a.active!==false)&&(!ln||a.line===ln)&&(!st||a.status===st)&&(!q||[a.name,a.state,a.type,a.supportType].join(' ').toLowerCase().includes(q))).sort((a,b)=>String(a.name).localeCompare(String(b.name))||String(a.supportType).localeCompare(String(b.supportType)));
     $('sf-count').textContent=`${f.length} lines · ${money(f.reduce((s,a)=>s+a.fee,0))}/yr`;
-    const AST={Current:'#22c55e',Expiring:'#f59e0b',Expired:'#ef4444'};
+    const AST=AGR_STATUS_COL;
     $('sf-table').innerHTML=`<table class="tbl" style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#64748b">
-      <th style="padding:6px 8px">Agency</th><th style="padding:6px 8px">St</th><th style="padding:6px 8px">Line</th><th style="padding:6px 8px">Support hrs</th><th style="padding:6px 8px;text-align:right">Seats</th><th style="padding:6px 8px;text-align:right">Annual fee</th><th style="padding:6px 8px">Renewal</th><th style="padding:6px 8px">Mailing</th><th style="padding:6px 8px">Status</th><th style="padding:6px 8px"></th></tr></thead>
-      <tbody>${f.map(a=>{const mailC=a.mailBatch==='March'?'#0ea5e9':'#8b5cf6';return `<tr style="border-top:1px solid #ffffff0d">
+      <th style="padding:6px 8px">Agency</th><th style="padding:6px 8px">St</th><th style="padding:6px 8px">Support type</th><th style="padding:6px 8px;text-align:right">Seats</th><th style="padding:6px 8px;text-align:right">${AGR_PRIOR_YEAR} fee</th><th style="padding:6px 8px;text-align:right">${AGR_CUR_YEAR} fee</th><th style="padding:6px 8px;text-align:right">Δ</th><th style="padding:6px 8px">Renewal</th><th style="padding:6px 8px">Status</th><th style="padding:6px 8px"></th></tr></thead>
+      <tbody>${f.map(a=>{const dpct=(a.feePrior>0&&a.fee>0)?Math.round((a.fee-a.feePrior)/a.feePrior*1000)/10:null;const dcol=dpct==null?'#94a3b8':dpct<0?'#ef4444':dpct>50?'#eab308':'#22c55e';return `<tr style="border-top:1px solid #ffffff0d">
         <td style="padding:6px 8px;color:#e2e8f0">${escH(a.name)}${a.active===false?' <span style="font-size:10px;color:#64748b">(inactive)</span>':''}</td>
         <td style="padding:6px 8px;color:#94a3b8">${escH(a.state||'—')}</td>
-        <td style="padding:6px 8px">${escH(a.line)}</td>
-        <td style="padding:6px 8px;color:#94a3b8">${escH(a.hours||'')}</td>
+        <td style="padding:6px 8px">${escH(a.supportType)}<div style="font-size:10px;color:#64748b">${escH(a.hours)}</div></td>
         <td style="padding:6px 8px;text-align:right">${a.seats}</td>
-        <td style="padding:6px 8px;text-align:right;color:#e2e8f0;font-weight:600">${money(a.fee)}</td>
-        <td style="padding:6px 8px;color:#94a3b8">${fmtLong(a.renewal)}</td>
-        <td style="padding:6px 8px"><span style="font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;color:${mailC};background:${mailC}22">✉ ${a.mailBatch}</span></td>
+        <td style="padding:6px 8px;text-align:right;color:#94a3b8">${a.feePrior?money(a.feePrior):'—'}</td>
+        <td style="padding:6px 8px;text-align:right;color:#e2e8f0;font-weight:600">${a.fee?money(a.fee):'<span style="color:#eab308">—</span>'}</td>
+        <td style="padding:6px 8px;text-align:right;color:${dcol};font-weight:600">${dpct==null?'—':(dpct>0?'+':'')+dpct+'%'}</td>
+        <td style="padding:6px 8px;color:#94a3b8">${a.renewal?fmtLong(a.renewal):'<span style="color:#94a3b8">—</span>'}</td>
         <td style="padding:6px 8px"><span style="font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;color:${AST[a.status]};background:${AST[a.status]}22">${a.status}</span></td>
         <td style="padding:6px 8px"><button class="btn btn-ghost btn-xs" onclick="feeEdit('${a.id}')">Edit</button></td></tr>`;}).join('')||`<tr><td colspan="10" style="padding:16px;text-align:center;color:#64748b">No support lines match.</td></tr>`}</tbody></table>`;
   };
-  ['sf-s','sf-line','sf-mail','sf-active'].forEach(id=>{const el=$(id);el.oninput=draw;el.onchange=draw;}); draw();
+  ['sf-s','sf-line','sf-st','sf-active'].forEach(id=>{const el=$(id);el.oninput=draw;el.onchange=draw;}); draw();
 }
 function feeEdit(id){ const a=getAgreements().find(x=>x.id===id); if(!a){toast('Not found','warn');return;}
+  const base=a.feePrior||a.fee||0;
+  const sugg=[1,2,3,4,5].map(p=>`<button type="button" class="btn btn-ghost btn-xs" onclick="document.getElementById('fe-fee').value=${agrPct(base,p)}">${p}% · ${money(agrPct(base,p))}</button>`).join(' ');
   showModal('Edit Support Fee — '+escH(a.name),`<div class="fstack">
-    <div style="font-size:12px;color:#94a3b8">${escH(a.state||'—')}${a.type?' · '+escH(a.type):''} · mails <b>${a.mailBatch}</b></div>
-    <div class="fg2"><div class="fg"><label class="fl">Product Line</label><select class="fc" id="fe-line"><option${a.line==='Public Safety'?' selected':''}>Public Safety</option><option${a.line==='FMS'?' selected':''}>FMS</option></select></div>
+    <div style="font-size:12px;color:#94a3b8">${escH(a.supportType)} · ${escH(a.state||'—')}${a.type?' · '+escH(a.type):''} · ${escH(a.hours)}</div>
+    <div style="background:#0f172a80;border:1px solid #ffffff12;border-radius:8px;padding:9px 11px;font-size:12px;color:#cbd5e1">
+      Prior year (${AGR_PRIOR_YEAR}) fee: <b>${a.feePrior?money(a.feePrior):'—'}</b>
+      <div style="margin-top:6px;color:#94a3b8">Suggested increase off prior year:</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${sugg}</div></div>
+    <div class="fg2"><div class="fg"><label class="fl">${AGR_CUR_YEAR} Fee ($)</label><input class="fc" id="fe-fee" type="number" min="0" value="${a.fee}"></div>
       <div class="fg"><label class="fl">Licensed Seats</label><input class="fc" id="fe-seats" type="number" min="0" value="${a.seats}"></div></div>
-    <div class="fg2"><div class="fg"><label class="fl">Annual Fee ($)</label><input class="fc" id="fe-fee" type="number" min="0" value="${a.fee}"></div>
-      <div class="fg"><label class="fl">Renewal Date</label><input class="fc" id="fe-ren" type="date" value="${escH(a.renewal)}"></div></div>
+    <div class="fg2"><div class="fg"><label class="fl">Product Line</label><select class="fc" id="fe-line"><option${a.line==='Public Safety'?' selected':''}>Public Safety</option><option${a.line==='FMS'?' selected':''}>FMS</option></select></div>
+      <div class="fg"><label class="fl">Renewal Date</label><input class="fc" id="fe-ren" type="date" value="${escH(a.renewal||'')}"></div></div>
     <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#cbd5e1"><input type="checkbox" id="fe-active" ${a.active!==false?'checked':''}> Active (billable)</label>
-    <div style="font-size:11px;color:#64748b">Support hours &amp; mailing batch follow the product line and state automatically.</div></div>`,
+    <div style="font-size:11px;color:#64748b">Saving keeps this year's amount as the new fee and rolls the current value into the prior-year column for next year's comparison.</div></div>`,
     `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="feeSave('${a.id}')">Save Fee</button>`); }
 function feeSave(id){ const a=getAgreements().find(x=>x.id===id); if(!a) return;
   a.line=$('fe-line').value; a.seats=+($('fe-seats').value||0); a.fee=+($('fe-fee').value||0);
-  a.renewal=$('fe-ren').value||a.renewal; a.active=$('fe-active').checked; _agrRecompute(a);
+  a.renewal=$('fe-ren').value||''; a.active=$('fe-active').checked; _agrRecompute(a);
   closeModal(); toast('Support fee updated'); renderSupportFees(); }
+/* Bulk fee adjustment (RECOMMENDATION — the old portal had no master rate; this raises
+   every active line at once so you don't have to touch each agency). */
+function bulkAdjustFees(){
+  const active=getAgreements().filter(a=>a.active!==false&&a.fee>0);
+  showModal('📈 Bulk Adjust Fees',`<div class="fstack">
+    <div style="font-size:13px;color:#cbd5e1">Apply a percentage increase to <b>every active support line</b> (${active.length} lines, ${money(active.reduce((s,a)=>s+a.fee,0))}/yr today). Each line's current fee rolls into the prior-year column, and the new fee becomes current — same math as the per-agency 1–5% suggestion, applied across the board.</div>
+    <div class="fg" style="max-width:200px"><label class="fl">Increase (%)</label><input class="fc" id="ba-pct" type="number" step="0.5" value="3" oninput="baPreview()"></div>
+    <div id="ba-prev" style="font-size:12px;color:#94a3b8"></div>
+    <div style="font-size:11px;color:#64748b">Tip: use the Support Fees filters first, then Bulk Adjust applies to the active lines. In-memory in preview.</div></div>`,
+    `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="bulkAdjustApply()">Apply to ${active.length} lines</button>`);
+  baPreview();
+}
+function baPreview(){ const pct=+($('ba-pct').value||0); const active=getAgreements().filter(a=>a.active!==false&&a.fee>0);
+  const cur=active.reduce((s,a)=>s+a.fee,0); const next=active.reduce((s,a)=>s+Math.round(a.fee*(1+pct/100)/50)*50,0);
+  if($('ba-prev')) $('ba-prev').innerHTML=`Total annual fees: <b style="color:#e2e8f0">${money(cur)}</b> → <b style="color:#22c55e">${money(next)}</b> (<b>${(next-cur>=0?'+':'')+money(next-cur)}</b>/yr).`; }
+function bulkAdjustApply(){ const pct=+($('ba-pct').value||0); let n=0;
+  getAgreements().forEach(a=>{ if(a.active!==false&&a.fee>0){ a.feePrior=a.fee; a.fee=Math.round(a.fee*(1+pct/100)/50)*50; _agrRecompute(a); n++; } });
+  closeModal(); toast(`Raised ${n} support lines by ${pct}%`); renderSupportFees(); }
+
+/* ═══ SUPPORT ANALYTICS  (parity: old Monthly Support Revenue / Totals by State / Support Check) ═══ */
+function renderSupportReports(){
+  if(!can('view_reports')&&!isAdmin()){ $('content').innerHTML='<div class="empty"><div class="empty-i">🔒</div><div class="empty-h">Access Denied</div></div>'; return; }
+  const F=getAgreements().filter(a=>a.active!==false);
+  const total=F.reduce((s,a)=>s+a.fee,0);
+  const withFee=F.filter(a=>a.fee>0);
+  const avg=withFee.length?Math.round(total/withFee.length):0;
+  const withPrior=F.filter(a=>a.feePrior>0&&a.fee>0);
+  const avgInc=withPrior.length?Math.round(withPrior.reduce((s,a)=>s+(a.fee-a.feePrior)/a.feePrior*100,0)/withPrior.length*10)/10:0;
+  $('topbar-actions').innerHTML='<button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button><button class="btn btn-primary btn-sm" onclick="navigate(\'supportfees\')">💲 Support Fees</button>';
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const byMonth=Array(12).fill(0); F.forEach(a=>{ if(a.renewal) byMonth[new Date(a.renewal+'T00:00:00').getMonth()]+=a.fee; });
+  const mMax=Math.max(1,...byMonth);
+  const byState={}; F.forEach(a=>{const k=a.state||'—';(byState[k]=byState[k]||{v:0,n:0});byState[k].v+=a.fee;byState[k].n++;});
+  const stateRows=Object.entries(byState).sort((x,y)=>y[1].v-x[1].v); const sMax=Math.max(1,...stateRows.map(r=>r[1].v));
+  const byType={}; F.forEach(a=>{const k=a.supportType;(byType[k]=byType[k]||{v:0,n:0});byType[k].v+=a.fee;byType[k].n++;});
+  const typeRows=Object.entries(byType).sort((x,y)=>y[1].v-x[1].v); const tMax=Math.max(1,...typeRows.map(r=>r[1].v));
+  const psV=F.filter(a=>a.line==='Public Safety').reduce((s,a)=>s+a.fee,0), fmsV=F.filter(a=>a.line==='FMS').reduce((s,a)=>s+a.fee,0);
+  const decV=F.filter(a=>a.mailBatch==='December').reduce((s,a)=>s+a.fee,0), txV=F.filter(a=>a.mailBatch==='March').reduce((s,a)=>s+a.fee,0);
+  const noRen=F.filter(a=>!a.renewal), noFee=F.filter(a=>a.fee===0), dec=F.filter(a=>a.feePrior>0&&a.fee>0&&a.fee<a.feePrior), spike=F.filter(a=>a.feePrior>0&&a.fee>a.feePrior*1.5);
+  const bar=(label,val,max,col,extra)=>`<div style="display:flex;align-items:center;gap:10px;margin:3px 0">
+    <div style="width:120px;font-size:12px;color:#cbd5e1;flex-shrink:0;text-align:right">${escH(label)}</div>
+    <div style="flex:1;background:#1e293b;border-radius:5px;height:15px"><div style="width:${Math.max(2,val/max*100)}%;height:100%;background:${col};border-radius:5px"></div></div>
+    <div style="width:120px;font-size:12px;color:#e2e8f0;font-weight:600">${money(val)}${extra?` <span style="color:#64748b;font-weight:400">${escH(String(extra))}</span>`:''}</div></div>`;
+  const qa=(title,list,col)=>`<div class="card" style="padding:12px;flex:1;min-width:230px"><div style="font-size:12px;font-weight:700;color:${col};margin-bottom:6px">${title} · ${list.length}</div>${list.length?list.slice(0,8).map(a=>`<div style="font-size:12px;color:#cbd5e1;padding:2px 0">${escH(a.name)} <span style="color:#64748b">· ${escH(a.supportType)}${a.state?' · '+escH(a.state):''}</span></div>`).join('')+(list.length>8?`<div style="font-size:11px;color:#64748b;margin-top:3px">+${list.length-8} more</div>`:''):'<div style="font-size:12px;color:#64748b">None 👍</div>'}</div>`;
+  $('content').innerHTML=`<div style="max-width:1120px;margin:0 auto;padding:12px 6px">
+    <div style="font-size:11px;color:#64748b;margin-bottom:12px">Support-revenue analytics &amp; renewal QA (parity: old <i>Monthly Support Revenue</i>, <i>Totals by State</i>, and <i>Support Check</i> reports). Derived from the support-fee records.</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px">
+      ${statTile(money(total),'Total annual support','#a855f7')}
+      ${statTile(withFee.length,'Billable lines','#3b82f6')}
+      ${statTile(money(avg),'Avg fee / line','#0ea5e9')}
+      ${statTile((avgInc>0?'+':'')+avgInc+'%','Avg increase vs '+AGR_PRIOR_YEAR,'#22c55e')}
+    </div>
+    <div class="card" style="padding:14px;margin-bottom:14px"><div class="dash-h" style="margin-bottom:10px">📅 Support revenue by renewal month</div>${MONTHS.map((m,i)=>bar(m,byMonth[i],mMax,'#8b5cf6')).join('')}</div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px">
+      <div class="card" style="padding:14px;flex:1;min-width:320px"><div class="dash-h" style="margin-bottom:10px">🗺️ Revenue by state</div>${stateRows.slice(0,12).map(r=>bar(r[0],r[1].v,sMax,'#3b82f6',r[1].n+' lines')).join('')}</div>
+      <div class="card" style="padding:14px;flex:1;min-width:320px"><div class="dash-h" style="margin-bottom:10px">🧩 Revenue by support type</div>${typeRows.map(r=>bar(r[0],r[1].v,tMax,'#0ea5e9',r[1].n)).join('')}</div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+      ${statTile(money(psV),'Public Safety','#ef4444')}
+      ${statTile(money(fmsV),'FMS','#22c55e')}
+      ${statTile(money(decV),'December mailing','#8b5cf6')}
+      ${statTile(money(txV),'March mailing (TX)','#0ea5e9')}
+    </div>
+    <div class="dash-h" style="margin:6px 0 8px">🔎 Renewal / fee QA — Support Check</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      ${qa('Missing renewal date',noRen,'#94a3b8')}
+      ${qa('Missing / zero fee',noFee,'#eab308')}
+      ${qa('Fee decreased vs prior',dec,'#ef4444')}
+      ${qa('Fee up &gt;150% vs prior',spike,'#f59e0b')}
+    </div></div>`;
+}
 
 // ── WEBSITE ANNOUNCEMENT ───────────────────────────────────────
 let ANNOUNCEMENTS=[
@@ -3008,7 +3125,7 @@ function navigate(v, extra={}) {
     kbfmsint:()=>renderKB({ps:'FMS',internalMode:'int'}), kbpsint:()=>renderKB({ps:'PS',internalMode:'int'}),
     kbcreate:renderKBCreate, trainingfms:()=>renderTraining({ps:'FMS'}), trainingps:()=>renderTraining({ps:'PS'}), trainconf:renderTrainConf,
     editappversions:renderAppVersions,
-    supportagr:renderSupportAgr, supportfees:renderSupportFees, announce:renderAnnounce, hwspecs:renderHWSpecs,
+    supportagr:renderSupportAgr, supportfees:renderSupportFees, supportreports:renderSupportReports, announce:renderAnnounce, hwspecs:renderHWSpecs,
     alerts:renderAlerts, chat:renderChat, empstatus:renderEmpStatus, timesheets:renderTimesheets,
     blog:renderBlog, citizen:renderCitizen, myagenda:renderMyAgenda,
     collections:renderCollections, approveusers:renderApproveUsers, supportaudit:renderSupportAudit,
