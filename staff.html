@@ -4470,7 +4470,7 @@ function renderProjTab(tab, secs, tasks, proj) {
 
         return `<div class="task-item${subs.length?' has-subs':''}" data-task-id="${t.id}">
           <div class="task-check" data-s="${t.status}" onclick="event.stopPropagation();cycleStatus('${t.id}','${t.status}')">${{done:'✓',na:'—',inprogress:'◑',blocked:'✕',waiting_customer:'⏳',waiting_vendor:'⏳'}[t.status]||''}</div>
-          <div class="task-title ${['done','na'].includes(t.status)?t.status:''}" onclick="openPanel('${t.id}')">${t.title}${subs.length?` <span style="font-size:10px;color:var(--dim);margin-left:5px">⌄ ${subsDone}/${subs.length}</span>`:''}</div>
+          <div class="task-title ${['done','na'].includes(t.status)?t.status:''}" onclick="openPanel('${t.id}')">${t.important?'<span title="Important" style="color:#fbbf24;margin-right:3px">★</span>':''}${t.title}${subs.length?` <span style="font-size:10px;color:var(--dim);margin-left:5px">⌄ ${subsDone}/${subs.length}</span>`:''}</div>
           ${assigneeHtml}
           ${statusChip}
           <div class="task-due-cell ${dueClass}">${dueStr}</div>
@@ -4623,6 +4623,10 @@ async function openPanel(id) {
       <label>Due Date</label>
       <input type="date" class="fc" value="${task.due_date||''}" onchange="updateTask('${id}','due_date',this.value||null)">
     </div>
+  </div>
+  <div class="pf">
+    <label>Priority</label>
+    <div><button class="btn btn-ghost btn-xs" style="font-size:13px;color:${task.important?'#fbbf24':'var(--dim)'}" onclick="updateTask('${id}','important',${task.important?'null':'true'})">${task.important?'★ Important':'☆ Mark important'}</button></div>
   </div>
   ${proj?`<div class="pf"><label>Project</label><span class="pf-val" style="cursor:pointer;color:var(--bluel)" onclick="closePanel();openProject('${proj.id}')">${proj.name}</span></div>`:''}
   ${task.notes?`<div class="pf"><label>Notes</label><p class="pf-val">${task.notes}</p></div>`:''}
@@ -5850,28 +5854,493 @@ function renderAddProject(){
 function apToggleInternal(){ const on=$('ap-internal').checked; $('ap-money').style.opacity=on?'.4':'1'; $('ap-money').style.pointerEvents=on?'none':'auto'; }
 function apSave(){ const d=($('ap-desc').value||'').trim(); if(!d){toast('Project description required','warn');return;} toast('Project "'+d+'" created — saves to tblProjects on go-live'); navigate('projects'); }
 
-/* ═══ EDIT PROJECT TEMPLATE  (old: /new/admin/ProjectTemplates + editProjectTemplate) ═══ */
-let PROJECT_TEMPLATES=[
-  {code:'CADFULL',name:'CAD Full Install',tasks:['Kickoff call','Hardware ship','Server build','Install week','Go-Live','Post go-live review']},
-  {code:'RMSTRAIN',name:'RMS Training',tasks:['Kickoff call','Data conversion','Training week 1','Training week 2','Go-Live']},
-  {code:'FMSUB',name:'FMS Utility Billing',tasks:['Kickoff call','Data conversion','Config','Parallel run','Go-Live']},
-  {code:'CITCON',name:'Citizen Connect Setup',tasks:['Kickoff call','App config','Agency review','Launch']},
-];
-function renderProjectTemplates(){
-  $('topbar-actions').innerHTML='<button class="btn btn-ghost btn-sm" onclick="navigate(\'admin\')">← Admin</button>';
-  $('content').innerHTML=`<div style="max-width:820px;margin:0 auto;padding:12px 6px">
-    <div style="font-size:11px;color:#64748b;margin-bottom:12px">Kickoff task templates applied to new projects. Edits are in-memory in preview.</div>
-    <div class="card" style="padding:14px"><div class="dash-h" style="margin-bottom:10px">🧩 Project Templates</div>
-      ${PROJECT_TEMPLATES.map(t=>`<div class="proj-row" style="cursor:pointer" onclick="tmplEdit('${t.code}')"><span>🧩</span>
-        <div class="proj-info"><div class="proj-name">${escH(t.name)}</div><div class="proj-meta">${t.tasks.length} tasks · ${escH(t.code)}</div></div>
-        <div class="proj-right"><span class="btn btn-ghost btn-xs">Edit ›</span></div></div>`).join('')}</div></div>`;
+/* ═══════════════════════════════════════════════════════════════════════
+   PROJECT TEMPLATES  v2  — structured, editable, apply-to-project
+   Modeled on the Southern Software ClickUp implementation workspace:
+   each customer Space is seeded from a template of Lists (sections) →
+   Tasks → Subtasks. Sections tagged to a product only seed when that
+   product is part of the project.  (old: /new/admin/ProjectTemplates)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+// Role → default owner resolver. Templates carry a role; on apply we can
+// auto-assign to the first staffer whose title/team matches.
+const TPL_ROLES = {
+  pm:      {label:'Project Manager',       match:p=>/project manager|director/i.test(p.title||'')},
+  impl:    {label:'Implementation Spec.',  match:p=>/implementation specialist/i.test(p.title||'')},
+  trainer: {label:'Trainer',               match:p=>/implementation specialist|trainer/i.test(p.title||'')},
+  it:      {label:'IT Specialist',         match:p=>/it specialist/i.test(p.title||'')},
+  dev:     {label:'Developer',             match:p=>/developer/i.test(p.title||'')},
+  gis:     {label:'GIS Specialist',        match:p=>/gis/i.test(p.title||'')},
+  fms:     {label:'FMS Specialist',        match:p=>/fms/i.test(p.title||'') || p.team==='fms'},
+  acct:    {label:'Account Manager',       match:p=>/account|sales|director/i.test(p.title||'')},
+};
+function tplResolveRole(role){
+  const list=S.profiles||[];
+  return list.find(TPL_ROLES[role]?.match || (()=>false)) || null;
 }
-function tmplEdit(code){ const t=PROJECT_TEMPLATES.find(x=>x.code===code); if(!t) return;
-  showModal('Edit Template — '+escH(t.name),`<div class="fstack">
-    <div style="font-size:12px;color:#94a3b8">Kickoff tasks (one per line):</div>
-    <textarea class="fc" id="tmpl-tasks" rows="8" style="font-family:inherit">${escH(t.tasks.join('\n'))}</textarea></div>`,
-    `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="tmplSave('${code}')">Save Template</button>`); }
-function tmplSave(code){ const t=PROJECT_TEMPLATES.find(x=>x.code===code); if(t){ t.tasks=($('tmpl-tasks').value||'').split('\n').map(s=>s.trim()).filter(Boolean); } closeModal(); toast('Template saved'); renderProjectTemplates(); }
+const TPL_ID = () => 'tpl-'+Math.random().toString(36).slice(2,9);
+
+// ── DEFAULT TEMPLATE LIBRARY (seeded from the ClickUp export) ──────────
+// task:  {t:title, role, off:days-from-kickoff, imp:important?, status?, notes?, subs:[{t,role,off}]}
+// section: {name, product:null|'CAD'..., icon, tasks:[...]}
+let PROJECT_TEMPLATES = [
+{
+  code:'PS-NUCLEUS', name:'PS Implementation — Nucleus (Full)', icon:'🛡️',
+  desc:'Full public-safety implementation. Core start-up + close-out always applied; module sections seed only for the products on the project.',
+  products:['CAD','RMS','JMS','MDS','MDIS','QMS','PSAware','AVL','Analytics','Command Center','Citizen Connect','NMS'],
+  sections:[
+    {name:'Project Start-Up', product:null, icon:'🚀', tasks:[
+      {t:'Project Assignments', role:'pm', off:0, imp:true, notes:'Assign the core project team.', subs:[
+        {t:'Project assigned to PM', role:'pm', off:0},
+        {t:'Project assigned to IT specialist', role:'it', off:0},
+        {t:'Project assigned to trainer', role:'trainer', off:0},
+      ]},
+      {t:'Attach Contract/Proposal governing the project', role:'pm', off:0},
+      {t:'Confirm first payment received', role:'pm', off:1},
+      {t:'Email customer to initiate project', role:'pm', off:2},
+      {t:'Schedule initial project call', role:'pm', off:3},
+      {t:'Initial project call', role:'pm', off:5},
+      {t:'Does customer require an IT Architectural/Security Review', role:'it', off:5},
+      {t:'Anticipated changes / other projects / staffing / network changes', role:'pm', off:5, notes:'Capture anything that could impact the schedule.'},
+    ]},
+    {name:'Project Information', product:null, icon:'🗂️', tasks:[
+      {t:'Create project files in DropBox', role:'pm', off:3},
+      {t:'Prepare kick-off docs', role:'pm', off:4},
+      {t:'Notify Southern staff of details', role:'pm', off:4},
+      {t:'Provide ConstantContact info to POC', role:'pm', off:6},
+      {t:'Add/Update support CAD landmark', role:'it', off:6},
+    ]},
+    {name:'IT Information', product:null, icon:'🖥️', tasks:[
+      {t:'Server / SQL information collected', role:'it', off:7},
+      {t:'Remote access established', role:'it', off:9},
+      {t:'Remote support info added to SS CAD', role:'it', off:9},
+      {t:'Server install(s)', role:'it', off:12, subs:[
+        {t:'Server provisioned / verified', role:'it', off:12},
+        {t:'Client installs', role:'it', off:14},
+      ]},
+    ]},
+    {name:'Hardware', product:null, icon:'📦', tasks:[
+      {t:'Signature pads', role:'it', off:10, subs:[
+        {t:'Ordered', role:'it', off:10},{t:'Received at office', role:'it', off:16},
+        {t:'Shipped to customer', role:'it', off:18},{t:'Received by customer', role:'it', off:21},
+        {t:'Installed', role:'it', off:24},
+      ]},
+      {t:'Inventory scanner / barcoding equipment', role:'it', off:10},
+      {t:'GPS pucks', role:'it', off:10},
+      {t:'Server provided by SS (if hosted)', role:'it', off:10},
+    ]},
+    {name:'Conversions', product:null, icon:'🔄', tasks:[
+      {t:'Received signed Data Conversion form from customer', role:'dev', off:10, imp:true},
+      {t:'Received conversion data from customer', role:'dev', off:14},
+      {t:'Data provided to SS Developer', role:'dev', off:16},
+      {t:'Developer provided initial assessment', role:'dev', off:20},
+      {t:'Customer advised of developer’s assessment', role:'pm', off:22},
+      {t:'Pre-go-live legacy data provided by customer', role:'dev', off:35},
+      {t:'Developer completes go-live conversion', role:'dev', off:45, imp:true},
+      {t:'Customer acknowledges acceptance of go-live conversion', role:'pm', off:48, imp:true},
+    ]},
+    // ── Module sections (product-tagged) ──
+    {name:'CAD', product:'CAD', icon:'📟', tasks:[
+      {t:'CAD Excel / information sheet', role:'impl', off:14},
+      {t:'CAD MSAG / GEO file', role:'impl', off:18, subs:[
+        {t:'MSAG requested from customer', role:'impl', off:16},
+        {t:'Customer provides MSAG', role:'impl', off:20},
+      ]},
+      {t:'NCIC for CAD', role:'impl', off:20, subs:[
+        {t:'Customer to request NCIC access from state', role:'impl', off:16},
+        {t:'Approval for NCIC access from state received', role:'impl', off:24},
+        {t:'Approval and config information provided to SS staff', role:'impl', off:26},
+      ]},
+      {t:'CAD interfaces / connections', role:'impl', off:24},
+      {t:'Configure CAD to push to RMS', role:'impl', off:26},
+      {t:'CAD training', role:'trainer', off:40},
+    ]},
+    {name:'RMS', product:'RMS', icon:'📁', tasks:[
+      {t:'RMS Excel / information sheet', role:'impl', off:14},
+      {t:'State Reporting / IBR', role:'impl', off:22, subs:[
+        {t:'Show customer IBR Wizard', role:'impl', off:22},
+        {t:'Statutes / ordinances dropped into RMS', role:'impl', off:24},
+        {t:'Advise customer to contact state rep', role:'impl', off:20},
+      ]},
+      {t:'File path setup in RMS', role:'impl', off:24},
+      {t:'Set user IDs to match CAD', role:'impl', off:26},
+      {t:'RMS interfaces / connections', role:'impl', off:28},
+      {t:'RMS training', role:'trainer', off:42},
+    ]},
+    {name:'JMS', product:'JMS', icon:'🔒', tasks:[
+      {t:'JMS information sheet', role:'impl', off:16},
+      {t:'JMS interfaces / connections', role:'impl', off:26},
+      {t:'LiveScan / biometrics / signature pads', role:'it', off:22},
+      {t:'JMS training', role:'trainer', off:44},
+    ]},
+    {name:'MDS / MDIS', product:'MDS', icon:'📱', tasks:[
+      {t:'Machine-specific connection for mobile', role:'it', off:18},
+      {t:'Global connection for mobile', role:'it', off:18},
+      {t:'MDIS server install', role:'it', off:20},
+      {t:'MDIS client installs', role:'it', off:24},
+      {t:'MDS/MDIS training', role:'trainer', off:44},
+    ]},
+    {name:'QMS', product:'QMS', icon:'📝', tasks:[
+      {t:'QMS setup / configuration', role:'impl', off:20},
+      {t:'QMS training', role:'trainer', off:42},
+    ]},
+    {name:'PSAware', product:'PSAware', icon:'🌐', tasks:[
+      {t:'PSAware configuration', role:'impl', off:24},
+      {t:'PSAware training', role:'trainer', off:44},
+    ]},
+    {name:'AVL / GIS', product:'AVL', icon:'📍', tasks:[
+      {t:'GPS pucks configured', role:'it', off:22},
+      {t:'AVL map layers verified', role:'gis', off:26},
+      {t:'GIS file loaded', role:'gis', off:26},
+    ]},
+    {name:'Analytics', product:'Analytics', icon:'📊', tasks:[
+      {t:'Analytics install & configuration', role:'impl', off:26},
+      {t:'Analytics training', role:'trainer', off:44},
+    ]},
+    {name:'Command Center', product:'Command Center', icon:'🎛️', tasks:[
+      {t:'Command Center configuration', role:'impl', off:28},
+    ]},
+    {name:'Citizen Connect', product:'Citizen Connect', icon:'📣', tasks:[
+      {t:'App configuration', role:'impl', off:24},
+      {t:'Agency review', role:'pm', off:30},
+      {t:'Launch', role:'impl', off:40, imp:true},
+    ]},
+    // ── Close-out (always) ──
+    {name:'Go Live', product:null, icon:'✅', tasks:[
+      {t:'Go-Live products / dates confirmed', role:'pm', off:45, imp:true},
+      {t:'Pre go-live tasks', role:'impl', off:48},
+      {t:'Deliverables review', role:'pm', off:50},
+      {t:'Customer to provide IT access', role:'it', off:50},
+      {t:'Notify account manager of go-live details', role:'acct', off:52},
+      {t:'Go-Live acknowledgement form', role:'pm', off:55, imp:true},
+      {t:'Go-live email to customer', role:'pm', off:56},
+      {t:'Delete SS user accounts', role:'it', off:58},
+    ]},
+    {name:'Post Go-Live Issue Tracking', product:null, icon:'🩹', tasks:[
+      {t:'Track post go-live issues', role:'impl', off:60, imp:true, notes:'Log any customer-reported issues here after go-live.'},
+    ]},
+    {name:'Project Close-Out', product:null, icon:'🏁', tasks:[
+      {t:'Complete notes and tasks', role:'pm', off:63},
+      {t:'Project Completion Form / customer signature', role:'pm', off:64, imp:true},
+      {t:'Notify account manager that project is closed', role:'acct', off:65},
+      {t:'Email support info to customer', role:'pm', off:65},
+      {t:'Email Knowledge Base info to customer', role:'pm', off:65},
+      {t:'Close project in the portal', role:'pm', off:66},
+      {t:'PROJECT CLOSED', role:'pm', off:66, imp:true},
+    ]},
+  ],
+},
+{
+  code:'FMS-IMPL', name:'FMS Implementation', icon:'💵',
+  desc:'Financial Management Software rollout — utility billing / financials.',
+  products:['Utility Billing','Payroll','GL / Financials'],
+  sections:[
+    {name:'Project Initiation', product:null, icon:'🚀', tasks:[
+      {t:'Initial customer contact', role:'fms', off:0},
+      {t:'Confirm payment received', role:'pm', off:1},
+      {t:'Project assignments', role:'pm', off:1, imp:true},
+      {t:'Schedule initial project call', role:'fms', off:3},
+      {t:'Prepare kick-off docs', role:'fms', off:4},
+    ]},
+    {name:'Data Conversion', product:null, icon:'🔄', tasks:[
+      {t:'Received conversion data from customer', role:'dev', off:12},
+      {t:'Developer initial assessment', role:'dev', off:18},
+      {t:'Customer review of data', role:'pm', off:24},
+      {t:'Go-live conversion completed', role:'dev', off:40, imp:true},
+    ]},
+    {name:'Configuration', product:null, icon:'⚙️', tasks:[
+      {t:'Chart of accounts / config', role:'fms', off:20},
+      {t:'Interfaces (bank / ACH / Invoice Cloud)', role:'fms', off:24},
+      {t:'Parallel run', role:'fms', off:44},
+    ]},
+    {name:'Go Live', product:null, icon:'✅', tasks:[
+      {t:'Go-Live acknowledgement', role:'pm', off:50, imp:true},
+      {t:'First live billing / pay run', role:'fms', off:52, imp:true},
+    ]},
+    {name:'Project Close-Out', product:null, icon:'🏁', tasks:[
+      {t:'Project Completion Form signed', role:'pm', off:58, imp:true},
+      {t:'Notify account manager project is complete', role:'acct', off:59},
+      {t:'PROJECT CLOSED', role:'pm', off:60, imp:true},
+    ]},
+  ],
+},
+{
+  code:'CAD-QUICK', name:'CAD Only (Quick Install)', icon:'📟',
+  desc:'Streamlined CAD-only install for existing customers.',
+  products:['CAD'],
+  sections:[
+    {name:'Start-Up', product:null, icon:'🚀', tasks:[
+      {t:'Kickoff call & project plan', role:'pm', off:0, imp:true},
+      {t:'Confirm scope & licenses', role:'pm', off:1},
+    ]},
+    {name:'CAD', product:null, icon:'📟', tasks:[
+      {t:'Server / client install', role:'it', off:5},
+      {t:'CAD MSAG / GEO file', role:'impl', off:8},
+      {t:'CAD interfaces / connections', role:'impl', off:12},
+      {t:'CAD training', role:'trainer', off:18},
+    ]},
+    {name:'Go Live', product:null, icon:'✅', tasks:[
+      {t:'Go-live readiness checklist', role:'pm', off:22, imp:true},
+      {t:'Go-live email to customer', role:'pm', off:23},
+    ]},
+  ],
+},
+{
+  code:'CITCON', name:'Citizen Connect Setup', icon:'📣',
+  desc:'Public-facing citizen portal / app configuration and launch.',
+  products:['Citizen Connect'],
+  sections:[
+    {name:'Setup', product:null, icon:'🚀', tasks:[
+      {t:'Kickoff call', role:'pm', off:0},
+      {t:'App configuration', role:'impl', off:4},
+      {t:'Agency review', role:'pm', off:9, imp:true},
+      {t:'Launch', role:'impl', off:12, imp:true},
+    ]},
+  ],
+},
+];
+
+// ── COUNTS + PRODUCT UNION ────────────────────────────────────────────
+function tplCounts(t){
+  let sec=t.sections.length, tasks=0, subs=0;
+  t.sections.forEach(s=>s.tasks.forEach(tk=>{tasks++; subs+=(tk.subs||[]).length;}));
+  return {sec,tasks,subs};
+}
+function tplProductUnion(t){
+  return [...new Set(t.sections.map(s=>s.product).filter(Boolean))];
+}
+function tplFind(code){ return PROJECT_TEMPLATES.find(x=>x.code===code); }
+
+// ── LIST VIEW ─────────────────────────────────────────────────────────
+function renderProjectTemplates(){
+  $('topbar-actions').innerHTML='<button class="btn btn-primary btn-sm" onclick="tplNew()">+ New Template</button> <button class="btn btn-ghost btn-sm" onclick="navigate(\'admin\')">← Admin</button>';
+  const cards=PROJECT_TEMPLATES.map(t=>{
+    const c=tplCounts(t);
+    const prods=tplProductUnion(t).slice(0,8).map(p=>`<span style="font-size:10px;padding:1px 7px;border-radius:4px;background:rgba(46,127,212,.12);color:var(--bluel);font-weight:600">${escH(p)}</span>`).join(' ');
+    return `<div class="card" style="padding:16px;margin-bottom:12px">
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        <div style="font-size:26px;line-height:1">${t.icon||'🧩'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;font-weight:700;color:var(--white)">${escH(t.name)}</div>
+          <div style="font-size:12px;color:var(--muted);margin:3px 0 7px">${escH(t.desc||'')}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+            <span style="font-size:11px;color:var(--dim)">${c.sec} sections · ${c.tasks} tasks · ${c.subs} subtasks</span>
+            ${prods?`<span style="color:var(--dim)">·</span>${prods}`:''}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+          <button class="btn btn-primary btn-sm" onclick="tplApplyModal('${t.code}')">Apply →</button>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-xs" onclick="tplOpen('${t.code}')">Edit</button>
+            <button class="btn btn-ghost btn-xs" onclick="tplDup('${t.code}')">Duplicate</button>
+            <button class="btn btn-ghost btn-xs" style="color:#f87171" onclick="tplDel('${t.code}')">Delete</button>
+          </div>
+        </div>
+      </div></div>`;
+  }).join('');
+  $('content').innerHTML=`<div style="max-width:900px;margin:0 auto;padding:14px 8px">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">
+      Reusable project blueprints. Each template is a set of <b>sections</b> → <b>tasks</b> → <b>subtasks</b> with default owners, due-date offsets and ⭐ important flags. Apply one to a project and it seeds all the work, with due dates counted from the kickoff date and module sections included only for the products on that project.
+      <span style="color:var(--dim)">Edits are in-memory in preview and write to the template tables at go-live.</span>
+    </div>
+    ${cards}</div>`;
+}
+
+// ── DETAIL / EDITOR ───────────────────────────────────────────────────
+let _tplCode=null;
+function tplOpen(code){ _tplCode=code; tplRenderDetail(); }
+function tplRenderDetail(){
+  const t=tplFind(_tplCode); if(!t){ renderProjectTemplates(); return; }
+  $('topbar-actions').innerHTML='<button class="btn btn-primary btn-sm" onclick="tplApplyModal(\''+t.code+'\')">Apply →</button> <button class="btn btn-ghost btn-sm" onclick="renderProjectTemplates()">← Templates</button>';
+  const roleOpts=(sel)=>Object.entries(TPL_ROLES).map(([k,v])=>`<option value="${k}"${sel===k?' selected':''}>${v.label}</option>`).join('');
+  const statusOpts=(sel)=>STATUS_ORDER.map(s=>`<option value="${s}"${sel===s?' selected':''}>${STATUS[s].label}</option>`).join('');
+  const secHtml=t.sections.map((s,si)=>{
+    const taskHtml=s.tasks.map((tk,ti)=>{
+      const subHtml=(tk.subs||[]).map((sb,ki)=>`
+        <div style="display:flex;gap:6px;align-items:center;padding:3px 0 3px 26px">
+          <span style="color:var(--dim);font-size:11px">↳</span>
+          <input class="fc" style="flex:1;font-size:12px;padding:3px 7px" value="${escH(sb.t)}" onchange="tplSub(${si},${ti},${ki},'t',this.value)">
+          <select class="fc" style="width:auto;font-size:11px;padding:3px" onchange="tplSub(${si},${ti},${ki},'role',this.value)">${roleOpts(sb.role)}</select>
+          <input class="fc" type="number" title="Days from kickoff" style="width:56px;font-size:11px;padding:3px" value="${sb.off||0}" onchange="tplSub(${si},${ti},${ki},'off',+this.value)">
+          <button class="btn btn-ghost btn-xs" style="color:#f87171" onclick="tplSubDel(${si},${ti},${ki})">✕</button>
+        </div>`).join('');
+      return `<div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin:6px 0;background:rgba(255,255,255,.02)">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-xs" title="Mark important" style="font-size:15px;padding:0 4px;color:${tk.imp?'#fbbf24':'var(--dim)'}" onclick="tplTaskImp(${si},${ti})">${tk.imp?'★':'☆'}</button>
+          <input class="fc" style="flex:1;min-width:160px;font-size:13px;padding:4px 8px" value="${escH(tk.t)}" onchange="tplTask(${si},${ti},'t',this.value)">
+          <select class="fc" style="width:auto;font-size:11px;padding:4px" title="Default owner" onchange="tplTask(${si},${ti},'role',this.value)">${roleOpts(tk.role)}</select>
+          <input class="fc" type="number" title="Days from kickoff" style="width:60px;font-size:11px;padding:4px" value="${tk.off||0}" onchange="tplTask(${si},${ti},'off',+this.value)">
+          <select class="fc" style="width:auto;font-size:11px;padding:4px" title="Default status" onchange="tplTask(${si},${ti},'status',this.value)">${statusOpts(tk.status||'todo')}</select>
+          <button class="btn btn-ghost btn-xs" onclick="tplAddSub(${si},${ti})">+ Sub</button>
+          <button class="btn btn-ghost btn-xs" style="color:#f87171" onclick="tplTaskDel(${si},${ti})">Delete</button>
+        </div>
+        <input class="fc" placeholder="Notes (optional)…" style="margin-top:5px;font-size:11px;padding:4px 8px;width:100%" value="${escH(tk.notes||'')}" onchange="tplTask(${si},${ti},'notes',this.value)">
+        ${subHtml}
+      </div>`;
+    }).join('');
+    return `<div class="card" style="padding:14px;margin-bottom:12px">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+        <span style="font-size:18px">${s.icon||'📂'}</span>
+        <input class="fc" style="flex:1;font-weight:700;font-size:14px" value="${escH(s.name)}" onchange="tplSec(${si},'name',this.value)">
+        <select class="fc" style="width:auto;font-size:12px" title="Only seed when this product is on the project" onchange="tplSec(${si},'product',this.value)">
+          <option value="">Core (always)</option>
+          ${PRODUCTS.map(p=>`<option value="${p}"${s.product===p?' selected':''}>${p}</option>`).join('')}
+        </select>
+        <button class="btn btn-ghost btn-xs" title="Move up" onclick="tplSecMove(${si},-1)">↑</button>
+        <button class="btn btn-ghost btn-xs" title="Move down" onclick="tplSecMove(${si},1)">↓</button>
+        <button class="btn btn-ghost btn-xs" style="color:#f87171" onclick="tplSecDel(${si})">Delete</button>
+      </div>
+      ${taskHtml||'<div style="font-size:12px;color:var(--dim);padding:4px 0">No tasks yet.</div>'}
+      <button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="tplAddTask(${si})">+ Add Task</button>
+    </div>`;
+  }).join('');
+  $('content').innerHTML=`<div style="max-width:920px;margin:0 auto;padding:14px 8px">
+    <div class="card" style="padding:14px;margin-bottom:14px">
+      <div class="fg"><label class="fl">Template Name</label><input class="fc" value="${escH(t.name)}" onchange="tplMeta('name',this.value)"></div>
+      <div class="fg" style="margin-top:8px"><label class="fl">Description</label><input class="fc" value="${escH(t.desc||'')}" onchange="tplMeta('desc',this.value)"></div>
+      <div style="font-size:11px;color:var(--dim);margin-top:8px">Tip: “Days from kickoff” sets each due date relative to the project kickoff. Tag a section to a product so it only seeds when that product is on the project; leave as “Core” to always include it.</div>
+    </div>
+    ${secHtml}
+    <button class="btn btn-primary btn-sm" onclick="tplAddSection()">+ Add Section</button>
+  </div>`;
+}
+
+// ── EDITOR MUTATORS ───────────────────────────────────────────────────
+function _t(){ return tplFind(_tplCode); }
+function tplMeta(f,v){ const t=_t(); if(t){ t[f]=v; } }
+function tplSec(si,f,v){ const t=_t(); if(t){ t.sections[si][f]=(f==='product'?(v||null):v); tplRenderDetail(); } }
+function tplSecDel(si){ const t=_t(); if(t){ t.sections.splice(si,1); tplRenderDetail(); } }
+function tplSecMove(si,d){ const t=_t(); if(!t) return; const j=si+d; if(j<0||j>=t.sections.length) return; const a=t.sections; [a[si],a[j]]=[a[j],a[si]]; tplRenderDetail(); }
+function tplAddSection(){ const t=_t(); if(t){ t.sections.push({name:'New Section',product:null,icon:'📂',tasks:[]}); tplRenderDetail(); } }
+function tplAddTask(si){ const t=_t(); if(t){ t.sections[si].tasks.push({t:'New task',role:'pm',off:0,imp:false,status:'todo',notes:'',subs:[]}); tplRenderDetail(); } }
+function tplTask(si,ti,f,v){ const t=_t(); if(t){ t.sections[si].tasks[ti][f]=v; } }
+function tplTaskImp(si,ti){ const t=_t(); if(t){ const tk=t.sections[si].tasks[ti]; tk.imp=!tk.imp; tplRenderDetail(); } }
+function tplTaskDel(si,ti){ const t=_t(); if(t){ t.sections[si].tasks.splice(ti,1); tplRenderDetail(); } }
+function tplAddSub(si,ti){ const t=_t(); if(t){ const tk=t.sections[si].tasks[ti]; (tk.subs=tk.subs||[]).push({t:'New subtask',role:tk.role,off:tk.off}); tplRenderDetail(); } }
+function tplSub(si,ti,ki,f,v){ const t=_t(); if(t){ t.sections[si].tasks[ti].subs[ki][f]=v; } }
+function tplSubDel(si,ti,ki){ const t=_t(); if(t){ t.sections[si].tasks[ti].subs.splice(ki,1); tplRenderDetail(); } }
+
+// ── NEW / DUPLICATE / DELETE ──────────────────────────────────────────
+function tplNew(){
+  const code='TPL-'+Math.random().toString(36).slice(2,6).toUpperCase();
+  PROJECT_TEMPLATES.push({code,name:'New Template',icon:'🧩',desc:'',products:[],sections:[
+    {name:'Start-Up',product:null,icon:'🚀',tasks:[{t:'Kickoff call',role:'pm',off:0,imp:true,status:'todo',subs:[]}]},
+  ]});
+  toast('Template created'); tplOpen(code);
+}
+function tplDup(code){
+  const t=tplFind(code); if(!t) return;
+  const copy=JSON.parse(JSON.stringify(t));
+  copy.code=t.code+'-COPY-'+Math.random().toString(36).slice(2,5).toUpperCase();
+  copy.name=t.name+' (copy)';
+  PROJECT_TEMPLATES.push(copy); toast('Template duplicated'); renderProjectTemplates();
+}
+function tplDel(code){
+  const i=PROJECT_TEMPLATES.findIndex(x=>x.code===code); if(i<0) return;
+  showModal('Delete template?',`<p style="font-size:13px;color:var(--text)">Delete <b>${escH(PROJECT_TEMPLATES[i].name)}</b>? This can’t be undone in preview.</p>`,
+    `<button class="btn btn-primary btn-sm" style="background:#ef4444" onclick="_tplDelConfirm('${code}')">Delete</button>`);
+}
+function _tplDelConfirm(code){
+  const i=PROJECT_TEMPLATES.findIndex(x=>x.code===code); if(i>=0) PROJECT_TEMPLATES.splice(i,1);
+  closeModal(); toast('Template deleted'); if(_tplCode===code)_tplCode=null; renderProjectTemplates();
+}
+
+// ── APPLY TEMPLATE TO PROJECT ─────────────────────────────────────────
+function tplApplyModal(code){
+  const t=tplFind(code); if(!t) return;
+  const prods=tplProductUnion(t);
+  const projOpts=(S.projects||[]).slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''))
+    .map(p=>`<option value="${p.id}">${escH((p.customers?.name?p.customers.name+' — ':'')+p.name)}</option>`).join('');
+  const custOpts=(S.customers||[]).slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''))
+    .map(c=>`<option value="${c.id}">${escH(c.name)}</option>`).join('');
+  const prodChecks=prods.length?prods.map(p=>`<label style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text);margin:2px 10px 2px 0"><input type="checkbox" class="tpl-prod" value="${p}" checked> ${escH(p)}</label>`).join(''):'<span style="font-size:12px;color:var(--dim)">This template has no product-specific sections — all sections apply.</span>';
+  showModal('Apply “'+escH(t.name)+'”',`
+  <div class="fstack">
+    <div class="fg"><label class="fl">Apply to</label>
+      <select class="fc" id="tpl-target" onchange="_tplTargetChange()">
+        <option value="__existing">An existing project…</option>
+        <option value="__new">➕ Create a new project</option>
+      </select></div>
+    <div id="tpl-existing-wrap" class="fg"><label class="fl">Project</label>
+      <select class="fc" id="tpl-proj">${projOpts||'<option value="">(no projects)</option>'}</select></div>
+    <div id="tpl-new-wrap" style="display:none">
+      <div class="fg"><label class="fl">New project name</label><input class="fc" id="tpl-np-name" placeholder="e.g. RMS/MDIS Implementation"></div>
+      <div class="fg"><label class="fl">Customer</label><select class="fc" id="tpl-np-cust"><option value="">— none —</option>${custOpts}</select></div>
+    </div>
+    <div class="fg"><label class="fl">Kickoff / start date</label><input class="fc" type="date" id="tpl-kick" value="${today()}"></div>
+    <div class="fg"><label class="fl">Include product modules</label><div style="padding:4px 0">${prodChecks}</div></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)"><input type="checkbox" id="tpl-autoassign" checked> Auto-assign tasks to default owner by role</label>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)"><input type="checkbox" id="tpl-clear"> Clear this project’s existing tasks first</label>
+  </div>`,
+  `<button class="btn btn-primary" onclick="tplApply('${code}')">Apply Template</button>`);
+}
+function _tplTargetChange(){
+  const mode=$('tpl-target').value;
+  $('tpl-existing-wrap').style.display = mode==='__existing'?'':'none';
+  $('tpl-new-wrap').style.display = mode==='__new'?'':'none';
+}
+function tplApply(code){
+  const t=tplFind(code); if(!t) return;
+  const mode=$('tpl-target').value;
+  const kick=$('tpl-kick').value||today();
+  const auto=$('tpl-autoassign').checked;
+  const clear=$('tpl-clear').checked;
+  const chosen=[...document.querySelectorAll('.tpl-prod:checked')].map(c=>c.value);
+  // Resolve / create the target project
+  let projId, projName;
+  if(mode==='__new'){
+    const nm=($('tpl-np-name').value||'').trim();
+    if(!nm){ toast('New project name required','err'); return; }
+    const cid=$('tpl-np-cust').value||null;
+    projId='proj-'+Math.random().toString(36).slice(2,8);
+    const cust=(S.customers||[]).find(c=>c.id===cid)||null;
+    const proj={id:projId,customer_id:cid,name:nm,type:'implementation',status:'active',products:chosen.length?chosen:null,start_date:kick,target_date:null,created_by:(S.profile?.id||null)};
+    (DUMMY_DATA.projects=DUMMY_DATA.projects||[]).push(proj);
+    projName=nm;
+  } else {
+    projId=$('tpl-proj').value;
+    if(!projId){ toast('Pick a project','err'); return; }
+    projName=(S.projects.find(p=>p.id===projId)||{}).name||'project';
+  }
+  // Optionally clear existing tasks/sections for this project
+  if(clear){
+    DUMMY_DATA.tasks=(DUMMY_DATA.tasks||[]).filter(x=>x.project_id!==projId);
+    DUMMY_DATA.sections=(DUMMY_DATA.sections||[]).filter(x=>x.project_id!==projId);
+  }
+  DUMMY_DATA.sections=DUMMY_DATA.sections||[];
+  DUMMY_DATA.tasks=DUMMY_DATA.tasks||[];
+  const addDays=(iso,d)=>{ const dt=new Date(iso+'T12:00:00'); dt.setDate(dt.getDate()+(d||0)); return dt.toISOString().split('T')[0]; };
+  const owner=(role)=>{ if(!auto) return {id:null,name:null}; const p=tplResolveRole(role); return {id:p?.id||null,name:p?.full_name||null}; };
+  let secOrder=DUMMY_DATA.sections.filter(s=>s.project_id===projId).length;
+  let taskOrder=0, nSec=0, nTask=0, nSub=0;
+  t.sections.forEach(sec=>{
+    if(sec.product && chosen.length && !chosen.includes(sec.product)) return; // skip unselected module
+    const secId='sec-'+Math.random().toString(36).slice(2,9);
+    DUMMY_DATA.sections.push({id:secId,project_id:projId,name:sec.name,sort_order:secOrder++}); nSec++;
+    sec.tasks.forEach(tk=>{
+      const o=owner(tk.role);
+      const taskId='task-'+Math.random().toString(36).slice(2,9);
+      DUMMY_DATA.tasks.push({id:taskId,project_id:projId,section_id:secId,parent_id:null,
+        title:tk.t,status:tk.status||'todo',assignee_id:o.id,assignee_name:o.name,
+        due_date:addDays(kick,tk.off),sort_order:taskOrder++,notes:tk.notes||null,important:!!tk.imp});
+      nTask++;
+      (tk.subs||[]).forEach(sb=>{
+        const so=owner(sb.role);
+        DUMMY_DATA.tasks.push({id:'task-'+Math.random().toString(36).slice(2,9),project_id:projId,section_id:secId,parent_id:taskId,
+          title:sb.t,status:'todo',assignee_id:so.id,assignee_name:so.name,
+          due_date:addDays(kick,sb.off),sort_order:taskOrder++,notes:null,important:false});
+        nSub++;
+      });
+    });
+  });
+  closeModal();
+  reload().then(()=>{ toast(`Applied “${t.name}” → ${nSec} sections · ${nTask} tasks · ${nSub} subtasks`); openProject(projId); });
+}
+
+/* ═══ (legacy shim kept so any old caller of tmpl* still works) ═══ */
+function tmplEdit(code){ tplOpen(code); }
+function tmplSave(){ toast('Saved'); }
+
 
 /* ═══ ADD USER  (old: /new/admin/adduser → tblUsers2 + permission flags) ═══ */
 const USER_PERMS=[['SS','Southern Software Employee','0'],['AdminUserManagement','View/manage users','0'],['AdminAddProjects','Add projects','0'],['ViewProjects','View Projects','0'],['EditProjects','Edit Projects','0'],['ViewCustomer','View Customers','0'],['EditCustomer','Edit Customers','0'],['ViewCustomerNotes','View Customer Notes','0'],['ViewMoneys','View Money sections','0'],['ViewReports','View Reports','0'],['AdminAddAgency','Add Agencies','0'],['KBView','Knowledge Base View','1'],['KBEdit','Knowledge Base Edit','0']];
